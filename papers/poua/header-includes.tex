@@ -1,0 +1,19 @@
+% Custom header includes for PoUA paper.
+% Improves table rendering and adds landscape support.
+
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+
+% A subtle sage tint for header rows (matches Ligate brand accent
+% #A7D28C, scaled for print-friendly contrast).
+\definecolor{tableheaderbg}{RGB}{223, 234, 209}
+\definecolor{tablerowalt}{RGB}{248, 250, 244}
+
+% Slightly taller rows so dense tables breathe.
+\renewcommand{\arraystretch}{1.25}
+
+% Softer rule color than pure black for booktabs-style rules.
+\arrayrulecolor{black!55}
