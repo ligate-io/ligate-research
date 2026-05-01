@@ -2,7 +2,7 @@
 
 ## A Consensus Primitive for Attestation-Native Chains
 
-**Ligate Labs Research, Working Paper v0.3**
+**Ligate Labs Research, Working Paper v0.4**
 
 **Date:** 2026-05-01
 
@@ -15,6 +15,7 @@
 - v0.1 (initial draft).
 - v0.2: added layered A3 defense in §5.5 with formal cost-to-grind lemma; corrected $\partial R_v / \partial r_v$ derivation in §6.3; reputation update in §4.3 now rewards voters with bounded per-epoch growth cap; added §11 FAQ.
 - v0.3: tightened Lemma 1 to incorporate the proposer reputation share $\alpha$ from §4.3 (strict bound $F^{\text{net}} \geq \tau_{\text{burn}} \Delta r / (\eta \alpha)$); added Figure 1 (system diagram) and Figure 2 (cost-to-attack curve); removed unverified citation in §2.3 and §11.
+- v0.4: replaced Theorem 1 and 2 proof sketches with reduction-style full proofs supported by Lemma 2 (weighted quorum intersection); replaced Appendix A skeleton with analytical false-positive bounds via $\chi^2$ approximation (A2) and Normal approximation (A3); updated §5.4 reputation-adversary bound for consistency with v0.3 Lemma 1; reordered bibliography alphabetically; added Lemma 1 and Lemma 2 to Appendix B recap.
 
 \newpage
 
@@ -373,13 +374,37 @@ For each, we ask: what is the minimum cost-to-attack required to acquire a fract
 
 ### 5.2 Safety and Liveness Inheritance
 
-**Theorem 1 (Safety inheritance).** *Under partial synchrony with $f < n/3$ Byzantine validators measured in weight (i.e., $\sum_{v \text{ Byzantine}} w_v < \frac{1}{3} \sum_u w_u$), PoUA preserves the safety property of its underlying BFT primitive: no two honest validators commit conflicting blocks at the same height.*
+We show that PoUA inherits safety and liveness from its underlying BFT primitive by reduction. The key supporting result is a weighted analogue of the standard quorum-intersection lemma used in BFT safety proofs.
 
-**Proof sketch.** PoUA modifies the underlying BFT only in the vote-weight function. The proof of safety in BFT (Castro & Liskov, 1999; Yin et al., 2019 for HotStuff; Buchman, 2016 for Tendermint) depends only on the property that no two disjoint quorums can each have $>2/3$ of total weight. This follows from the standard pigeonhole argument so long as Byzantine weight is bounded by $1/3$. PoUA's reputation weighting preserves this property by construction: the threshold is computed against the same total weight that includes reputation. $\blacksquare$
+**Lemma 2 (Weighted quorum intersection).** *Let $W = \sum_{u \in V} w_u$. For any two subsets $Q, Q' \subseteq V$ with $\sum_{v \in Q} w_v > \frac{2}{3} W$ and $\sum_{v \in Q'} w_v > \frac{2}{3} W$, the intersection satisfies $\sum_{v \in Q \cap Q'} w_v > \frac{1}{3} W$.*
 
-**Theorem 2 (Liveness inheritance).** *Under the same conditions, PoUA preserves liveness: every honestly proposed block by a non-Byzantine proposer is eventually finalized.*
+*Proof.* By inclusion-exclusion,
 
-**Proof sketch.** Liveness in BFT depends on view changes succeeding when a Byzantine proposer is selected, which requires a $>2/3$ honest weight quorum to vote for view change. The same pigeonhole argument applies. $\blacksquare$
+$$\sum_{v \in Q \cup Q'} w_v = \sum_{v \in Q} w_v + \sum_{v \in Q'} w_v - \sum_{v \in Q \cap Q'} w_v.$$
+
+Since $Q \cup Q' \subseteq V$, the left-hand side is at most $W$. Substituting and rearranging,
+
+$$\sum_{v \in Q \cap Q'} w_v \geq \sum_{v \in Q} w_v + \sum_{v \in Q'} w_v - W > \tfrac{2}{3}W + \tfrac{2}{3}W - W = \tfrac{1}{3}W. \square$$
+
+This is the weight-generalization of the count-based pigeonhole step that underlies safety in PBFT (Castro & Liskov, 1999), Tendermint (Buchman, 2016), and HotStuff (Yin et al., 2019). With Lemma 2 in hand the safety and liveness theorems become reductions to the underlying BFT primitive.
+
+**Theorem 1 (Safety inheritance).** *Let $\Pi_{\text{BFT}}$ be a BFT consensus protocol satisfying safety under partial synchrony with $f < n/3$ Byzantine validators in standard validator-count metric. Let $\Pi_{\text{PoUA}}$ be the variant in which validator counts are replaced by validator weights $w_v = s_v r_v$, with the Byzantine bound $\sum_{v \text{ Byz}} w_v < \frac{1}{3} W$. Then $\Pi_{\text{PoUA}}$ satisfies safety: no two honest validators commit conflicting blocks at the same height.*
+
+*Proof.* Suppose for contradiction that two honest validators commit conflicting blocks $B$ and $B'$ at the same height. By the commit rule (§4.2), each block was committed via a quorum of weight $> \frac{2}{3} W$. Let $Q_B, Q_{B'} \subseteq V$ denote the validator subsets that voted for $B, B'$ respectively. Both quorums have weight $> \frac{2}{3} W$.
+
+By Lemma 2, the intersection has weight $\sum_{v \in Q_B \cap Q_{B'}} w_v > \frac{1}{3} W$. By the Byzantine weight bound, the Byzantine validators have combined weight $< \frac{1}{3} W$. Therefore $Q_B \cap Q_{B'}$ contains at least one validator $v^*$ that is *not* Byzantine, i.e. honest.
+
+But $v^*$ is honest: by protocol, $v^*$ does not equivocate (does not vote for two conflicting blocks at the same height). This contradicts $v^* \in Q_B$ and $v^* \in Q_{B'}$. $\square$
+
+**Theorem 2 (Liveness inheritance).** *Under the same assumptions as Theorem 1, plus eventual synchrony (after a Global Stabilization Time $\text{GST}$, all message delays are bounded by a known constant $\Delta$), $\Pi_{\text{PoUA}}$ satisfies liveness: every block proposed by an honest proposer after $\text{GST}$ is eventually finalized.*
+
+*Proof.* Standard view-change arguments require that, when the current proposer is Byzantine, a quorum of weight $> \frac{2}{3} W$ honest weight can vote to advance the view. We show this holds under PoUA.
+
+By the Byzantine weight bound, $\sum_{v \text{ Byz}} w_v < \frac{1}{3} W$, so honest weight is $\sum_{v \text{ honest}} w_v > \frac{2}{3} W$. After $\text{GST}$, all honest validators see all messages within bound $\Delta$. They can therefore each cast their view-change vote. The combined honest view-change weight is the full honest weight, exceeding $\frac{2}{3} W$, satisfying the view-change threshold.
+
+The remainder of the liveness argument - that view changes converge on a single honest proposer, and that the honest proposer's block accumulates a $> \frac{2}{3} W$ commit quorum - follows the underlying $\Pi_{\text{BFT}}$ proof unchanged: the only modification PoUA makes is the metric used for "weight," and Lemma 2 ensures that metric supports the same quorum-intersection property the underlying proof relies on. $\square$
+
+**Remark (scope of inheritance).** Theorems 1 and 2 establish that PoUA does not weaken the consensus guarantees of its underlying BFT primitive. They do not establish that PoUA *strengthens* any guarantees beyond what the underlying primitive offers. PoUA's distinctive contribution is in the cost-to-attack analysis (§5.3) and the layered defense against compound capital-plus-grinding adversaries (§5.5), not in the consensus-correctness layer.
 
 ### 5.3 Capital Adversary
 
@@ -447,17 +472,17 @@ This premium $\kappa$ is the formal moat PoUA constructs over generic PoS. Figur
 
 The reputation adversary cannot simply purchase reputation. To raise their reputation from $r_{\min}$ to some $r_{\mathcal{R}} > r_{\min}$, they must include valid attestations as a block proposer, paying the protocol fees from their own pocket (or extracting them from collusion partners - see Section 5.5).
 
-Per Section 4.3, reputation increases by $\eta \cdot g_v(t)$ per epoch, where $g_v(t)$ is the fee-weighted count of valid attestations included. Across $T$ epochs, the cumulative reputation increase is bounded by:
+Per §4.3, reputation gain per attestation as proposer is at most $\eta \cdot \alpha \cdot \text{fee}(\alpha)$, where $\alpha \in (0, 1]$ is the proposer share of the reputation update (recommended $\alpha = 0.7$ in §7.2; the voter component $\beta$ contributes negligibly to the adversary acting as proposer). Across $T$ epochs, the cumulative reputation increase is bounded by:
 
-$$r_{\mathcal{R}}(T) - r_{\min} \leq \eta \cdot \sum_{t=0}^{T-1} g_v(t) = \eta \cdot F_{\mathcal{R}}$$
+$$r_{\mathcal{R}}(T) - r_{\min} \leq \eta \cdot \alpha \cdot F_{\mathcal{R}}^{\text{gross}},$$
 
-where $F_{\mathcal{R}}$ is the total fee paid by the adversary (or extracted from their attestation submissions) over the period. Because reputation is clipped at $r_{\max}$:
+where $F_{\mathcal{R}}^{\text{gross}}$ is the total gross fee submitted by the adversary over the period. Inverting:
 
-$$F_{\mathcal{R}} \geq \frac{r_{\mathcal{R}} - r_{\min}}{\eta}$$
+$$F_{\mathcal{R}}^{\text{gross}} \geq \frac{r_{\mathcal{R}} - r_{\min}}{\eta \cdot \alpha}.$$
 
-To raise reputation to $r_{\max}$, the adversary must pay at least $(r_{\max} - r_{\min})/\eta$ in attestation fees. This cost is **paid into the chain's economy** (treasury, builder routing) - i.e., it is not pure deadweight loss to the adversary, but it is also not recoverable.
+To raise reputation to $r_{\max}$, the adversary must pay at least $(r_{\max} - r_{\min})/(\eta \cdot \alpha)$ in gross attestation fees. This cost is **paid into the chain's economy** (treasury, builder routing) — i.e., for the *pure* reputation adversary (no fee recovery via owned schemas) it is not pure deadweight loss, but it is also not recoverable.
 
-The reputation adversary's strategy is thus economically equivalent to subsidizing the chain in exchange for a position of consensus influence. Whether this is a "real" cost depends on whether the adversary can externalize the fee (e.g., to dApp users they operate) or must absorb it.
+The pure-reputation adversary's strategy is thus economically equivalent to subsidizing the chain in exchange for a position of consensus influence. The compound adversary (§5.5) is the harder case: they attempt to recover fees via owned schemas, and the layered defense in §5.5 - particularly the Layer 3 treasury-burn rule and the formal cost-to-grind bound (Lemma 1) - prevents that recovery from collapsing the moat.
 
 ### 5.5 Compound Adversary and the A3 Layered Defense
 
@@ -903,8 +928,8 @@ The path forward: v0.2 → external technical reviewer feedback (mid-2026) → v
 8. Eyal, I. (2015). The Miner's Dilemma. *IEEE S&P 2015*.
 9. Gilad, Y., Hemo, R., Micali, S., Vlachos, G., Zeldovich, N. (2017). Algorand: Scaling Byzantine Agreements for Cryptocurrencies. *SOSP '17*.
 10. Haleem, A., Allen, A., Thompson, A., Nijdam, M., Garg, R. (2018). *Helium: A Decentralized Wireless Network*. Helium Inc.
-11. Kamvar, S. D., Schlosser, M. T., Garcia-Molina, H. (2003). The EigenTrust Algorithm for Reputation Management in P2P Networks. *WWW '03*.
-12. Hoffman, K., Zage, D., Nita-Rotaru, C. (2009). A Survey of Attack and Defense Techniques for Reputation Systems. *ACM Computing Surveys*, 42(1).
+11. Hoffman, K., Zage, D., Nita-Rotaru, C. (2009). A Survey of Attack and Defense Techniques for Reputation Systems. *ACM Computing Surveys*, 42(1).
+12. Kamvar, S. D., Schlosser, M. T., Garcia-Molina, H. (2003). The EigenTrust Algorithm for Reputation Management in P2P Networks. *WWW '03*.
 13. Resnick, P., Kuwabara, K., Zeckhauser, R., Friedman, E. (2000). Reputation Systems. *Communications of the ACM*, 43(12), 45-48.
 14. Sovereign Labs. (2024). *Sovereign SDK Documentation*. github.com/Sovereign-Labs/sovereign-sdk.
 15. Yin, M., Malkhi, D., Reiter, M. K., Gueta, G. G., Abraham, I. (2019). HotStuff: BFT Consensus with Linearity and Responsiveness. *PODC '19*.
@@ -914,36 +939,77 @@ The path forward: v0.2 → external technical reviewer feedback (mid-2026) → v
 
 ## Appendix A: Statistical Detection of A2 (Censorship) and A3 (Grinding)
 
-*Status: Skeleton specification; full statistical procedure with false-positive bounds to be added in v0.2 after empirical calibration on devnet.*
+This appendix specifies the heuristic detectors that constitute Layer 4 of the §5.5 layered defense. We give analytical false-positive bounds under explicit null-hypothesis assumptions; empirical power analysis (how often the detector catches real adversaries) requires devnet traffic data and is deferred to v1.0.
 
-### A.1 A2 Detection: Selective Schema Censorship
+### A.1 A2 Detection: Selective Schema Censorship via KL-Divergence
 
-Per epoch, for each validator $v$ acting as proposer, define:
+**Setup.** Per epoch $t$, for each validator $v$ that acted as proposer in $N_v(t) \geq N_{\min}$ blocks (e.g., $N_{\min} = 10$ to guarantee enough samples for the statistical approximation):
 
-- $D_v(t) \in \Delta(\Sigma)$: the empirical distribution over schemas of attestations $v$ included.
-- $D_{\text{net}}(t) \in \Delta(\Sigma)$: the network-wide empirical distribution over schemas of all attestations *available* in the mempool during $v$'s proposer window.
+- $D_v(t) \in \Delta(\Sigma)$: empirical distribution over schemas of the attestations $v$ included as proposer in epoch $t$.
+- $D_{\text{net}}(t) \in \Delta(\Sigma)$: network-wide empirical distribution over schemas of all attestations available in the mempool during $v$'s proposer slots.
 
-Censorship is signaled when KL-divergence $D_{\text{KL}}(D_v(t) \| D_{\text{net}}(t))$ exceeds a threshold $\theta_2$ for at least $T_{\text{detect}}$ consecutive epochs.
+**Test statistic.** The Kullback-Leibler divergence
 
-False-positive bound: $\Pr[\text{honest } v \text{ flagged}] \leq \beta_2$ per epoch, where $\beta_2$ is calibrated by empirical study on devnet.
+$$D_{\text{KL}}(D_v \| D_{\text{net}}) = \sum_{\sigma \in \Sigma} D_v(\sigma) \log \frac{D_v(\sigma)}{D_{\text{net}}(\sigma)}.$$
 
-Open: precise mempool-snapshot semantics (the network-wide distribution must be observable to all validators reproducibly).
+**Null hypothesis $H_0$.** Validator $v$ samples included attestations from the mempool uniformly (i.e., does not selectively censor any schema).
 
-### A.2 A3 Detection: Reputation Grinding
+**Distributional approximation.** Under $H_0$, by Wilks' theorem the scaled statistic $2 N_v(t) \cdot D_{\text{KL}}(D_v \| D_{\text{net}})$ converges in distribution to $\chi^2_{|\Sigma|-1}$ (chi-squared with $|\Sigma|-1$ degrees of freedom) as $N_v(t) \to \infty$. The approximation is good for $N_v(t) \cdot \min_\sigma D_{\text{net}}(\sigma) \geq 5$, the standard rule of thumb for chi-squared goodness-of-fit.
 
-Per epoch, for each validator $v$, compute the *self-attestation graph density*: the fraction of attestations $v$ included whose submitter address has any of the following relationships to $v$:
+**Threshold.** For target false-positive rate $\beta_2$ per epoch (e.g., $\beta_2 = 0.01$):
 
-- Same address.
-- Address shares an attestor-set membership with $v$'s validator address.
-- Address has a transaction history within $T_{\text{lookback}}$ blocks of $v$'s validator address.
+$$\theta_2 = \frac{1}{2 N_v(t)} \cdot \chi^2_{|\Sigma|-1,\ 1-\beta_2}$$
 
-Grinding is signaled when self-attestation graph density exceeds threshold $\theta_3$ over a measurement window.
+where $\chi^2_{k, p}$ is the $p$-quantile of the chi-squared distribution with $k$ degrees of freedom.
 
-False-positive bound: $\Pr[\text{honest } v \text{ flagged}] \leq \beta_3$ per epoch.
+**Detection rule.** Flag $v$ if $D_{\text{KL}}(D_v \| D_{\text{net}}) > \theta_2$ for at least $T_{\text{detect}}$ consecutive epochs (recommended $T_{\text{detect}} = 3$). Requiring consecutive epochs reduces the false-positive rate from $\beta_2$ to approximately $\beta_2^{T_{\text{detect}}}$, giving $\beta_2 = 0.01$ per epoch and $\beta_2^3 = 10^{-6}$ per cumulative flag, sufficient to keep wrongful slashes rare in practice.
 
-Open: Sybil-resistant address-graph analysis. Adversaries can (and will) proxy through fresh shell addresses; the detection must operate on *pseudonymous-but-correlated* address graphs, which is a pattern-recognition problem that becomes harder as the adversary invests in graph laundering.
+**Implementation note.** The mempool snapshot $D_{\text{net}}(t)$ must be observable to all validators reproducibly. Achieving this in the consensus pipeline requires either (i) periodically committing mempool digests to the chain, or (ii) reconstructing $D_{\text{net}}$ from the union of all validators' included-attestation sets in the epoch (less precise but cheaper). v1.0 will pick one approach based on engineering tradeoffs; the analytical bound above is independent of the choice.
 
-Empirical calibration of $\theta_2, \theta_3, T_{\text{detect}}, T_{\text{lookback}}, \beta_2, \beta_3$ requires devnet attestation traffic at non-trivial volume. We commit to publishing calibration results in PoUA v0.2.
+### A.2 A3 Detection: Reputation Grinding via Bipartite Graph Density
+
+**Setup.** Per epoch $t$, for each validator $v$, construct the bipartite graph $G_v(t) = (U_v, W_v, E_v)$ where:
+
+- $U_v$: distinct submitter addresses of attestations $v$ included as proposer in epoch $t$.
+- $W_v$: distinct attestor-set members appearing in the schemas those attestations target.
+- $E_v$: edges between $u \in U_v$ and $w \in W_v$ where there is observable correlation in the on-chain transaction graph (within $T_{\text{lookback}}$ blocks of funding history involving $v$).
+
+**Test statistic.** Bipartite edge density
+
+$$\rho_v(t) = \frac{|E_v|}{|U_v| \cdot |W_v|}.$$
+
+**Null hypothesis $H_0$.** No shared beneficial owner between $v$ and the submitter or attestor-set populations: edges in $G_v(t)$ form independently of $v$ at chain-wide baseline rate $p_{\text{base}}$, where $p_{\text{base}}$ is the empirical edge density of the chain-wide bipartite graph between submitter addresses and attestor-set members in the same epoch.
+
+**Distributional approximation.** Under $H_0$ with the Erdős-Rényi-like assumption above, $|E_v|$ is approximately $\text{Binomial}(|U_v||W_v|, p_{\text{base}})$. For large $|U_v||W_v|$ (typical when $v$ proposes more than a handful of attestations across multiple schemas), the Normal approximation gives
+
+$$\rho_v(t) \mathrel{\dot\sim} \mathcal{N}\!\left(p_{\text{base}},\ \frac{p_{\text{base}}(1 - p_{\text{base}})}{|U_v||W_v|}\right).$$
+
+**Threshold.** For target false-positive rate $\beta_3$ per epoch:
+
+$$\theta_3 = p_{\text{base}} + z_{1-\beta_3} \sqrt{\frac{p_{\text{base}}(1 - p_{\text{base}})}{|U_v||W_v|}}$$
+
+where $z_{1-\beta_3}$ is the $(1-\beta_3)$-quantile of the standard Normal distribution. For $\beta_3 = 0.01$, $z_{0.99} \approx 2.326$.
+
+**Detection rule.** Flag $v$ if $\rho_v(t) > \theta_3$ for at least $T_{\text{detect}}$ consecutive epochs.
+
+**Implementation note.** The "observable correlation" relation in $E_v$ is the heuristic part of A3 detection. Layer 2 of the §5.5 layered defense (address-graph distance) provides a hard rule that rejects attestations from too-near submitter addresses; A3 catches the residual cases where the adversary stages addresses sufficiently far apart to clear Layer 2 but the bipartite graph still shows above-baseline density across the staged population. Each of $T_{\text{lookback}}$ and the precise correlation predicate is a calibration choice that v1.0 will fix from devnet observations.
+
+### A.3 Per-Epoch Adaptive Computation
+
+The thresholds $\theta_2, \theta_3$ depend on observed parameters ($N_v, |\Sigma|, p_{\text{base}}, |U_v|, |W_v|$), all of which are computable per-epoch from the prior epoch's chain state. Production deployment computes them per-epoch, providing data-adaptive thresholds while preserving the analytical false-positive guarantees of $\beta_2, \beta_3$ stated above.
+
+### A.4 What This Appendix Establishes (and What It Defers)
+
+This appendix establishes the **false-positive bound** for both detectors under stated null-hypothesis assumptions:
+- A2: chi-squared distribution under independent sampling from $D_{\text{net}}$.
+- A3: Normal approximation under Erdős-Rényi baseline edge formation.
+
+It does **not** establish **power** (the rate at which the detector catches actual adversaries). Power analysis requires either:
+
+1. **Synthetic-traffic simulation** with adversarial models, the workstream tracked at [`prototypes/poua-sim/`](https://github.com/ligate-io/ligate-research/tree/main/prototypes/poua-sim). The simulator is the natural place to validate that $\beta_2, \beta_3$ are correctly bounded under realistic honest baselines and that the detector has acceptable true-positive rate against synthetic A2/A3 attackers.
+2. **Devnet observation** with real attestation traffic. After devnet stabilizes (mid-2026 in the current roadmap), real validator behavior under real attestation workloads provides the ground truth that synthetic simulation can only approximate.
+
+v1.0 of this paper will incorporate empirical power analysis from one or both sources, replacing the analytical bounds with calibrated values where appropriate.
 
 ---
 
@@ -979,8 +1045,12 @@ $$b_v(t) = \sum_{i \in \{1,2,3\}} \Lambda_i \cdot |\{\text{detected slashes of s
 
 **Definition B.8 (Cost-to-attack premium).** $\kappa = \bar{r}_H / r_{\min}$ where $\bar{r}_H$ is the mean reputation of honest validators.
 
+**Lemma 2 (Weighted quorum intersection, recap).** Let $W = \sum_{u \in V} w_u$. For any $Q, Q' \subseteq V$ with $\sum_{v \in Q} w_v > \frac{2}{3} W$ and $\sum_{v \in Q'} w_v > \frac{2}{3} W$, the intersection satisfies $\sum_{v \in Q \cap Q'} w_v > \frac{1}{3} W$. (Proof: §5.2 via inclusion-exclusion. Used in Theorems 1 and 2.)
+
+**Lemma 1 (Cost-to-grind bound, recap).** Under Layer 3 with parameter $\tau_{\text{burn}}$ and proposer reputation share $\alpha$, any compound adversary acting as proposer to acquire reputation gain $\Delta r$ pays non-recoverable fees $F_{\mathcal{CR}}^{\text{net}} \geq \tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha)$. (Proof: §5.5.3.)
+
 ---
 
-*End of working paper v0.1. Comments welcome to hello@ligate.io.*
+*End of working paper v0.4. Comments welcome to hello@ligate.io.*
 
 *Roadmap: v0.2 adds Appendix A statistical specifications, Section 6 formal incentive compatibility proof sketch, and devnet calibration data. Target: Q3 2026.*

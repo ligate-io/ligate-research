@@ -4,8 +4,8 @@ A consensus weighting primitive for attestation-native chains.
 
 ## Latest
 
-- **Working paper**: [`poua.pdf`](poua.pdf) (compiled) / [`poua.md`](poua.md) (source)
-- **Version**: v0.3
+- **Working paper**: [`poua.pdf`](poua.pdf) (compiled) / [`poua.md`](poua.md) (markdown source) / [`poua.tex`](poua.tex) (LaTeX source for arXiv)
+- **Version**: v0.4
 - **Status**: Draft for internal review and design-partner circulation
 - **Date**: 2026-05-01
 
@@ -32,6 +32,7 @@ See the root [CONTRIBUTING.md](../../CONTRIBUTING.md) for tooling setup.
 
 ## Version history
 
+- **v0.4** (2026-05-01): replaced Theorem 1 and 2 proof sketches with reduction-style full proofs supported by Lemma 2 (weighted quorum intersection); replaced Appendix A skeleton with analytical false-positive bounds via $\chi^2$ approximation (A2) and Normal approximation (A3); updated §5.4 reputation-adversary bound for consistency with v0.3 Lemma 1; reordered bibliography alphabetically; added Lemma 1 and Lemma 2 to Appendix B recap.
 - **v0.3** (2026-05-01): tightened Lemma 1 to incorporate the proposer reputation share $\alpha$ (strict bound $F^{\text{net}} \geq \tau_{\text{burn}} \Delta r / (\eta \alpha)$); added Figure 1 (system diagram) and Figure 2 (cost-to-attack curve); cleaned references (removed unverified citation in §2.3 and §11; added Hoffman 2009 and Resnick 2000 to ground the trust-and-reputation systems literature).
 - **v0.2** (2026-05-01): added layered A3 defense in §5.5 with formal cost-to-grind lemma; corrected $\partial R_v / \partial r_v$ derivation in §6.3; reputation update in §4.3 now rewards voters with bounded per-epoch growth cap to prevent positive-feedback entrenchment; added §11 FAQ addressing common misunderstandings.
 - **v0.1** (2026-04-30): initial draft.
