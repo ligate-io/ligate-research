@@ -2,7 +2,7 @@
 
 ## A Consensus Primitive for Attestation-Native Chains
 
-**Ligate Labs Research, Working Paper v0.4**
+**Ligate Labs Research, Working Paper v0.5**
 
 **Date:** 2026-05-01
 
@@ -16,6 +16,7 @@
 - v0.2: added layered A3 defense in §5.5 with formal cost-to-grind lemma; corrected $\partial R_v / \partial r_v$ derivation in §6.3; reputation update in §4.3 now rewards voters with bounded per-epoch growth cap; added §11 FAQ.
 - v0.3: tightened Lemma 1 to incorporate the proposer reputation share $\alpha$ from §4.3 (strict bound $F^{\text{net}} \geq \tau_{\text{burn}} \Delta r / (\eta \alpha)$); added Figure 1 (system diagram) and Figure 2 (cost-to-attack curve); removed unverified citation in §2.3 and §11.
 - v0.4: replaced Theorem 1 and 2 proof sketches with reduction-style full proofs supported by Lemma 2 (weighted quorum intersection); replaced Appendix A skeleton with analytical false-positive bounds via $\chi^2$ approximation (A2) and Normal approximation (A3); updated §5.4 reputation-adversary bound for consistency with v0.3 Lemma 1; reordered bibliography alphabetically; added Lemma 1 and Lemma 2 to Appendix B recap.
+- v0.5: prose pass on the high-visibility sections (Abstract, §1.1-1.6, §5.1, §5.5, §6.1, §10, §11 opener) - reduced hedging filler, varied sentence rhythm, cut bulleted-claim density where flowing prose worked, added explicit author voice. Technical content unchanged; specifications, theorems, definitions, and numerical claims preserved verbatim.
 
 \newpage
 
@@ -25,11 +26,11 @@
 
 ## Abstract
 
-We present **Proof of Useful Attestation (PoUA)**, a consensus weighting primitive in which validator influence is determined by the joint product of bonded stake and a non-transferable reputation score derived from successful participation in the chain's attestation workload. Where Proof of Stake (PoS) protocols select block proposers solely as a function of bonded capital, and Proof of Authority (PoA) variants rely on permissioned identity, PoUA couples consensus economic security to the productive workload of an attestation-native chain: validators accumulate consensus weight by reliably ordering, including, and verifying valid attestation transactions, and lose it by slashing on observable misbehavior.
+Consensus mechanisms for chains whose primary economic activity is attestation production - content provenance, AI-output attribution, threshold-signed credentials, supply-chain traceability - are misaligned with the workload they secure. Validators on a generic Proof of Stake chain earn the same fees regardless of whether they handle attestation work correctly or selectively censor it. **Proof of Useful Attestation (PoUA)** changes that.
 
-PoUA is designed for chains whose central economic activity is the production and verification of cryptographic attestations against typed schemas - the architecture instantiated by Ligate Chain. We present the protocol's specification, a formal threat model under standard partial-synchrony assumptions, an incentive analysis under a profit-maximizing-validator behavioral model, and a concrete instantiation atop the Sovereign SDK rollup framework. We argue that PoUA preserves the safety and liveness properties of its underlying BFT primitive (here: Tendermint-style optimistic finality) while constructing a Sybil-resistant economic moat that cannot be replicated on a generic Layer 1 without re-architecting consensus.
+In PoUA, validator influence is computed as bonded stake multiplied by a non-transferable reputation score that grows with valid attestation processing and shrinks under detected misbehavior. The primitive is designed for chains whose runtime, fee market, and economic model are purpose-built for attestations - Ligate Chain is the worked example throughout. We give the protocol specification, a threat model under standard partial-synchrony, an incentive analysis under a profit-maximizing validator model, and a concrete integration with the Sovereign SDK rollup framework. PoUA inherits the safety and liveness properties of its underlying BFT primitive (Tendermint-style optimistic finality, in deployment) and constructs a multiplicative cost-to-attack premium of $4\times$ to $10\times$ over equivalent pure-stake chains.
 
-The contribution is **not** the discovery of a fundamentally new cryptographic primitive. It is the synthesis of three existing lines of work - reputation-weighted consensus (Yu et al., 2019; Eyal, 2015), proof-of-useful-work (Helium 2018; Filecoin 2017), and restaking with non-transferable bonds (EigenLayer, 2023) - into a single mechanism appropriate for attestation-as-product chains, with specific design choices tuned to the attestation workload, formal sybil-resistance bounds, and a documented integration path into a production-ready rollup framework.
+The contribution is not a new cryptographic primitive. It is a synthesis: reputation-weighted consensus (Yu et al., 2019; Eyal, 2015), proof-of-useful-work (Helium 2018; Filecoin 2017), and restaking with non-transferable bonds (EigenLayer, 2023), recombined to fit attestation-native chains, and given the specific mechanism choices, Sybil-resistance argument, and engineering integration that prior work does not. The hard part - defending against compound capital-and-grinding adversaries who control validators, attestor sets, and submitter addresses simultaneously - is treated through a layered defense whose load-bearing piece is a formal cost-to-grind bound (Lemma 1).
 
 ---
 
@@ -37,59 +38,59 @@ The contribution is **not** the discovery of a fundamentally new cryptographic p
 
 ### 1.1 The Attestation-Native Chain Thesis
 
-The thesis underlying this work is that a chain whose primary economic activity is the production and verification of cryptographic attestations against typed schemas - what we term an *attestation-native chain* - should not, and ultimately will not, be built atop consensus mechanisms designed for general-purpose state transition. Just as Ethereum displaced general-purpose-computing-on-Bitcoin by recognizing that smart contracts deserve their own runtime, and Filecoin and Helium displaced storage-on-Ethereum and wireless-on-Ethereum by recognizing that storage and coverage deserve their own consensus, attestation work - increasingly the dominant on-chain workload across several emerging application categories - deserves its own consensus mechanism. A general-purpose chain hosting attestation contracts can serve the workload, but cannot defend it.
+A chain whose primary economic activity is the production and verification of cryptographic attestations against typed schemas - call it an *attestation-native chain* - should not be built on consensus mechanisms designed for general-purpose state transition. Ethereum displaced computing-on-Bitcoin by recognizing that smart contracts needed their own runtime. Filecoin and Helium displaced storage-on-Ethereum and wireless-on-Ethereum by recognizing that storage and coverage needed their own consensus. Attestation work is the next case. A general-purpose chain hosting attestation contracts can serve the workload, but cannot defend it.
 
-Ligate Chain instantiates the attestation-native thesis. The runtime is purpose-built around schemas, attestor sets, and threshold-signed attestations as first-class primitives, and the fee market, the validator economic model, and (we argue here) the consensus mechanism itself should be designed accordingly. This paper specifies the consensus component of that purpose-built design: **Proof of Useful Attestation (PoUA)**, a weighting primitive in which validator influence is causally linked to the validator's history of producing valid attestation work.
+Ligate Chain is the worked example of an attestation-native chain. The runtime is built around schemas, attestor sets, and threshold-signed attestations as first-class primitives. The fee market, the validator economic model, and the consensus mechanism follow from that choice. This paper covers the consensus component: **Proof of Useful Attestation (PoUA)**, a weighting primitive in which validator influence is tied to the validator's history of producing valid attestation work.
 
-The argument is not merely engineering-aesthetic. It is economic: a chain whose security budget is sized to its attestation workload, and whose security mechanism rewards the validators most useful to that workload, can offer a defensibility profile - what investors call a *moat* - that a generic chain hosting attestation contracts cannot. Section 5 quantifies this moat as a multiplicative cost-to-attack premium of $4\times$ to $10\times$ over equivalent pure-stake Proof of Stake chains.
+The argument is economic, not aesthetic. A chain whose security budget is sized to its attestation workload, and whose security mechanism pays the validators most useful to that workload, has a defensibility profile - a moat - that a generic chain hosting attestation contracts does not. Section 5 quantifies the moat: a $4\times$ to $10\times$ multiplicative premium on cost-to-attack over equivalent pure-stake Proof of Stake chains.
 
 ### 1.2 Why Now: The 2026 Inflection
 
-Three concurrent shifts in late 2025 and early 2026 make the attestation-native chain proposition timely.
+Three shifts in late 2025 and early 2026 make this work timely.
 
-**The provenance crisis.** Generative AI has reached the threshold at which audio, video, and prose indistinguishable from human-produced content are commodity-priced and freely available. Independent estimates suggest that a substantial fraction of newly published online content in 2026 carries some form of generative-AI involvement, with provenance documentation absent from the vast majority. The tooling needed to attest, on-chain and at scale, that a piece of content is human-produced (or, conversely, that a piece of evidence is AI-augmented) is increasingly demanded - by news organizations defending against synthetic-evidence lawsuits, by regulators implementing the EU AI Act's transparency clauses, by consumer-AI products required to disclose model involvement, by content marketplaces hedging against authenticity-fraud liability. The attestation workload is not hypothetical; it is a near-term volume-and-pricing problem.
+**The provenance crisis.** Generative AI now produces audio, video, and prose indistinguishable from human-made content, at commodity prices. A substantial fraction of newly published online content in 2026 has some form of generative-AI involvement, with provenance documentation usually missing. The demand for on-chain attestation - that a piece of content is human-produced, that a piece of evidence is AI-augmented, that an AI output came from a specific model at a specific time - is no longer speculative. News organizations are defending against synthetic-evidence lawsuits. Regulators are implementing the EU AI Act's transparency clauses. Consumer-AI products are being required to disclose model involvement. The attestation workload is a volume-and-pricing problem with an actual customer base.
 
-**The restaking maturity.** EigenLayer's restaking ecosystem, launched on Ethereum mainnet in 2023, demonstrated that an additional security mechanism can be layered onto an existing PoS chain at scale. The conceptual breakthrough - that consensus security can be reused, rebonded, and slashed across multiple application surfaces - opens space for further specialization. PoUA is one such specialization: not a layer atop an existing chain, but a purpose-built primitive for chains whose attestation workload *is* the application surface, with bonding and slashing tied directly to that workload's correctness.
+**The restaking maturity.** EigenLayer launched on Ethereum mainnet in 2023 and showed that consensus security can be reused, rebonded, and slashed across multiple application surfaces at scale. That conceptual breakthrough opened space for further specialization. PoUA is one such specialization: not a layer atop an existing chain, but a primitive built into a chain whose attestation workload *is* the application surface, with bonding and slashing tied directly to that workload's correctness.
 
-**The Sovereign SDK production-readiness.** The Sovereign SDK rollup framework, which provides modular consensus, data availability, and execution composition that admits custom kernel layers, reached its first production release window in 2025-2026. This is the substrate atop which Ligate Chain - and any attestation-native chain following - can be built without reimplementing the entire stack. PoUA is specified throughout this paper as a Sovereign SDK kernel extension; Section 7 details the integration.
+**The Sovereign SDK production-readiness.** The Sovereign SDK rollup framework, which provides modular consensus, data availability, and execution layers with hooks for custom kernels, hit its first production release window in 2025-2026. This is the substrate Ligate Chain is built on, and the substrate any attestation-native chain following can be built on without reimplementing the lower stack. Section 7 details the PoUA integration as a kernel extension.
 
-The combination - a near-term validated demand surface, a maturity in the restaking-and-specialization paradigm, and a substrate that admits the proposed mechanism - gives PoUA a constructive design window that did not exist eighteen months ago.
+These three together - a near-term validated demand surface, a maturity in the restaking-and-specialization paradigm, and a substrate that admits the proposed mechanism - give PoUA a design window that did not exist eighteen months ago.
 
 ### 1.3 The Misalignment Problem
 
-A growing class of decentralized applications - content provenance for AI-generated media, sponsorship attestation in autonomous-agent transactions, regulatory time-locks, threshold-signed credential issuance, supply-chain traceability - share a common structural feature: their on-chain footprint is dominated not by general-purpose state transitions but by the production of *attestations*: cryptographically signed statements of the form "set of authorities $\mathcal{A}$ attests that statement $s$ holds against schema $\sigma$ at time $t$."
+A growing class of decentralized applications - content provenance for AI-generated media, sponsorship attestation in autonomous-agent transactions, regulatory time-locks, threshold-signed credentials, supply-chain traceability - has a common structural feature. Its on-chain footprint is dominated not by general-purpose state transitions but by *attestations*: cryptographically signed statements of the form "set of authorities $\mathcal{A}$ attests that statement $s$ holds against schema $\sigma$ at time $t$."
 
-When such applications are built atop general-purpose blockchains (Ethereum, Solana, Cosmos application chains), three pathologies emerge that motivate this work:
+Built on general-purpose blockchains (Ethereum, Solana, Cosmos application chains), this workload has three problems.
 
-1. **Composability tax.** Each attestation incurs the cost of a generic smart-contract state write, despite the underlying operation being structurally simple (verify $k$-of-$n$ signatures, write a hash). On Ethereum mainnet, a single attestation costs \$0.50 to \$5.00 in gas; on most Layer-2 networks, \$0.01 to \$0.10. For applications producing thousands of attestations per second - within the design envelope of mainstream content provenance use cases - this pricing is prohibitive even on the cheapest current host chains.
+The first is a **composability tax**. Each attestation pays the cost of a generic smart-contract state write, despite the underlying operation being simple - verify $k$-of-$n$ signatures and write a hash. On Ethereum mainnet a single attestation costs \$0.50 to \$5.00 in gas; on most Layer-2 networks, \$0.01 to \$0.10. For applications producing thousands of attestations per second, which is the design envelope for mainstream content-provenance products, this pricing is prohibitive even on the cheapest host chains.
 
-2. **Schema fragmentation.** Attestation schemas live in independently deployed contracts; there is no global registry, no typed composition primitive, and no protocol-level guarantee that two schemas claiming the same name refer to the same underlying contract. Cross-schema dependencies are expressed as ad-hoc external calls without compile-time guarantees, and consumers of attestation data must solve the discovery problem off-chain or trust a centralized registry.
+The second is **schema fragmentation**. Attestation schemas live in independently deployed contracts. There is no global registry, no typed composition primitive, no protocol-level guarantee that two schemas claiming the same name refer to the same underlying contract. Cross-schema dependencies become ad-hoc external calls without compile-time guarantees. Consumers of attestation data either solve discovery off-chain or trust a centralized registry.
 
-3. **Misaligned consensus incentives.** Validators on general-purpose chains earn fees from any state transition. They have no economic incentive to specialize in attestation workloads, and no penalty for behaviors specifically harmful to attestation integrity (e.g., selectively excluding attestations from certain schemas, accepting invalid threshold signatures into ordering, or extracting maximal value from attestation transactions through reordering attacks). The chain's economic security mechanism is, in effect, indifferent to the application-layer correctness of its dominant workload.
+The third is **misaligned consensus incentives** - the problem this paper concerns. Validators on general-purpose chains earn fees from any state transition. They have no economic reason to specialize in attestation workloads, and no penalty for behaviors specifically harmful to attestation integrity: selectively excluding attestations from certain schemas, accepting invalid threshold signatures, extracting MEV from attestation reordering. The chain's economic security is indifferent to the application-layer correctness of its dominant workload.
 
-An *attestation-native* chain - one whose runtime, fee market, and consensus mechanism are purpose-built for attestation production - addresses all three. This paper concerns the third pathology: the design of a consensus mechanism specifically aligned with attestation work. Other components of the attestation-native architecture (per-schema fee markets, native delegation primitives, cross-schema composition typing, time-locked / commit-reveal schemas) are addressed in companion papers.
+An attestation-native chain whose runtime, fee market, and consensus mechanism are built for attestation production addresses all three problems. The remaining components of that architecture (per-schema fee markets, native delegation, cross-schema composition typing, time-locked / commit-reveal schemas) are the subject of companion papers; this one is about consensus.
 
 ### 1.4 The Central Question
 
-In a Proof of Stake chain with attestation as its primary workload, a validator's stake is fungible with stake on any other Proof of Stake chain. There is nothing that ties consensus security to attestation correctness beyond the indirect channel of slashing for consensus-layer double-signing. A determined adversary with sufficient capital can buy stake on the chain, perform attestation work badly (selectively censoring schemas the adversary disfavors, accepting invalid attestations from corrupt attestor sets the adversary controls, extracting MEV from attestation reordering), and suffer no consequence beyond the standard PoS penalties - none of which trigger on attestation-specific misbehavior.
+In a Proof of Stake chain with attestation as its primary workload, a validator's stake is fungible with stake on any other Proof of Stake chain. Nothing ties consensus security to attestation correctness beyond the indirect channel of slashing for consensus-layer double-signing. An adversary with capital can buy stake, perform attestation work badly - censor schemas they disfavor, accept invalid attestations from corrupt attestor sets they control, extract MEV from attestation reordering - and suffer no consequence. The standard PoS slashing conditions do not trigger on attestation-specific misbehavior.
 
-We ask:
+The question of this paper:
 
 > **Can a consensus mechanism be designed in which a validator's influence is causally linked to their history of producing valid attestation work, in a Sybil-resistant manner that cannot be replicated by stake-only chains?**
 
-PoUA answers this in the affirmative. The remainder of this paper specifies the mechanism, characterizes its security and incentive properties, demonstrates that the answer is constructive (i.e., implementable in a production Sovereign SDK rollup), and quantifies the moat the mechanism creates.
+PoUA answers yes. The rest of the paper specifies the mechanism, analyzes its security and incentive properties, demonstrates the answer is implementable on a production rollup framework, and quantifies the resulting moat.
 
 ### 1.5 Approach in Brief
 
-PoUA's mechanism, in three sentences before the formal specification:
+The mechanism, before the formal specification, in three points.
 
-1. **Validator influence is computed as the product of bonded stake and a non-transferable reputation score.** Where standard PoS uses $w_v = s_v$ (validator weight equals stake), PoUA uses $w_v = s_v \cdot r_v$ with $r_v \in [r_{\min}, r_{\max}]$ a reputation multiplier in a bounded interval.
+First: validator influence is computed as bonded stake times a non-transferable reputation score. Where standard PoS uses $w_v = s_v$, PoUA uses $w_v = s_v \cdot r_v$ with $r_v$ a multiplier in a bounded interval $[r_{\min}, r_{\max}]$.
 
-2. **Reputation accumulates through validator-side participation in valid attestation processing**, weighted by the economic value of the attestations included, and decays through detected misbehavior. The "useful" in *Proof of Useful Attestation* is captured here: reputation rewards work the chain's economy values, not arbitrary on-chain activity.
+Second: reputation accumulates through validator-side participation in valid attestation processing, weighted by the economic value of the attestations included, and decays through detected misbehavior. The "useful" in *Proof of Useful Attestation* lives here. Reputation rewards work the chain's economy values, not arbitrary on-chain activity.
 
-3. **The reputation interval is bounded above and below**: $r_{\min} > 0$ ensures cold-start eligibility for new validators (no permanent lock-out by entrenched incumbents); $r_{\max} < \infty$ prevents runaway concentration of consensus weight on a small set of long-running validators.
+Third: the reputation interval is bounded both ways. $r_{\min} > 0$ ensures new validators have non-zero consensus weight from stake alone, eliminating cold-start lockout. $r_{\max} < \infty$ prevents runaway concentration on long-running validators.
 
-The mechanism preserves the safety and liveness properties of the underlying BFT primitive (Theorems 1 and 2 in Section 5.2), which is to say it does not weaken the consensus guarantees a chain operator and end user can rely on. It strengthens the cost-to-attack against capital-only adversaries by a multiplicative factor (Section 5.3) related to the average reputation of the honest validator set, and it ties the chain's economic security to the chain's productive workload in a way that pure-stake PoS chains cannot replicate without rearchitecting consensus from the ground up.
+The mechanism inherits the safety and liveness of its underlying BFT primitive (Theorems 1 and 2 in §5.2). It does not weaken anything a chain operator currently relies on. It strengthens cost-to-attack against capital-only adversaries by a multiplicative factor related to the honest validator set's average reputation (§5.3), and it ties the chain's economic security to the chain's productive workload in a way pure-stake PoS chains cannot replicate without changing consensus.
 
 The key formal result, derived in Section 5.3, is that the cost-to-attack premium against a capital adversary is:
 
@@ -99,17 +100,17 @@ where $\bar{r}_H$ is the mean reputation of honest validators at attack time. Wi
 
 ### 1.6 Contributions
 
-This paper contributes:
+The paper contributes five things.
 
-1. **A precise mechanism specification.** Sections 4.1-4.4 give the validator weighting formula, reputation update function, slashing conditions, and bootstrap procedure with the level of detail an implementer needs to build PoUA into a production rollup.
+A **mechanism specification** in §4.1-4.4 gives the validator weighting formula, the reputation update function, the slashing conditions, and the bootstrap procedure at enough detail for an implementer to build PoUA into a production rollup.
 
-2. **A threat model and security analysis.** Section 5 articulates three adversary archetypes (capital adversary, reputation adversary, compound adversary), establishes that PoUA preserves the BFT safety and liveness properties of its underlying primitive under standard partial-synchrony with $f < n/3$ Byzantine validators (Theorems 1 and 2), and derives the multiplicative cost-to-attack premium $\kappa$ that constitutes PoUA's formal moat over pure-stake PoS.
+A **threat model and security analysis** in §5 articulates three adversary archetypes - capital, reputation, and compound capital-and-grinding - establishes that PoUA inherits BFT safety and liveness under partial-synchrony with $f < n/3$ Byzantine validators (Theorems 1 and 2), and derives the multiplicative cost-to-attack premium $\kappa$ that constitutes PoUA's formal moat over pure-stake PoS.
 
-3. **An incentive analysis.** Section 6 demonstrates, under a profit-maximizing validator behavioral model, that the unique equilibrium has all validators performing valid attestation work, with quantitative bounds on the cost of deviation. We argue that reputation, by virtue of being non-transferable and having a bounded forward-revenue value, acts as a time-locked incentive alignment mechanism that pure-stake PoS lacks.
+An **incentive analysis** in §6 shows that under a profit-maximizing validator model, the unique equilibrium has all validators performing valid attestation work, with quantitative bounds on the cost of deviation. Reputation, being non-transferable and having a bounded forward-revenue value, acts as a time-locked incentive alignment that pure-stake PoS lacks.
 
-4. **An implementation specification.** Section 7 describes the integration of PoUA into the Sovereign SDK rollup framework, including the reputation state representation, slashing condition surfaces, recommended v0 parameters for Ligate Chain devnet, storage cost analysis, and migration paths from a stake-only bootstrapping phase. The implementation is non-speculative: every integration point is identified against an existing Sovereign SDK module surface.
+An **implementation specification** in §7 covers the integration of PoUA into the Sovereign SDK rollup framework: reputation state, slashing surfaces, v0 parameters, storage cost, migration from a stake-only bootstrapping phase. Every integration point is identified against an existing Sovereign SDK module surface; the implementation is engineering work, not research.
 
-5. **A comparative analysis.** Section 8 positions PoUA against prior reputation-weighted consensus (RepuCoin, EigenTrust), proof-of-useful-work systems (Helium, Filecoin), restaking (EigenLayer), and pure-stake Proof of Stake (Tendermint, Algorand), across six axes: weighting basis, Sybil resistance, useful work coupling, cost-to-attack, complexity, and production maturity. We argue PoUA is novel as a synthesis, not in any single component, and identify the specific synthesis point.
+A **comparative analysis** in §8 positions PoUA against reputation-weighted consensus (RepuCoin, EigenTrust), proof-of-useful-work systems (Helium, Filecoin), restaking (EigenLayer), and pure-stake Proof of Stake (Tendermint, Algorand) across six axes. PoUA is novel as a synthesis, not in any single component, and §8 identifies the specific synthesis point.
 
 ### 1.7 Scope and Non-Goals
 
@@ -364,13 +365,9 @@ This warmup serves two purposes: it allows validators to accumulate baseline rep
 
 ### 5.1 Threat Model
 
-We consider three adversary archetypes:
+Three adversary archetypes. The **capital adversary** $\mathcal{C}$ has unlimited token capital and tries to acquire consensus weight by buying stake. The **reputation adversary** $\mathcal{R}$ is willing to perform legitimate-looking attestation work to acquire reputation, paying real fees in the process. The **compound adversary** $\mathcal{CR}$ combines both - this is the hardest case and the one §5.5 spends the most time on.
 
-- **Capital Adversary $\mathcal{C}$:** unlimited token capital; attempts to acquire consensus weight via stake purchase.
-- **Reputation Adversary $\mathcal{R}$:** willing to perform legitimate-looking attestation work to acquire reputation, paying real fees.
-- **Compound Adversary $\mathcal{CR}$:** combines both strategies. The hardest case.
-
-For each, we ask: what is the minimum cost-to-attack required to acquire a fraction $\rho$ of weighted consensus power, where $\rho > 1/3$ is sufficient to violate BFT safety, and $\rho > 1/2$ to dominate selection?
+For each, the question is the same: what is the minimum cost to acquire a fraction $\rho$ of weighted consensus power? $\rho > 1/3$ is enough to violate BFT safety; $\rho > 1/2$ to dominate proposer selection.
 
 ### 5.2 Safety and Liveness Inheritance
 
@@ -486,16 +483,16 @@ The pure-reputation adversary's strategy is thus economically equivalent to subs
 
 ### 5.5 Compound Adversary and the A3 Layered Defense
 
-The hardest adversary case is the **compound adversary** $\mathcal{CR}$: an actor with both capital (to acquire stake) and the operational capacity to also control schemas, attestor sets, and submitter addresses. The naive attack pattern:
+The hardest case is an adversary $\mathcal{CR}$ who has capital *and* the operational capacity to control schemas, attestor sets, and submitter addresses simultaneously. Their attack:
 
-1. Acquire stake $s_v$ at market price; register as validator.
-2. Register an attestor set $\mathcal{A}_v$ controlled by the adversary's keys.
-3. Register a schema $\sigma_v$ bound to $\mathcal{A}_v$, with the adversary's own address as the fee-routing recipient (`fee_routing_addr`).
-4. From a submitter address $X$ also controlled by the adversary, repeatedly submit attestations to $\sigma_v$, signed by $\mathcal{A}_v$.
-5. As the proposer of blocks (selected with stake-weighted probability), include those attestations.
-6. Earn reputation $\eta \cdot \text{fee}(\alpha)$ per included attestation, while the fee flows from address $X$ back to the adversary's treasury via the schema's fee routing.
+1. Acquire stake $s_v$ at market and register as a validator.
+2. Register an attestor set $\mathcal{A}_v$ controlled by their own keys.
+3. Register a schema $\sigma_v$ bound to $\mathcal{A}_v$, with their own address as the fee-routing recipient.
+4. From a submitter address $X$ they also control, repeatedly submit attestations to $\sigma_v$, signed by $\mathcal{A}_v$.
+5. When selected as proposer (with stake-weighted probability), include those attestations.
+6. Earn $\eta \cdot \text{fee}(\alpha)$ in reputation per included attestation, while the fee paid by $X$ flows back to the adversary's treasury through the schema's routing.
 
-If unchecked, this attack yields reputation accumulation at near-zero net cost, collapsing the cost-to-attack premium $\kappa$ derived in §5.3. The adversary spends only the stake (same as pure-PoS attacker), gains the full $r_{\max}/r_{\min}$ multiplier, and the moat disappears.
+Net cost per attestation: zero. Reputation gained: full. If unchecked, this collapses the $\kappa$ premium of §5.3. The adversary spends only stake (matching pure-PoS attacker cost), gains the full $r_{\max}/r_{\min}$ multiplier, and the moat is gone.
 
 PoUA defends against this attack with a **layered defense** of six mechanisms operating at three levels: formal protocol rules, economic disincentives, and post-hoc detection. Each layer is independently breakable; the combination is not.
 
@@ -578,17 +575,17 @@ This is not in v0.2 scope. It is named as future research in §9.2.
 
 #### 5.5.7 Synthesizing: the layered economic argument
 
-The compound-adversary cost-to-grind, post-Layers 1-3, is at least:
+After Layers 1-3, the compound-adversary cost-to-grind is at least:
 
 $$\underbrace{\text{stake cost}}_{\text{same as pure PoS}} + \underbrace{\tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha)}_{\text{net fees, Layer 3 (Lemma 1)}} + \underbrace{\text{address-staging cost}}_{\text{Layer 1 + 2 evasion}}$$
 
-The first term is unavoidable. The second is provably bounded below (Lemma 1). The third is a real but harder-to-quantify cost (mixer fees, KYC withdrawals, time-cost of address staging). Combined with Layer 4 detection probability and Layer 5 governance recourse, the expected cost of grinding meets or exceeds the cost of honest reputation acquisition for any reasonable parameter calibration.
+The first term is unavoidable. The second has a formal lower bound (Lemma 1). The third is real but harder to quantify - mixer fees, KYC withdrawals, the time-cost of address staging. Combined with Layer 4's detection probability and Layer 5's governance recourse, the expected cost of grinding meets or exceeds the cost of honest reputation acquisition under any reasonable parameter calibration.
 
-**The v0.2 framing of PoUA Sybil-resistance** is therefore:
+The PoUA Sybil-resistance claim is therefore:
 
-> **PoUA Sybil-resistance against the compound capital-plus-grinding adversary is established by an economic argument under Layer 3 (Lemma 1), bounded below by formal protocol rules in Layers 1-2, hardened by heuristic detection in Layer 4, and recoverable from false-positives by governance in Layer 5. A formal cryptographic upgrade path (Layer 6) is identified as future work.**
+> **Sybil-resistance against the compound capital-plus-grinding adversary is established by an economic argument under Layer 3 (Lemma 1), bounded below by formal protocol rules in Layers 1-2, hardened by heuristic detection in Layer 4, and recoverable from false-positives by governance in Layer 5. A formal cryptographic upgrade path (Layer 6) is named as future work.**
 
-This is materially stronger than the v0.1 framing, which leaned exclusively on heuristic detection.
+This is the v0.2-and-later framing, which replaces v0.1's reliance on heuristic detection alone with a formal economic floor.
 
 ### 5.6 Long-Range and Bribery Attacks
 
@@ -604,15 +601,11 @@ This is materially stronger than the v0.1 framing, which leaned exclusively on h
 
 ### 6.1 Behavioral Model
 
-We adopt the standard game-theoretic model for blockchain incentive analysis: validators are rational profit-maximizers with full information about protocol rules and other validators' strategies. They choose actions to maximize expected discounted future revenue.
+The standard model: validators are rational profit-maximizers with full information about protocol rules and other validators' strategies. They choose actions to maximize expected discounted future revenue.
 
-A validator's per-epoch revenue has three sources:
+A validator earns per-epoch revenue from three sources. The block reward $R_b$ is protocol-issued tokens for proposing and finalizing blocks, proportional to $w_v / \sum_u w_u$ in expectation. Attestation fees $R_f$ are the validator's share of fees from attestations they include. Slashing avoidance $-S$ is the negation of expected slashing burns - a cost that enters net revenue.
 
-1. **Block reward** $R_b$: protocol-issued tokens for proposing and finalizing blocks. Proportional to $w_v / \sum_u w_u$ in expectation.
-2. **Attestation fees** $R_f$: a share of fees from attestations included in blocks the validator proposes.
-3. **Slashing avoidance** $-S$: the negation of expected slashing burns; appears as a cost when computing net revenue.
-
-Total per-epoch revenue: $R_v = R_b + R_f - S$.
+$$R_v = R_b + R_f - S.$$
 
 ### 6.2 The Honest Equilibrium
 
@@ -809,11 +802,11 @@ We acknowledge the following as real limitations of PoUA v0.1:
 
 ## 10. Conclusion
 
-We have specified Proof of Useful Attestation, a consensus weighting primitive that aligns validator influence in an attestation-native chain with the production of valid attestation work. PoUA preserves the safety and liveness properties of standard BFT under the same partial-synchrony and Byzantine bounds, and constructs a multiplicative cost-to-attack premium of $r_{\max}/r_{\min} \in [4, 10]$ over equivalent pure-stake PoS. The mechanism is not novel in any single component but is, we believe, the first synthesis of reputation-weighted consensus, proof-of-useful-work, and non-transferable bonding tailored to the attestation-as-product chain context.
+Proof of Useful Attestation is a consensus weighting primitive that aligns validator influence in an attestation-native chain with the production of valid attestation work. It inherits BFT safety and liveness under the same partial-synchrony and Byzantine bounds the underlying primitive assumes, and it constructs a multiplicative cost-to-attack premium of $r_{\max}/r_{\min} \in [4, 10]$ over equivalent pure-stake chains. The mechanism is not novel in any single component. It is, to our knowledge, the first synthesis of reputation-weighted consensus, proof-of-useful-work, and non-transferable bonding tailored to chains whose application surface is attestation production.
 
-Production deployment requires further empirical validation, hardening of heuristic detection components, and integration testing against the Sovereign SDK rollup framework. We provide concrete parameter recommendations and integration points for Ligate Chain v3 mainnet deployment, with devnet validation work currently scheduled across 2026-2027.
+Production deployment is not free. It needs empirical validation through simulation and devnet operation, hardening of the heuristic detectors that constitute Layer 4 of the §5.5 defense, integration testing against the Sovereign SDK rollup framework, and external technical review. The paper provides concrete parameter recommendations and identifies every integration point against existing SDK module surfaces, but the engineering work is real and we estimate it across 2026-2027.
 
-We invite review and critique. This is v0.2 of a working paper; substantial revision is expected as the mechanism is stress-tested against adversarial model literature and simulation results.
+We invite review and critique - particularly critique. This is a working paper; substantial revision is expected as the mechanism is stress-tested against simulation results, adversarial model literature, and external technical reviewers. The hardest part of the paper is §5.5, where we make a formal economic claim (Lemma 1) about the cost of grinding reputation against a compound adversary; if you find a flaw in that argument, that is the most valuable feedback you can give us.
 
 ---
 
@@ -821,7 +814,7 @@ We invite review and critique. This is v0.2 of a working paper; substantial revi
 
 ## 11. Frequently Asked Questions
 
-This section addresses critiques and misunderstandings that have arisen in early review of v0.1 and adjacent work. It is included partly to short-circuit common objections, partly as a record of the design rationale for choices the formal specification does not always make obvious.
+Early review surfaced critiques and misunderstandings worth addressing in one place. This section is partly to short-circuit common objections, partly to record design rationale that the formal specification does not always make obvious.
 
 ### Q1. Doesn't this just let validators farm reputation by submitting attestations to themselves?
 
