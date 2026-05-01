@@ -5,7 +5,7 @@ A consensus weighting primitive for attestation-native chains.
 ## Latest
 
 - **Working paper**: [`poua.pdf`](poua.pdf) (compiled) / [`poua.md`](poua.md) (source)
-- **Version**: v0.2
+- **Version**: v0.3
 - **Status**: Draft for internal review and design-partner circulation
 - **Date**: 2026-05-01
 
@@ -32,6 +32,7 @@ See the root [CONTRIBUTING.md](../../CONTRIBUTING.md) for tooling setup.
 
 ## Version history
 
+- **v0.3** (2026-05-01): tightened Lemma 1 to incorporate the proposer reputation share $\alpha$ (strict bound $F^{\text{net}} \geq \tau_{\text{burn}} \Delta r / (\eta \alpha)$); added Figure 1 (system diagram) and Figure 2 (cost-to-attack curve); cleaned references (removed unverified citation in §2.3 and §11; added Hoffman 2009 and Resnick 2000 to ground the trust-and-reputation systems literature).
 - **v0.2** (2026-05-01): added layered A3 defense in §5.5 with formal cost-to-grind lemma; corrected $\partial R_v / \partial r_v$ derivation in §6.3; reputation update in §4.3 now rewards voters with bounded per-epoch growth cap to prevent positive-feedback entrenchment; added §11 FAQ addressing common misunderstandings.
 - **v0.1** (2026-04-30): initial draft.
 

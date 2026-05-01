@@ -2,15 +2,19 @@
 
 ## A Consensus Primitive for Attestation-Native Chains
 
-**Ligate Labs Research, Working Paper v0.2**
+**Ligate Labs Research, Working Paper v0.3**
 
 **Date:** 2026-05-01
 
-**Status:** Draft for internal review and design-partner circulation. Not for public distribution.
+**Status:** Draft for internal review and design-partner circulation.
 
 **Contact:** hello@ligate.io
 
-**Version history:** v0.1 (initial draft) - v0.2 (added layered A3 defense in §5.5 with formal cost-to-grind lemma; corrected $\partial R_v / \partial r_v$ derivation in §6.3; reputation update in §4.3 now rewards voters with bounded per-epoch growth cap to prevent positive-feedback entrenchment; added §11 FAQ addressing common misunderstandings).
+**Version history:**
+
+- v0.1 (initial draft).
+- v0.2: added layered A3 defense in §5.5 with formal cost-to-grind lemma; corrected $\partial R_v / \partial r_v$ derivation in §6.3; reputation update in §4.3 now rewards voters with bounded per-epoch growth cap; added §11 FAQ.
+- v0.3: tightened Lemma 1 to incorporate the proposer reputation share $\alpha$ from §4.3 (strict bound $F^{\text{net}} \geq \tau_{\text{burn}} \Delta r / (\eta \alpha)$); added Figure 1 (system diagram) and Figure 2 (cost-to-attack curve); removed unverified citation in §2.3 and §11.
 
 \newpage
 
@@ -104,7 +108,7 @@ This paper contributes:
 
 4. **An implementation specification.** Section 7 describes the integration of PoUA into the Sovereign SDK rollup framework, including the reputation state representation, slashing condition surfaces, recommended v0 parameters for Ligate Chain devnet, storage cost analysis, and migration paths from a stake-only bootstrapping phase. The implementation is non-speculative: every integration point is identified against an existing Sovereign SDK module surface.
 
-5. **A comparative analysis.** Section 8 positions PoUA against prior reputation-weighted consensus (RepuCoin, Trifecta), proof-of-useful-work systems (Helium, Filecoin), restaking (EigenLayer), and pure-stake Proof of Stake (Tendermint, Algorand), across six axes: weighting basis, Sybil resistance, useful work coupling, cost-to-attack, complexity, and production maturity. We argue PoUA is novel as a synthesis, not in any single component, and identify the specific synthesis point.
+5. **A comparative analysis.** Section 8 positions PoUA against prior reputation-weighted consensus (RepuCoin, EigenTrust), proof-of-useful-work systems (Helium, Filecoin), restaking (EigenLayer), and pure-stake Proof of Stake (Tendermint, Algorand), across six axes: weighting basis, Sybil resistance, useful work coupling, cost-to-attack, complexity, and production maturity. We argue PoUA is novel as a synthesis, not in any single component, and identify the specific synthesis point.
 
 ### 1.7 Scope and Non-Goals
 
@@ -146,9 +150,9 @@ PoUA is structurally analogous: validator influence is gated on observable perfo
 
 ### 2.3 Reputation-Weighted Consensus
 
-A substantial academic literature explores augmenting traditional consensus with reputation scores derived from observable validator behavior. RepuCoin (Yu et al., 2019) builds reputation from PoW mining history and uses it to weight BFT votes, achieving Sybil resistance with sub-50% honest-stake assumptions. Trifecta (Pîrlea et al., 2024) integrates reputation as an explicit dimension in BFT validator selection. The earlier EigenTrust algorithm (Kamvar et al., 2003) for peer-to-peer networks established the broader pattern of using interaction history to weight network influence.
+A line of academic work explores augmenting traditional consensus with reputation scores derived from observable validator behavior. RepuCoin (Yu et al., 2019) builds reputation from PoW mining history and uses it to weight BFT votes, achieving Sybil resistance with sub-50% honest-stake assumptions. The earlier EigenTrust algorithm (Kamvar et al., 2003) for peer-to-peer networks established the broader pattern of using transitive interaction history to weight network influence in a decentralized setting. The general "trust and reputation" literature in distributed systems (Resnick et al., 2000; Hoffman et al., 2009) provides the theoretical underpinning for both lines.
 
-PoUA inherits the structural pattern - observable behavior reputation that augments consensus weighting - and specializes the reputation-update function to attestation work specifically. To our knowledge, no prior reputation-weighted consensus mechanism couples reputation accumulation to a chain's application-layer productive workload as PoUA does.
+These mechanisms are well-explored in research and yet remain thin on production deployment. The reasons are real: Sybil resistance is hard to formalize when reputation is observable on-chain (since adversaries can inject behavior into the observation channel), heuristic detection of grinding patterns is brittle, and formal proofs of incentive compatibility for reputation-weighted BFT are sparse. PoUA inherits the structural pattern - observable behavior reputation augmenting consensus weighting - and specializes the reputation-update function to attestation work specifically. To our knowledge, no prior reputation-weighted consensus mechanism couples reputation accumulation to a chain's application-layer productive workload as PoUA does, and none constructs a defense against compound capital-plus-grinding adversaries with the layered-defense plus formal cost-to-grind argument we develop in §5.5.
 
 ### 2.4 Restaking and Reused Stake
 
@@ -218,6 +222,45 @@ We require $r_{\max} < \infty$ to prevent reputation runaway from concentrating 
 ### 3.6 Time
 
 Time is discretized into slots of fixed duration $\tau$. Slot $t$ produces (or fails to produce) a block $B_t$. We assume the BFT primitive achieves block finality within $O(1)$ slots after GST (instantiated as Tendermint-style two-round optimistic finality in deployment).
+
+### 3.7 System Diagram
+
+Figure 1 collects the entities and their relationships. The validator role and the attestor role are distinct (§3.3): validators order blocks and accumulate reputation through processing; attestors sign payloads against schemas they have been registered to. Both bond stake; only validators carry reputation.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  node distance=2.0cm,
+  every node/.style={font=\small},
+  entity/.style={rectangle, draw, rounded corners=2pt, minimum height=1.0cm, minimum width=2.6cm, align=center, fill=tablerowalt},
+  consensus/.style={rectangle, draw, rounded corners=2pt, minimum height=1.0cm, minimum width=2.6cm, align=center, fill=tableheaderbg},
+  arrow/.style={-Stealth, thick, draw=black!65}
+]
+
+  % Top row: consensus
+  \node[consensus] (validator) {Validator $v$ \\ stake $s_v$, rep $r_v$ \\ weight $w_v = s_v r_v$};
+  \node[consensus, right=of validator] (bft) {BFT vote tally \\ (commit if $\sum_v w_v > 2/3 \, S$)};
+
+  % Middle row: blocks
+  \node[entity, below=of validator] (block) {Block $B$ \\ contains attestations};
+
+  % Bottom row: attestation entities
+  \node[entity, below=of block, xshift=-2.6cm] (attestation) {Attestation $\alpha$ \\ $(\sigma, p, \Sigma_k)$};
+  \node[entity, below=of block, xshift=2.6cm] (schema) {Schema $\sigma$ \\ binds attestor set};
+  \node[entity, right=of schema] (attestorset) {Attestor set $\mathcal{A}_\sigma$ \\ $k$-of-$n$ keys};
+
+  % Arrows
+  \draw[arrow] (validator.east) -- node[above, midway, font=\scriptsize] {weighted vote} (bft.west);
+  \draw[arrow] (validator.south) -- node[right, midway, font=\scriptsize] {proposes / votes} (block.north);
+  \draw[arrow] (attestation.north) -- node[left, midway, font=\scriptsize] {included in} (block.south west);
+  \draw[arrow] (attestation.east) -- node[above, midway, font=\scriptsize] {against} (schema.west);
+  \draw[arrow] (schema.east) -- node[above, midway, font=\scriptsize] {uses} (attestorset.west);
+  \draw[arrow, dashed] (block.south east) -- node[right, midway, font=\scriptsize] {fee + valid attestation $\to$ $g_v$} ([xshift=-2pt] schema.north east);
+
+\end{tikzpicture}
+\caption{System diagram. Solid arrows are protocol-level relationships; the dashed arrow shows the reputation-accumulation channel: a valid attestation, included in a block proposed (or voted on) by validator $v$, contributes to $v$'s good-behavior score $g_v(t)$ via §4.3, weighted by the attestation's fee.}
+\label{fig:system}
+\end{figure}
 
 ---
 
@@ -356,7 +399,49 @@ $$\boxed{\kappa = \frac{\bar{r}_H}{r_{\min}}}$$
 
 In a healthy chain at steady state, $\bar{r}_H$ approaches $r_{\max}$, giving $\kappa \to r_{\max}/r_{\min}$. Per Section 4.4 design guidance ($r_{\max}/r_{\min} \in [4, 10]$), the capital adversary's cost-to-attack is **4 to 10 times higher** than an equivalent pure-stake PoS chain.
 
-This premium $\kappa$ is the formal moat PoUA constructs over generic PoS.
+This premium $\kappa$ is the formal moat PoUA constructs over generic PoS. Figure 2 plots the relationship $s_{\mathcal{C}} / S_H = \kappa \cdot \rho/(1-\rho)$ for three values of $\kappa$, illustrating the multiplicative effect of the reputation premium on capital required to acquire any target weight fraction $\rho$.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=11cm,
+  height=7cm,
+  xlabel={\small Attack fraction $\rho$ (target share of total weight)},
+  ylabel={\small Stake required, in multiples of honest stake $S_H$},
+  legend pos=north west,
+  legend style={font=\scriptsize},
+  domain=0.01:0.49,
+  samples=120,
+  xmin=0, xmax=0.5,
+  ymin=0, ymax=8,
+  xtick={0, 0.1, 0.2, 0.333, 0.4, 0.5},
+  xticklabels={$0$, $0.1$, $0.2$, $\frac{1}{3}$, $0.4$, $0.5$},
+  ytick={0, 1, 2, 4, 6, 8},
+  grid=both,
+  major grid style={line width=.2pt, draw=gray!30},
+  minor grid style={line width=.1pt, draw=gray!10},
+  axis line style={draw=black!60},
+  tick style={draw=black!60}
+]
+\addplot[thick, blue!70!black] {x/(1-x)};
+\addlegendentry{Pure PoS ($\kappa = 1$)}
+
+\addplot[thick, orange!85!black] {4*x/(1-x)};
+\addlegendentry{PoUA ($\kappa = 4$)}
+
+\addplot[thick, red!75!black] {8*x/(1-x)};
+\addlegendentry{PoUA ($\kappa = 8$)}
+
+\draw[dashed, gray!70, thick] (axis cs:0.333,0) -- (axis cs:0.333,8);
+\node[anchor=south west, font=\scriptsize, gray!70!black] at (axis cs:0.337, 6.4) {BFT safety};
+\node[anchor=south west, font=\scriptsize, gray!70!black] at (axis cs:0.337, 5.7) {threshold};
+
+\end{axis}
+\end{tikzpicture}
+\caption{Cost-to-attack curves for pure stake-weighted PoS and for PoUA at two reputation-premium values, derived from $s_{\mathcal{C}} / S_H = \kappa \cdot \rho/(1-\rho)$. The vertical dashed line marks the BFT safety threshold $\rho = 1/3$. At this threshold, pure PoS requires $0.5 \, S_H$ in fresh stake, while PoUA at $\kappa = 8$ requires $4.0 \, S_H$, a multiplicative moat of $8\times$. The curves diverge most sharply as the attack fraction grows.}
+\label{fig:cost-to-attack}
+\end{figure}
 
 ### 5.4 Reputation Adversary
 
@@ -412,25 +497,27 @@ Implementation: the runtime maintains a sliding-window adjacency map of fund tra
 
 **Rule.** Every attestation fee is split: a fixed minimum fraction $\tau_{\text{burn}} \in (0, 1]$ flows to a non-recoverable destination (protocol treasury, burn address, or per-epoch reward pool distributed to *all* validators by stake-and-reputation share, *not* by inclusion). The schema's `fee_routing_bps` parameter routes only the residual $1 - \tau_{\text{burn}}$ fraction.
 
-**Recommended parameter.** $\tau_{\text{burn}} = 0.5$ for v0.2.
+**Recommended parameter.** $\tau_{\text{burn}} = 0.5$ for v0.3.
 
-**Cost to grind.** This is the **load-bearing economic defense**. Even if the adversary perfectly evades Layers 1 and 2, the fees they submit are not fully recoverable. To accumulate reputation gain $\Delta r$, the adversary must pay net non-recoverable fees of at least:
+**Cost to grind.** This is the **load-bearing economic defense**. Even if the adversary perfectly evades Layers 1 and 2, the fees they submit are not fully recoverable. We formalize the cost-to-grind floor:
 
-$$F_{\mathcal{CR}}^{\text{net}} \geq \frac{\tau_{\text{burn}} \cdot \Delta r}{\eta}.$$
+**Lemma 1 (Cost-to-grind bound, v0.3).** *Under Layer 3 with parameter $\tau_{\text{burn}} \in (0, 1]$ and the §4.3 reputation update with proposer-share $\alpha \in (0, 1]$, any compound adversary acting as block proposer to acquire reputation gain $\Delta r$ pays non-recoverable fees of at least*
 
-**Lemma 1 (Cost-to-grind bound).** *Under Layer 3 with parameter $\tau_{\text{burn}}$, any compound adversary acquiring reputation gain $\Delta r$ via grinding pays non-recoverable fees of at least $\tau_{\text{burn}} \cdot \Delta r / \eta$ in protocol-denominated tokens.*
+$$F_{\mathcal{CR}}^{\text{net}} \geq \frac{\tau_{\text{burn}} \cdot \Delta r}{\eta \cdot \alpha} \tag{Lemma 1}$$
 
-*Proof.* By construction of Layer 3, every valid attestation incurs a non-recoverable fee fraction $\tau_{\text{burn}}$. By §4.3, reputation gain per attestation is bounded above by $\eta \cdot \text{fee}(\alpha)$. Summing across the attestations the adversary submits: $\Delta r \leq \eta \cdot F_{\mathcal{CR}}^{\text{gross}}$, where $F_{\mathcal{CR}}^{\text{gross}}$ is gross fees paid. Net cost is at least $\tau_{\text{burn}} \cdot F_{\mathcal{CR}}^{\text{gross}} \geq \tau_{\text{burn}} \cdot \Delta r / \eta$. $\square$
+*in protocol-denominated tokens. In the special case $\alpha = 1$ (proposer captures all reputation, equivalent to v0.1's reputation update without the voter share), this reduces to the looser bound $\tau_{\text{burn}} \cdot \Delta r / \eta$.*
 
-**Comparison to honest acquisition.** A naive capital adversary (§5.3) acquires weight fraction $\rho$ at stake cost $\frac{\rho}{1-\rho} \cdot \frac{W}{r_{\min}}$. The compound grinding adversary, having acquired stake $s_v$ already, can attempt to multiply their weight by the reputation premium $r_{\max}/r_{\min}$, gaining $\Delta r = r_{\max} - r_{\min}$. The cost-to-grind for this gain is at least $\tau_{\text{burn}} \cdot (r_{\max} - r_{\min}) / \eta$ in non-recoverable fees.
+*Proof.* By the §4.3 reputation update, the proposer component of $g_v(t)$ contributes at most $\alpha \cdot \text{fee}(\alpha)$ to reputation per included attestation $\alpha$ (the voter component, with coefficient $\beta$ divided by $|\text{voters}(B)|$, contributes negligibly per attestation in any reasonably-sized validator set). Summing across the attestations the adversary submits as proposer: $\Delta r \leq \eta \cdot \alpha \cdot F_{\mathcal{CR}}^{\text{gross}}$, where $F_{\mathcal{CR}}^{\text{gross}}$ is the gross fees the adversary pays for those attestations. Therefore $F_{\mathcal{CR}}^{\text{gross}} \geq \Delta r / (\eta \cdot \alpha)$. By construction of Layer 3, every valid attestation incurs a non-recoverable fee fraction $\tau_{\text{burn}}$. The adversary's net cost is at least $\tau_{\text{burn}} \cdot F_{\mathcal{CR}}^{\text{gross}} \geq \tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha)$. $\square$
 
-For v0.2 parameters ($\tau_{\text{burn}} = 0.5$, $\eta = 0.001$, $r_{\max} - r_{\min} = 7$):
+**Comparison to honest acquisition.** A naive capital adversary (§5.3) acquires weight fraction $\rho$ at stake cost $\frac{\rho}{1-\rho} \cdot \frac{W}{r_{\min}}$. The compound grinding adversary, having acquired stake $s_v$ already, can attempt to multiply their effective weight by the reputation premium $r_{\max}/r_{\min}$, gaining $\Delta r = r_{\max} - r_{\min}$. The cost-to-grind for this full ramp is at least $\tau_{\text{burn}} \cdot (r_{\max} - r_{\min}) / (\eta \cdot \alpha)$ in non-recoverable fees.
 
-$$F_{\mathcal{CR}}^{\text{net}} \geq \frac{0.5 \cdot 7}{0.001} = 3500 \text{ fee-units.}$$
+For v0.3 parameters ($\tau_{\text{burn}} = 0.5$, $\eta = 0.001$, $\alpha = 0.7$, $r_{\max} - r_{\min} = 7$):
 
-Calibration: setting the minimum attestation fee high enough that $3500 \times \text{fee}_{\min}$ exceeds the cost of the equivalent stake premium makes grinding strictly more expensive than honestly acquiring stake. This is a tunable: governance sets $\text{fee}_{\min}$ and $\tau_{\text{burn}}$ such that the inequality holds for the chain's economics.
+$$F_{\mathcal{CR}}^{\text{net}} \geq \frac{0.5 \cdot 7}{0.001 \cdot 0.7} = 5000 \text{ fee-units.}$$
 
-**This converts the compound-adversary case from "moat collapses" to "moat is preserved by economic argument, not just heuristic."** It is the v0.2 paper's primary defense improvement over v0.1.
+Calibration: setting the minimum attestation fee high enough that $5000 \times \text{fee}_{\min}$ exceeds the stake cost of the equivalent reputation-premium gain makes grinding strictly more expensive than honestly acquiring stake. This is a tunable: governance sets $\text{fee}_{\min}, \tau_{\text{burn}}, \alpha$ such that the cost-equivalence inequality holds for the chain's economics.
+
+**This converts the compound-adversary case from "moat collapses" to "moat is preserved by economic argument."** It is the primary defense improvement of v0.2 over v0.1, sharpened in v0.3 with the explicit $\alpha$-dependent bound.
 
 #### 5.5.4 Layer 4 — Statistical detection (heuristic)
 
@@ -468,7 +555,7 @@ This is not in v0.2 scope. It is named as future research in §9.2.
 
 The compound-adversary cost-to-grind, post-Layers 1-3, is at least:
 
-$$\underbrace{\text{stake cost}}_{\text{same as pure PoS}} + \underbrace{\tau_{\text{burn}} \cdot \Delta r / \eta}_{\text{net fees, Layer 3}} + \underbrace{\text{address-staging cost}}_{\text{Layer 1 + 2 evasion}}$$
+$$\underbrace{\text{stake cost}}_{\text{same as pure PoS}} + \underbrace{\tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha)}_{\text{net fees, Layer 3 (Lemma 1)}} + \underbrace{\text{address-staging cost}}_{\text{Layer 1 + 2 evasion}}$$
 
 The first term is unavoidable. The second is provably bounded below (Lemma 1). The third is a real but harder-to-quantify cost (mixer fees, KYC withdrawals, time-cost of address staging). Combined with Layer 4 detection probability and Layer 5 governance recourse, the expected cost of grinding meets or exceeds the cost of honest reputation acquisition for any reasonable parameter calibration.
 
@@ -727,7 +814,7 @@ The economic implication: schemas with corrupt attestor sets can sign garbage, b
 
 ### Q3. Hasn't reputation-weighted consensus been tried and rejected?
 
-**Partially right.** Reputation-weighted BFT is well-explored in the academic literature (RepuCoin, Trifecta, EigenTrust, Sirer's group, others) but not widely deployed in production. The reasons it has not shipped are real: Sybil resistance is hard, heuristic detection is brittle, formal proofs of incentive compatibility are sparse.
+**Partially right.** Reputation-weighted BFT is well-explored in the academic literature (RepuCoin, EigenTrust, and the broader distributed-systems trust-and-reputation tradition) but not widely deployed in production. The reasons it has not shipped are real: Sybil resistance is hard to formalize, heuristic detection is brittle, and formal proofs of incentive compatibility are sparse.
 
 **Where this paper is different.** PoUA is not "reputation-weighted consensus in general." It is reputation-weighted consensus where:
 
@@ -817,10 +904,11 @@ The path forward: v0.2 → external technical reviewer feedback (mid-2026) → v
 9. Gilad, Y., Hemo, R., Micali, S., Vlachos, G., Zeldovich, N. (2017). Algorand: Scaling Byzantine Agreements for Cryptocurrencies. *SOSP '17*.
 10. Haleem, A., Allen, A., Thompson, A., Nijdam, M., Garg, R. (2018). *Helium: A Decentralized Wireless Network*. Helium Inc.
 11. Kamvar, S. D., Schlosser, M. T., Garcia-Molina, H. (2003). The EigenTrust Algorithm for Reputation Management in P2P Networks. *WWW '03*.
-12. Pîrlea, G., et al. (2024). Trifecta: Reputation-Augmented BFT. *(Working paper)*.
-13. Sovereign Labs. (2024). *Sovereign SDK Documentation*. github.com/Sovereign-Labs/sovereign-sdk.
-14. Yin, M., Malkhi, D., Reiter, M. K., Gueta, G. G., Abraham, I. (2019). HotStuff: BFT Consensus with Linearity and Responsiveness. *PODC '19*.
-15. Yu, J., Kozhaya, D., Decouchant, J., Verissimo, P. (2019). RepuCoin: Your Reputation Is Your Power. *IEEE TC 68(8)*.
+12. Hoffman, K., Zage, D., Nita-Rotaru, C. (2009). A Survey of Attack and Defense Techniques for Reputation Systems. *ACM Computing Surveys*, 42(1).
+13. Resnick, P., Kuwabara, K., Zeckhauser, R., Friedman, E. (2000). Reputation Systems. *Communications of the ACM*, 43(12), 45-48.
+14. Sovereign Labs. (2024). *Sovereign SDK Documentation*. github.com/Sovereign-Labs/sovereign-sdk.
+15. Yin, M., Malkhi, D., Reiter, M. K., Gueta, G. G., Abraham, I. (2019). HotStuff: BFT Consensus with Linearity and Responsiveness. *PODC '19*.
+16. Yu, J., Kozhaya, D., Decouchant, J., Verissimo, P. (2019). RepuCoin: Your Reputation Is Your Power. *IEEE TC 68(8)*.
 
 ---
 
