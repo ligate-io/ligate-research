@@ -1,0 +1,80 @@
+{
+  "vectors": [
+    {
+      "name": "pure-pos-rho-0.2",
+      "description": "\u03ba=1 (all honest at r_min), target \u03c1=0.2",
+      "paper_reference": "\u00a75.3",
+      "inputs": {
+        "n_honest": 10,
+        "stake_per_honest": 100.0,
+        "reputation_per_honest": 1.0,
+        "target_rho": 0.2,
+        "r_min": 1.0
+      },
+      "expected": {
+        "attack_stake": 250.0,
+        "rho_realized": 0.2
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    },
+    {
+      "name": "kappa-8-rho-0.2",
+      "description": "honest at r_max=8, target \u03c1=0.2",
+      "paper_reference": "\u00a75.3",
+      "inputs": {
+        "n_honest": 10,
+        "stake_per_honest": 100.0,
+        "reputation_per_honest": 8.0,
+        "target_rho": 0.2,
+        "r_min": 1.0
+      },
+      "expected": {
+        "attack_stake": 2000.0,
+        "rho_realized": 0.2
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    },
+    {
+      "name": "kappa-8-byzantine-threshold",
+      "description": "honest at r_max=8, target \u03c1=1/3 (BFT cap)",
+      "paper_reference": "\u00a75.3",
+      "inputs": {
+        "n_honest": 10,
+        "stake_per_honest": 100.0,
+        "reputation_per_honest": 8.0,
+        "target_rho": 0.3333333333333333,
+        "r_min": 1.0
+      },
+      "expected": {
+        "attack_stake": 3999.9999999999995,
+        "rho_realized": 0.3333333333333333
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    },
+    {
+      "name": "kappa-4-rho-0.1",
+      "description": "honest at r=4, target \u03c1=0.1",
+      "paper_reference": "\u00a75.3",
+      "inputs": {
+        "n_honest": 20,
+        "stake_per_honest": 50.0,
+        "reputation_per_honest": 4.0,
+        "target_rho": 0.1,
+        "r_min": 1.0
+      },
+      "expected": {
+        "attack_stake": 444.44444444444446,
+        "rho_realized": 0.1
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    }
+  ]
+}

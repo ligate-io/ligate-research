@@ -1,0 +1,124 @@
+{
+  "vectors": [
+    {
+      "name": "zero-input-no-change",
+      "description": "g_v=0, b_v=0 leaves reputation unchanged",
+      "paper_reference": "\u00a74.3",
+      "inputs": {
+        "reputation": 4.0,
+        "g_v": 0.0,
+        "b_v": 0.0,
+        "eta": 0.001,
+        "lambda": 1.0,
+        "r_min": 1.0,
+        "r_max": 8.0
+      },
+      "expected": {
+        "reputation_next": 4.0
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    },
+    {
+      "name": "growth-saturated",
+      "description": "g_v=g_max yields \u03b7\u00b7g_max per epoch growth",
+      "paper_reference": "\u00a74.3",
+      "inputs": {
+        "reputation": 1.0,
+        "g_v": 233.0,
+        "b_v": 0.0,
+        "eta": 0.001,
+        "lambda": 1.0,
+        "r_min": 1.0,
+        "r_max": 8.0
+      },
+      "expected": {
+        "reputation_next": 1.233
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    },
+    {
+      "name": "clip-to-r_max",
+      "description": "huge g_v clips at r_max",
+      "paper_reference": "\u00a74.3",
+      "inputs": {
+        "reputation": 7.5,
+        "g_v": 1000000.0,
+        "b_v": 0.0,
+        "eta": 0.001,
+        "lambda": 1.0,
+        "r_min": 1.0,
+        "r_max": 8.0
+      },
+      "expected": {
+        "reputation_next": 8.0
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    },
+    {
+      "name": "clip-to-r_min",
+      "description": "huge slash clips at r_min",
+      "paper_reference": "\u00a74.3",
+      "inputs": {
+        "reputation": 8.0,
+        "g_v": 0.0,
+        "b_v": 1000000.0,
+        "eta": 0.001,
+        "lambda": 1.0,
+        "r_min": 1.0,
+        "r_max": 8.0
+      },
+      "expected": {
+        "reputation_next": 1.0
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    },
+    {
+      "name": "net-with-growth-and-slash",
+      "description": "growth \u03b7\u00b7g_max canceled by partial slash",
+      "paper_reference": "\u00a74.3",
+      "inputs": {
+        "reputation": 4.0,
+        "g_v": 233.0,
+        "b_v": 0.233,
+        "eta": 0.001,
+        "lambda": 1.0,
+        "r_min": 1.0,
+        "r_max": 8.0
+      },
+      "expected": {
+        "reputation_next": 3.9999999999999996
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    },
+    {
+      "name": "severe-slash-from-r_max",
+      "description": "severity = (r_max - r_min)/\u03bb + (\u03b7\u00b7g_max)/\u03bb takes r_max \u2192 r_min under full participation",
+      "paper_reference": "\u00a74.3",
+      "inputs": {
+        "reputation": 8.0,
+        "g_v": 233.0,
+        "b_v": 7.233,
+        "eta": 0.001,
+        "lambda": 1.0,
+        "r_min": 1.0,
+        "r_max": 8.0
+      },
+      "expected": {
+        "reputation_next": 1.0000000000000009
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    }
+  ]
+}
