@@ -104,6 +104,33 @@ An **implementation specification** in §7 covers the integration of PoUA into t
 
 A **comparative analysis** in §8 positions PoUA against reputation-weighted consensus (RepuCoin, EigenTrust), proof-of-useful-work systems (Helium, Filecoin), restaking (EigenLayer), and pure-stake Proof of Stake (Tendermint, Algorand) across six axes. PoUA is novel as a synthesis, not in any single component, and §8 identifies the specific synthesis point.
 
+### 1.6.1 Status of Claims: Proven, Bounded, and Empirical
+
+Reviewers asking the right questions converge on the same separation. We name it explicitly so that readers know which claims rest on formal proof, which rest on stated assumptions, and which require devnet or simulator validation we have not yet completed.
+
+**Proven, in the sense of formal mathematical argument under standard cryptographic and BFT assumptions:**
+
+- BFT safety and liveness inheritance under $f < n/3$ Byzantine *weight* (Theorems 1 and 2, §5.2, via the weighted quorum-intersection Lemma 2).
+- The cost-to-attack premium algebra $\kappa = \bar{r}_H / r_{\min}$ for a pure capital adversary (§5.3).
+- The cost-to-grind lower bound under Layer 3 with stated burn destination: $F^{\text{net, per member}}_{\mathcal{CR}} \geq \tau_{\text{burn}} \cdot \Delta r / [\eta \cdot \alpha_{\text{eff}}(m, k)]$ (Lemma 1, §5.5.3), with explicit cartel-size and burn-destination parameter dependence.
+- Boundedness, monotonicity, and stability of the reputation update function (§4.3, by clip plus linearity of the additive update).
+
+**Bounded under stated assumptions, where the assumptions are non-trivial and named:**
+
+- The "up to $4\times$ to $10\times$ moat" headline is a *steady-state ceiling*, depressed during the warmup window, the validator-set ramp, and post-slash recovery. §5.3.1 quantifies the transition envelope; the realized $\kappa$ is a stake-weighted average of validator-specific reputation values, which approaches the ceiling only when warmup is complete, churn is low, and no recent major slash has occurred.
+- The cartel cost-to-grind bound holds as stated under the recommended pure-burn destination. The treasury and redistribution alternatives in §5.5.3 carry weaker bounds explicitly derived per variant.
+- The honest equilibrium argument (§6.2) assumes profit-maximizing validators with full information about protocol rules and other validators' strategies. Validators with non-economic motives sit outside the model.
+- Reputation as forward-revenue (§6.3) assumes attestation fee flow $R_f$ is positive and approximately stationary across the validator's discount horizon. In low-volume periods the slash deterrent attenuates.
+
+**Empirical or heuristic, named as such, requiring devnet or simulator validation:**
+
+- A2 (censorship) and A3 (grinding) detection. Appendix A gives analytical false-positive bounds under stated null hypotheses ($\chi^2$ for A2, Erdős-Rényi-style for A3); detection *power* (true-positive rate against realistic adversaries) requires devnet traffic and is deferred to v0.7.
+- The Erdős-Rényi null hypothesis for A3 detection does not match real chain transaction graphs, which are typically scale-free. The analytical $\beta_3 = 1\%$ false-positive target may understate realistic FPR; §A.4 acknowledges this and defers to empirical calibration.
+- Validator behavior at scale under adversarial conditions. Reputation distribution dynamics, the cold-start premium's practical impact, and the realized $\kappa$ trajectory are modeled, not measured. The reference simulator at [`prototypes/poua-sim/`](https://github.com/ligate-io/ligate-research/tree/main/prototypes/poua-sim) is the planned validation surface.
+- Full mechanism-design-grade incentive compatibility. §6 gives a game-theoretic argument, not a Hurwicz-style proof of full strategy-proofness. §9.1 acknowledges this as v0.7+ research.
+
+The honest one-line takeaway: **PoUA is a mechanism design proposal with a formal economic floor (Lemma 1) plus inherited BFT safety and liveness (Theorems 1-2), tested against named limitations and a published v0.7 validation roadmap.** It is not a complete cryptographic security proof. Where the paper makes "if-then" arguments, the "if" is named and bounded; where the argument is heuristic, the heuristic is labeled and the limitation acknowledged.
+
 ### 1.7 Scope and Non-Goals
 
 **In scope:**
@@ -124,7 +151,7 @@ A **comparative analysis** in §8 positions PoUA against reputation-weighted con
 
 ### 1.8 Document Structure
 
-Section 2 surveys background and prior art across Proof of Stake, Proof of Useful Work, reputation-weighted consensus, restaking, and Proof of Authority families. Section 3 fixes notation and the system model. Section 4 specifies the PoUA protocol in full. Section 5 analyzes security, including the layered defense against compound capital-plus-grinding adversaries (§5.5). Section 6 analyzes incentives. Section 7 describes the Ligate Chain implementation, including concrete v0 parameter recommendations. Section 8 compares PoUA with prior systems across six analytical axes. Section 9 lists limitations and future work. Section 10 concludes. Section 11 collects frequently asked questions and addresses common misunderstandings raised in early review. References follow. Appendix A specifies (in skeleton form) the statistical detection procedures for heuristic slashing conditions. Appendix B collects formal definitions used throughout.
+Section 1.6.1 separates the paper's claims into proven, bounded-under-stated-assumptions, and empirical-or-heuristic; readers in a hurry may want to start there. Section 2 surveys background and prior art across Proof of Stake, Proof of Useful Work, reputation-weighted consensus, restaking, and Proof of Authority families. Section 3 fixes notation and the system model. Section 4 specifies the PoUA protocol in full. Section 5 analyzes security, including the transition-state $\kappa$ envelope (§5.3.1) and the layered defense against compound capital-plus-grinding adversaries (§5.5). Section 6 analyzes incentives. Section 7 describes the Ligate Chain implementation, including concrete v0 parameter recommendations. Section 8 compares PoUA with prior systems across six analytical axes. Section 9 lists limitations and future work. Section 10 concludes. Section 11 collects frequently asked questions and addresses common misunderstandings raised in early review. References follow. Appendix A specifies the statistical detection procedures for heuristic slashing conditions, with analytical false-positive bounds. Appendix B collects formal definitions used throughout.
 
 ---
 
