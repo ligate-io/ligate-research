@@ -48,3 +48,5 @@ class Attestation:
     is_valid: bool = True
     submitter: str | None = None
     cartel_marker: bool = False
+    schema_id: str | None = None
+    attestor_set: tuple[str, ...] = ()

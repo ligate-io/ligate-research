@@ -23,6 +23,19 @@ https://github.com/ligate-io/ligate-research/issues/3):
 from poua_sim.adversary import CapitalAdversary, CompoundAdversary, cartel_attestations
 from poua_sim.attestation import Attestation
 from poua_sim.chain import Block, Chain, constant_attestations
+from poua_sim.detectors import (
+    A3GraphSnapshot,
+    A3Null,
+    a2_empirical_distribution,
+    a2_flag,
+    a2_kl_divergence,
+    a2_threshold,
+    a3_flag,
+    a3_threshold,
+    sample_chung_lu_edges,
+    sample_erdos_renyi_edges,
+    sample_power_law_degrees,
+)
 from poua_sim.layers import BurnDestination, Layer3Config, alpha_eff, layer3_net_burn
 from poua_sim.metrics import (
     analytical_attack_stake,
@@ -44,6 +57,8 @@ from poua_sim.validator import Validator
 __version__ = "0.4.0"
 
 __all__ = [
+    "A3GraphSnapshot",
+    "A3Null",
     "Attestation",
     "Block",
     "BurnDestination",
@@ -53,6 +68,12 @@ __all__ = [
     "Layer3Config",
     "ReputationParams",
     "Validator",
+    "a2_empirical_distribution",
+    "a2_flag",
+    "a2_kl_divergence",
+    "a2_threshold",
+    "a3_flag",
+    "a3_threshold",
     "alpha_eff",
     "analytical_attack_stake",
     "apply_reputation_update",
@@ -65,6 +86,9 @@ __all__ = [
     "proposer_share",
     "realized_kappa",
     "realized_weight_share",
+    "sample_chung_lu_edges",
+    "sample_erdos_renyi_edges",
+    "sample_power_law_degrees",
     "select_proposer",
     "stake_weighted_mean_reputation",
 ]
