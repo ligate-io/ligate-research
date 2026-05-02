@@ -2,7 +2,7 @@
 
 ## A Consensus Primitive for Attestation-Native Chains
 
-**Ligate Labs Research, Working Paper v0.6**
+**Ligate Labs Research, Working Paper v0.6.1**
 
 **Date:** 2026-05-01
 
@@ -337,7 +337,7 @@ $$g_v(t) = \min\bigl(G_{\max},\; \alpha \cdot G_v^{\text{prop}}(t) + \beta \cdot
 
 The choice of additive (rather than multiplicative) updates is deliberate: additive updates make reputation grinding cost linear in attestation fee paid, providing a clean economic argument for Sybil resistance (Section 5.4). The voter component breaks the proposer-only accumulation pattern; the per-epoch cap $G_{\max}$ ensures the rate at which reputation propagates through the validator set is bounded by protocol design rather than by the contingencies of proposer selection.
 
-The choice $\alpha = 0.7, \beta = 0.3$ reflects three design considerations: (1) proposers do strictly more work (block construction, validity verification of every attestation in their block, network propagation) than voters (verification only), so they earn more; (2) but voters earn enough that a validator participating honestly across an epoch accumulates non-negligible reputation even without ever being selected as proposer (a new validator with stake $s$ but $r_v = r_{\min}$ has selection probability $s \cdot r_{\min} / S$, so they will rarely propose early; the $\beta$ component ensures their honest voting still ramps their reputation toward $r_{\max}$ at a rate bounded below by $\eta \cdot \beta \cdot G_v^{\text{vote}}$); (3) the split also bounds the *coordinated-cartel reputation discount* under Lemma 1's cost-to-grind bound. With $\alpha = 0.7$, a Byzantine-fraction cartel pays at most $\sim 12.5\%$ less per member than a single-proposer attacker would pay for the same per-member reputation ramp; for $\alpha = 0.5$ the discount widens to $25\%$, and for $\alpha = 0.9$ it shrinks to $\sim 3.6\%$. Higher $\alpha$ tightens the cartel bound but worsens proposer-rich-get-richer; lower $\alpha$ improves voter ramp but loosens the cartel bound. See §5.5.3 for the full sensitivity analysis.
+The choice $\alpha = 0.7, \beta = 0.3$ reflects three design considerations: (1) proposers do strictly more work (block construction, validity verification of every attestation in their block, network propagation) than voters (verification only), so they earn more; (2) but voters earn enough that a validator participating honestly across an epoch accumulates non-negligible reputation even without ever being selected as proposer (a new validator with stake $s$ but $r_v = r_{\min}$ has selection probability $s \cdot r_{\min} / S$, so they will rarely propose early; the $\beta$ component ensures their honest voting still ramps their reputation toward $r_{\max}$ at a rate bounded below by $\eta \cdot \beta \cdot G_v^{\text{vote}}$); (3) the split also bounds the *coordinated-cartel reputation discount* under Lemma 1's cost-to-grind bound. With $\alpha = 0.7$, a Byzantine-fraction cartel pays at most $\sim 12.5\%$ less per member than a single-proposer attacker in the $k \to \infty$ asymptotic limit (and slightly less at finite $k$); for $\alpha = 0.5$ the asymptotic discount widens to $25\%$, and for $\alpha = 0.9$ it shrinks to $\sim 3.6\%$. Higher $\alpha$ tightens the cartel bound but worsens proposer-rich-get-richer; lower $\alpha$ improves voter ramp but loosens the cartel bound. See §5.5.3 for the full sensitivity analysis.
 
 ### 4.4 Parameter Calibration
 
@@ -588,19 +588,19 @@ Implementation: the runtime maintains a sliding-window adjacency map of fund tra
 
 **Cost to grind.** This is the **load-bearing economic defense**. Even if the adversary perfectly evades Layers 1 and 2, the fees they submit are not fully recoverable. We formalize the cost-to-grind floor:
 
-**Lemma 1 (Cost-to-grind bound, v0.6).** *Let $m \geq 1$ be the size of a coordinated adversarial validator cartel and $k \geq m$ the per-block voter count. Under Layer 3 with parameter $\tau_{\text{burn}} \in (0, 1]$ and the §4.3 reputation update with proposer-share $\alpha \in (0, 1]$ and voter-share $\beta = 1 - \alpha$, any compound adversary cartel acting as block proposer (with proposer-role rotation among cartel members) to acquire per-member reputation gain $\Delta r$ pays per-member non-recoverable fees of at least*
+**Lemma 1 (Cost-to-grind bound, v0.6.1).** *Let $m \geq 1$ be the size of a coordinated adversarial validator cartel and $k \geq m$ the per-block voter count. Under Layer 3 with parameter $\tau_{\text{burn}} \in (0, 1]$ and the §4.3 reputation update with proposer-share $\alpha \in (0, 1]$ and voter-share $\beta = 1 - \alpha$, any compound adversary cartel acting as block proposer (with proposer-role rotation among cartel members) to acquire per-member reputation gain $\Delta r$ pays per-member non-recoverable fees of at least*
 
 $$F_{\mathcal{CR}}^{\text{net, per member}} \geq \frac{\tau_{\text{burn}} \cdot \Delta r}{\eta \cdot \alpha_{\text{eff}}(m, k)} \tag{Lemma 1}$$
 
 *where the effective proposer share is*
 
-$$\alpha_{\text{eff}}(m, k) = \alpha + \frac{m \cdot \beta}{k}.$$
+$$\alpha_{\text{eff}}(m, k) = \alpha + \frac{(m - 1) \cdot \beta}{k}.$$
 
-*The single-validator case $m = 1$ recovers $\alpha_{\text{eff}} = \alpha + \beta/k \approx \alpha$ for any reasonably-sized validator set ($k \gg 1$). In the special case $\alpha = 1$ (proposer captures all reputation, equivalent to v0.1's reputation update without the voter share), this reduces to the looser bound $\tau_{\text{burn}} \cdot \Delta r / \eta$ regardless of cartel size.*
+*The single-validator case $m = 1$ recovers $\alpha_{\text{eff}} = \alpha$ exactly. In the asymptotic limit $k \to \infty$ with $m / k$ held constant, $\alpha_{\text{eff}} \to \alpha + (m/k) \cdot \beta$; for the canonical $m / k = 1/3$ Byzantine cap this is the value cited in the numerical example below. In the special case $\alpha = 1$ (proposer captures all reputation), this reduces to the looser bound $\tau_{\text{burn}} \cdot \Delta r / \eta$ regardless of cartel size.*
 
-*Proof.* By the §4.3 reputation update, each cartel-controlled attestation included in a cartel-proposed block injects per-attestation reputation $\alpha \cdot \text{fee}(\alpha) \cdot \eta$ to the proposer and $\beta \cdot \text{fee}(\alpha) / k \cdot \eta$ to each voter. The proposer also votes on its own block, so the proposer's total per-attestation injection is $(\alpha + \beta/k) \cdot \text{fee}(\alpha) \cdot \eta$, while each of the remaining $m-1$ cartel voters earns $\beta \cdot \text{fee}(\alpha) / k \cdot \eta$. Summed across the cartel:
+*Proof.* By the §4.3 reputation update, each cartel-controlled attestation included in a cartel-proposed block injects per-attestation reputation $\alpha \cdot \text{fee}(\alpha) \cdot \eta$ to the proposer and $\beta \cdot \text{fee}(\alpha) / k \cdot \eta$ to each voter. Per §4.3, ``$G_v^{\text{vote}}$'' sums over blocks $v$ voted on **but did not propose**, so the cartel proposer earns through the proposer channel only on its own block. Each of the remaining $m - 1$ cartel members votes on the cartel-proposed block and earns $\beta \cdot \text{fee}(\alpha) / k \cdot \eta$. Summed across the cartel:
 
-$$\text{cartel-total per attestation} = \left(\alpha + \frac{\beta}{k} + (m-1) \cdot \frac{\beta}{k}\right) \cdot \text{fee}(\alpha) \cdot \eta = \alpha_{\text{eff}}(m, k) \cdot \text{fee}(\alpha) \cdot \eta.$$
+$$\text{cartel-total per attestation} = \left(\alpha + (m - 1) \cdot \frac{\beta}{k}\right) \cdot \text{fee}(\alpha) \cdot \eta = \alpha_{\text{eff}}(m, k) \cdot \text{fee}(\alpha) \cdot \eta.$$
 
 Distributing the gain uniformly across $m$ members (the cartel's optimal allocation strategy when each member's stake-weighted vote is required for an attack, achieved by rotating the proposer role): each member needs $\Delta r$ reputation. Across $N$ attestations the cartel processes,
 
@@ -610,25 +610,33 @@ so $F_{\mathcal{CR}}^{\text{gross}} = N \cdot \text{fee} \geq m \cdot \Delta r /
 
 **Remark on the voter channel.** Earlier versions of this paper (v0.3 - v0.5) used a single-proposer bound $F^{\text{net}} \geq \tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha)$ and dismissed the voter channel as "negligible per attestation in any reasonably-sized validator set." That is true for an individual validator's marginal contribution but understates the *cumulative* voter-channel injection when multiple cartel members vote on the same cartel-proposed blocks. The cartel-aware bound above closes this gap by making $m$ explicit. The v0.3 - v0.5 single-proposer bound is recovered as the $m = 1$ specialization.
 
+**Reconciliation with v0.6.** The v0.6 statement of Lemma 1 used $\alpha_{\text{eff}} = \alpha + m \beta / k$, derived from a proof that credited the proposer with own-block voter-channel reputation. That credit conflicts with §4.3's explicit ``but did not propose'' exclusion. v0.6.1 corrects the proof to match §4.3 strictly, yielding $\alpha + (m - 1) \beta / k$. The two forms coincide at $m = 1$ and at $k \to \infty$; at finite $k$ the v0.6.1 bound is tighter (smaller $\alpha_{\text{eff}}$, larger $F^{\text{net}}$ floor). The reference simulator at [`prototypes/poua-sim/`](https://github.com/ligate-io/ligate-research/tree/main/prototypes/poua-sim) implements §4.3 strictly and reproduces $\alpha + (m - 1) \beta / k$ to floating-point precision across $m \in \{1, 2, 3, 4\}$ and $k = 12$.
+
 **Comparison to honest acquisition.** A naive capital adversary (§5.3) acquires weight fraction $\rho$ at stake cost $\frac{\rho}{1-\rho} \cdot \frac{W}{r_{\min}}$. The compound grinding adversary, having acquired stake $s_v$ already, can attempt to multiply their effective weight by the reputation premium $r_{\max}/r_{\min}$, gaining $\Delta r = r_{\max} - r_{\min}$ per cartel member. The per-member cost-to-grind for this full ramp is at least $\tau_{\text{burn}} \cdot (r_{\max} - r_{\min}) / [\eta \cdot \alpha_{\text{eff}}(m, k)]$ in non-recoverable fees.
 
 For v0.6 parameters ($\tau_{\text{burn}} = 0.5$, $\eta = 0.001$, $\alpha = 0.7$, $\beta = 0.3$, $r_{\max} - r_{\min} = 7$):
 
-- **Single-proposer adversary** ($m = 1$, $\alpha_{\text{eff}} \approx 0.7$):
+- **Single-proposer adversary** ($m = 1$, $\alpha_{\text{eff}} = 0.7$ exactly):
 
-$$F_{\mathcal{CR}}^{\text{net}} \geq \frac{0.5 \cdot 7}{0.001 \cdot 0.7} \approx 5{,}000 \text{ fee-units.}$$
+$$F_{\mathcal{CR}}^{\text{net}} \geq \frac{0.5 \cdot 7}{0.001 \cdot 0.7} = 5{,}000 \text{ fee-units.}$$
 
-- **Byzantine-fraction cartel** ($m = k/3$, $\alpha_{\text{eff}} = \alpha + \beta/3 = 0.8$):
+- **Byzantine-fraction cartel, asymptotic** ($k \to \infty$ with $m / k = 1/3$, $\alpha_{\text{eff}} \to \alpha + \beta/3 = 0.8$):
 
-$$F_{\mathcal{CR}}^{\text{net, per member}} \geq \frac{0.5 \cdot 7}{0.001 \cdot 0.8} = 4{,}375 \text{ fee-units per cartel member.}$$
+$$F_{\mathcal{CR}}^{\text{net, per member}} \to \frac{0.5 \cdot 7}{0.001 \cdot 0.8} = 4{,}375 \text{ fee-units per cartel member.}$$
 
-The Byzantine-fraction cartel pays $\sim 12.5\%$ less per cartel member than a single-proposer adversary attempting the same per-member reputation ramp. The cartel-aggregate burn is correspondingly $m \cdot 4{,}375$ fee-units, which is much larger in absolute terms than the single-proposer 5{,}000-unit floor. The per-member discount is the price of the voter channel; it is real but bounded above by $\beta / (\alpha k / m + \beta) \to \beta/(3\alpha + \beta)$ at the Byzantine cap. For the recommended $\alpha = 0.7, \beta = 0.3$ split, the maximum cartel discount is $0.3/(2.1 + 0.3) = 12.5\%$.
+- **Byzantine-fraction cartel, finite $k = 12$** ($m = 4$, $\alpha_{\text{eff}} = 0.7 + 3 \cdot 0.3 / 12 = 0.775$):
 
-**Sensitivity to $\alpha$.** The cartel discount widens as $\alpha$ shrinks (more reputation injected through the voter channel): for $\alpha = 0.5, \beta = 0.5$, the maximum cartel discount rises to $\beta/(3\alpha + \beta) = 0.5/2.0 = 25\%$. For $\alpha = 0.9, \beta = 0.1$, it shrinks to $0.1/2.8 \approx 3.6\%$. The recommended $\alpha = 0.7$ balances the cartel-discount tightness against the proposer-rich-get-richer entrenchment that motivated the voter channel in the first place (§4.3).
+$$F_{\mathcal{CR}}^{\text{net, per member}} \geq \frac{0.5 \cdot 7}{0.001 \cdot 0.775} \approx 4{,}516 \text{ fee-units per cartel member.}$$
 
-Calibration: setting the minimum attestation fee high enough that $5{,}000 \times \text{fee}_{\min}$ exceeds the stake cost of the equivalent reputation-premium gain makes grinding strictly more expensive than honestly acquiring stake even under the cartel-aware bound (the cartel pays $0.875 \times$ that floor per member, still well above the honest-acquisition cost for any healthy parameter calibration). This is a tunable: governance sets $\text{fee}_{\min}, \tau_{\text{burn}}, \alpha$ such that the cost-equivalence inequality holds for the chain's economics across the full $m \in [1, k/3]$ cartel-size range.
+The Byzantine-fraction cartel pays $\sim 12.5\%$ less per cartel member than a single-proposer adversary in the asymptotic limit, and $\sim 9.7\%$ less at finite $k = 12$ (a typical small-validator-set value). For practical mainnet sizes ($k \geq 100$) the finite-$k$ correction shrinks to a fraction of a percent: at $k = 100, m = 33$, $\alpha_{\text{eff}} = 0.796$ and the discount is $\sim 12.06\%$, within $0.5\%$ of the asymptotic $12.5\%$.
 
-**This converts the compound-adversary case from "moat collapses" to "moat is preserved by economic argument."** It is the primary defense improvement of v0.2 over v0.1, sharpened in v0.3 with the explicit $\alpha$-dependent bound, and tightened in v0.6 to cover the voter channel under coordinated cartels.
+The cartel-aggregate burn is correspondingly $m \cdot F^{\text{net, per member}}$, much larger in absolute terms than the single-proposer floor. The per-member discount is the price of the voter channel; it is bounded above by $\beta / (\alpha k / m + \beta)$, which approaches $\beta / (3 \alpha + \beta)$ at the Byzantine cap as $k \to \infty$. For the recommended $\alpha = 0.7, \beta = 0.3$ split, the asymptotic ceiling is $0.3 / 2.4 = 12.5\%$.
+
+**Sensitivity to $\alpha$ (asymptotic limit).** The cartel discount widens as $\alpha$ shrinks (more reputation injected through the voter channel): for $\alpha = 0.5, \beta = 0.5$, the asymptotic maximum discount rises to $\beta/(3\alpha + \beta) = 0.5/2.0 = 25\%$. For $\alpha = 0.9, \beta = 0.1$, it shrinks to $0.1/2.8 \approx 3.6\%$. The recommended $\alpha = 0.7$ balances the cartel-discount tightness against the proposer-rich-get-richer entrenchment that motivated the voter channel in the first place (§4.3). Finite-$k$ corrections apply but are negligible for $k \gtrsim 100$.
+
+Calibration: setting the minimum attestation fee high enough that $5{,}000 \times \text{fee}_{\min}$ exceeds the stake cost of the equivalent reputation-premium gain makes grinding strictly more expensive than honestly acquiring stake even under the cartel-aware bound (the cartel pays at most $0.875 \times$ that floor per member at the asymptotic Byzantine cap, still well above the honest-acquisition cost for any healthy parameter calibration). This is a tunable: governance sets $\text{fee}_{\min}, \tau_{\text{burn}}, \alpha$ such that the cost-equivalence inequality holds for the chain's economics across the full $m \in [1, k/3]$ cartel-size range.
+
+**This converts the compound-adversary case from "moat collapses" to "moat is preserved by economic argument."** It is the primary defense improvement of v0.2 over v0.1, sharpened in v0.3 with the explicit $\alpha$-dependent bound, tightened in v0.6 to cover the voter channel under coordinated cartels, and reconciled in v0.6.1 to match the §4.3 update rule strictly (proposer excluded from own-block voter share).
 
 #### 5.5.4 Layer 4 — Statistical detection (heuristic)
 
@@ -1131,10 +1139,10 @@ $$b_v(t) = \sum_{i \in \{1,2,3\}} \Lambda_i \cdot |\{\text{detected slashes of s
 
 **Lemma 2 (Weighted quorum intersection, recap).** Let $W = \sum_{u \in V} w_u$. For any $Q, Q' \subseteq V$ with $\sum_{v \in Q} w_v > \frac{2}{3} W$ and $\sum_{v \in Q'} w_v > \frac{2}{3} W$, the intersection satisfies $\sum_{v \in Q \cap Q'} w_v > \frac{1}{3} W$. (Proof: §5.2 via inclusion-exclusion. Used in Theorems 1 and 2.)
 
-**Lemma 1 (Cost-to-grind bound, recap).** Under Layer 3 with parameter $\tau_{\text{burn}}$, proposer reputation share $\alpha$ and voter share $\beta = 1 - \alpha$, an $m$-validator coordinated cartel within a $k$-voter set that acquires per-member reputation gain $\Delta r$ pays per-member non-recoverable fees $F_{\mathcal{CR}}^{\text{net, per member}} \geq \tau_{\text{burn}} \cdot \Delta r / [\eta \cdot \alpha_{\text{eff}}(m, k)]$, where $\alpha_{\text{eff}}(m, k) = \alpha + m\beta/k$. The single-validator case $m = 1$ recovers the v0.3 - v0.5 bound $\tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha)$. The Byzantine-fraction cartel ($m = k/3$, $\alpha = 0.7$) pays $\sim 12.5\%$ less per member than the single-validator case. (Proof: §5.5.3.)
+**Lemma 1 (Cost-to-grind bound, recap).** Under Layer 3 with parameter $\tau_{\text{burn}}$, proposer reputation share $\alpha$ and voter share $\beta = 1 - \alpha$, an $m$-validator coordinated cartel within a $k$-voter set that acquires per-member reputation gain $\Delta r$ pays per-member non-recoverable fees $F_{\mathcal{CR}}^{\text{net, per member}} \geq \tau_{\text{burn}} \cdot \Delta r / [\eta \cdot \alpha_{\text{eff}}(m, k)]$, where $\alpha_{\text{eff}}(m, k) = \alpha + (m - 1)\beta/k$. The single-validator case $m = 1$ recovers $\alpha_{\text{eff}} = \alpha$ exactly. In the asymptotic limit $k \to \infty$ at fixed $m / k$, $\alpha_{\text{eff}} \to \alpha + (m / k)\beta$; for the Byzantine cap $m = k/3$, $\alpha = 0.7$, the asymptotic per-member discount is $\sim 12.5\%$. (Proof: §5.5.3. Empirical validation: simulator §5.5.3 reference at [`prototypes/poua-sim/scripts/run_lemma1_scan.py`](https://github.com/ligate-io/ligate-research/tree/main/prototypes/poua-sim/scripts/run_lemma1_scan.py).)
 
 ---
 
-*End of working paper v0.6. Comments welcome to hello@ligate.io.*
+*End of working paper v0.6.1. Comments welcome to hello@ligate.io.*
 
 *Roadmap: v0.7 adds reference-simulator results, devnet calibration data, and external-reviewer-driven revisions. Target: Q3 2026.*
