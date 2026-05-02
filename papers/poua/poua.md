@@ -649,7 +649,7 @@ $$\alpha_{\text{eff}}(m, k) = \alpha + \frac{(m - 1) \cdot \beta}{k}.$$
 
 $$\text{cartel-total per attestation} = \left(\alpha + (m - 1) \cdot \frac{\beta}{k}\right) \cdot \text{fee}(\alpha) \cdot \eta = \alpha_{\text{eff}}(m, k) \cdot \text{fee}(\alpha) \cdot \eta.$$
 
-Distributing the gain uniformly across $m$ members (the cartel's optimal allocation strategy when each member's stake-weighted vote is required for an attack, achieved by rotating the proposer role): each member needs $\Delta r$ reputation. Across $N$ attestations the cartel processes,
+Distributing the gain uniformly across $m$ members (achieved by rotating the proposer role through the cartel): each member needs $\Delta r$ reputation. The cartel's *cost-effective* allocation may concentrate reputation on a single high-stake member if only that member's weight is needed for the attack; uniform allocation is the optimal strategy when **each cartel member's stake-weighted vote is required for the BFT-fraction attack** (the case of an $m$-member coalition that needs all $m$ at high reputation simultaneously to collectively cross the $1/3$ weight threshold). For attacks that need only one high-reputation entity, the bound reduces to the $m = 1$ case applied to that entity, which is strictly tighter; the uniform-allocation framing is therefore the *upper-bound-compatible* attack mode against which Lemma 1 must hold. Across $N$ attestations the cartel processes,
 
 $$m \cdot \Delta r \leq N \cdot \text{fee} \cdot \eta \cdot \alpha_{\text{eff}}(m, k),$$
 
@@ -807,24 +807,26 @@ where $\Delta_{\text{recovery}}$ is the time required to rebuild reputation to i
 
 #### 6.3.1 Volume-Dependence of the Slash Deterrent
 
-The PV-of-slash bound depends linearly on the chain's per-epoch revenue $R_b + R_f$. This is an asymmetry vs. pure-stake PoS, which depends only on the burned bond. Define the *volume-deterrent ratio*:
+The PV-of-slash bound depends linearly on the chain's per-epoch revenue $R_b + R_f$. The reputation-channel component therefore scales with volume in a way pure-stake-bond slashing does not. **PoUA retains the bond-burn slash on top of the reputation channel**: the bond deterrent is unchanged across PoS variants. What follows describes the magnitude scaling of the reputation-channel premium relative to its block-reward-only floor; PoUA's *total* slash deterrent is always the bond burn *plus* this reputation-channel quantity, never less than pure-stake PoS.
+
+Define the *volume-deterrent ratio* as the magnitude scaling on the reputation-channel premium:
 
 $$\rho_{\text{vol}}(R_f / R_b) := \frac{R_b + R_f}{R_b} = 1 + \frac{R_f}{R_b}.$$
 
-In a low-volume regime $R_f \to 0$, $\rho_{\text{vol}} \to 1$: the reputation-channel slash deterrent collapses to the bond-only baseline. PoUA's incentive alignment becomes volume-dependent in a way pure-stake PoS is not. Figure \ref{fig:volume-deterrent} shows the curve across realistic operating points.
+At $R_f \to 0$, $\rho_{\text{vol}} \to 1$: the reputation-channel deterrent reaches its block-reward-only floor (not zero, and not the bond — a smaller, $R_b$-scaled value). At $R_f / R_b = 1$ (fee revenue equals block reward), the reputation-channel deterrent is $2\times$ its floor. Figure \ref{fig:volume-deterrent} shows the curve across realistic operating points.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.92\textwidth]{../../prototypes/poua-sim/out/volume_deterrent.png}
-\caption{Volume-deterrent ratio $\rho_{\text{vol}} = 1 + R_f/R_b$ across attestation-fee-flow regimes. Pure-stake bond baseline (dashed blue) is volume-independent at $1.0$. Crossover (dotted gray) at $R_f / R_b = 0.5$ marks where the reputation-channel deterrent gives a $1.5\times$ premium over bond-only. At bootstrap ($R_f / R_b \approx 0.05$), the reputation deterrent is only $1.05\times$ the bond baseline; at mature ($R_f / R_b \approx 2.0$), $3.0\times$. Produced by \texttt{prototypes/poua-sim/scripts/run\_volume\_deterrent.py}.}
+\caption{Volume-deterrent ratio $\rho_{\text{vol}} = 1 + R_f/R_b$ across attestation-fee-flow regimes: the magnitude scaling on the reputation-channel slash deterrent relative to its $R_f = 0$ floor. The dashed line at $1.0$ is the floor (block-reward-only reputation deterrent); the curve rises linearly with $R_f / R_b$. Named operating points: bootstrap ($R_f / R_b \approx 0.05$, $\rho_{\text{vol}} \approx 1.05$), early ($\approx 0.5$, $\approx 1.5$), mature ($\approx 2.0$, $\approx 3.0$), high-volume ($\approx 4.0$, $\approx 5.0$). The reference dashed line is \emph{not} a comparison to pure-stake-bond magnitude; bond-burn deterrent is denominated separately and added on top of the reputation channel in PoUA's total deterrent. Produced by \texttt{prototypes/poua-sim/scripts/run\_volume\_deterrent.py}.}
 \label{fig:volume-deterrent}
 \end{figure}
 
-**Implications.** Three operational regimes warrant explicit mitigation:
+**Implications.** Three operational regimes warrant explicit mitigation, because in each the reputation-channel premium attenuates toward its floor (PoUA still retains the bond-burn slash; total deterrent never falls below pure-stake PoS):
 
-1. **Chain bootstrap.** Devnet-and-early-mainnet periods have $R_f / R_b \ll 1$. The reputation deterrent is weak. Mitigations: extended permissioned phase, higher initial $\tau_{\text{burn}}$, or a volume-independent slash component until fee flow stabilizes.
-2. **Network-wide volume troughs.** Bear markets, post-shock recovery, low-utilization periods. The deterrent attenuates symmetrically. Mitigations: minimum-fee floor enforced by governance, or a fee-floor schedule indexed to market activity.
-3. **Schemas with low fee schedules.** A schema whose attestor set chooses a low fee per attestation (race-to-the-bottom) reduces the reputation-channel slash deterrent for any validator processing that schema's attestations. Mitigations: per-schema fee minimums, or a global $\text{fee}_{\min}$ enforced at the runtime layer.
+1. **Chain bootstrap.** Devnet-and-early-mainnet periods have $R_f / R_b \ll 1$. The reputation-channel premium over its floor is small; PoUA's incentive alignment is dominated by the bond plus the floor. Mitigations: extended permissioned phase, higher initial $\tau_{\text{burn}}$, or a volume-independent slash component (e.g., a fixed protocol fee) until fee flow stabilizes.
+2. **Network-wide volume troughs.** Bear markets, post-shock recovery, low-utilization periods. The reputation-channel premium attenuates symmetrically. Mitigations: minimum-fee floor enforced by governance, or a fee-floor schedule indexed to market activity.
+3. **Schemas with low fee schedules.** A schema whose attestor set chooses a low fee per attestation (race-to-the-bottom) reduces the reputation-channel slash premium for any validator processing that schema's attestations. Mitigations: per-schema fee minimums, or a global $\text{fee}_{\min}$ enforced at the runtime layer.
 
 §4.4.2 specifies the **adaptive $\tau_{\text{burn}}$ rebase** mechanism that reacts automatically to drift below a published $\rho_{\text{vol}}$ floor; that is the protocol-level countermeasure to (1)-(3) at scale. The simulator at \texttt{prototypes/poua-sim/scripts/run\_volume\_deterrent.py} produces the canonical figure used to set the floor parameter.
 
