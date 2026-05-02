@@ -5,9 +5,9 @@ A consensus weighting primitive for attestation-native chains.
 ## Latest
 
 - **Working paper**: [`poua.pdf`](poua.pdf) (compiled) / [`poua.md`](poua.md) (markdown source) / [`poua.tex`](poua.tex) (LaTeX source for arXiv)
-- **Version**: v0.5
+- **Version**: v0.6
 - **Status**: Draft for internal review and design-partner circulation
-- **Date**: 2026-05-01
+- **Date**: 2026-05-02
 
 ## Abstract
 
@@ -32,6 +32,7 @@ See the root [CONTRIBUTING.md](../../CONTRIBUTING.md) for tooling setup.
 
 ## Version history
 
+- **v0.6** (2026-05-02): tightened Lemma 1 to cover coordinated voter cartels (closes [#10](https://github.com/ligate-io/ligate-research/issues/10)); pinned Layer 3 burn destination to pure-burn with treasury and redistribution as opt-in alternatives carrying separate bounds (closes [#11](https://github.com/ligate-io/ligate-research/issues/11)); added §5.3.1 transition-state κ analysis covering warmup, validator-set ramp, and post-slash recovery (closes [#12](https://github.com/ligate-io/ligate-research/issues/12)); softened §5.3 headline to "up to 4-10× steady-state" with explicit transition envelope.
 - **v0.5** (2026-05-01): prose pass on high-visibility sections (Abstract, §1.1-1.6, §5.1, §5.5, §6.1, §10, §11 opener). Reduced hedging filler, varied sentence rhythm, cut bulleted-claim density where flowing prose worked. Technical content unchanged.
 - **v0.4** (2026-05-01): replaced Theorem 1 and 2 proof sketches with reduction-style full proofs supported by Lemma 2 (weighted quorum intersection); replaced Appendix A skeleton with analytical false-positive bounds via $\chi^2$ approximation (A2) and Normal approximation (A3); updated §5.4 reputation-adversary bound for consistency with v0.3 Lemma 1; reordered bibliography alphabetically; added Lemma 1 and Lemma 2 to Appendix B recap.
 - **v0.3** (2026-05-01): tightened Lemma 1 to incorporate the proposer reputation share $\alpha$ (strict bound $F^{\text{net}} \geq \tau_{\text{burn}} \Delta r / (\eta \alpha)$); added Figure 1 (system diagram) and Figure 2 (cost-to-attack curve); cleaned references (removed unverified citation in §2.3 and §11; added Hoffman 2009 and Resnick 2000 to ground the trust-and-reputation systems literature).
@@ -49,8 +50,8 @@ See the root [CONTRIBUTING.md](../../CONTRIBUTING.md) for tooling setup.
 
 **Does not claim:**
 
-- Full formal incentive compatibility proof (sketched in §6, full proof is v0.3+ work).
-- Empirical validation on production-scale traffic (devnet calibration is v0.3 work, prototype scheduled in [`prototypes/poua-sim/`](../../prototypes/poua-sim/)).
+- Full formal incentive compatibility proof (sketched in §6, full proof is v0.7+ work).
+- Empirical validation on production-scale traffic (devnet calibration is v0.7 work, prototype scheduled in [`prototypes/poua-sim/`](../../prototypes/poua-sim/)).
 - Cryptographic Sybil-resistance against all sophisticated adversaries — the heuristic Layer 4 is acknowledged as a residual defense, with a zk-proof upgrade path identified as future work (§5.5.6).
 
 ## Open questions for reviewers
