@@ -2,20 +2,25 @@
 
 §6.3 derives the present value of marginal reputation as proportional to
 ``(R_b + R_f) · (1 - e^{-δΔ}) / δ``, where ``R_b`` is the protocol block
-reward and ``R_f`` is the attestation fee flow.
+reward and ``R_f`` is the attestation fee flow. The reputation-channel
+slash deterrent therefore scales with chain revenue.
 
-Pure-stake PoS slashing depends only on the burned bond, not on volume.
-PoUA's slash deterrent through the reputation channel attenuates as
-``R_f → 0``. This is the asymmetry [#15](https://github.com/ligate-io/ligate-research/issues/15)
-flags.
+PoUA retains the bond-burn slash on top of this reputation channel. The
+*total* slash deterrent in PoUA = bond burn + reputation-channel
+deterrent, never less than pure-stake PoS. What attenuates as
+``R_f → 0`` is the reputation-channel premium, which approaches its
+``R_b``-only floor (not zero, not the bond — a smaller, ``R_b``-scaled
+quantity).
 
 This script computes the *volume-deterrent ratio*:
 
     ρ_vol(R_f / R_b) = (R_b + R_f) / R_b = 1 + R_f / R_b
 
-and plots it against the pure-stake-bond baseline. Below the
-``crossover_ratio`` (where the reputation deterrent equals the bond
-deterrent), pure-stake security dominates PoUA.
+interpreted as the magnitude scaling on the reputation-channel deterrent
+relative to its ``R_f = 0`` floor. The figure plots ρ_vol(R_f/R_b) and
+marks named operating points (bootstrap, early, mature, high-volume).
+There is no comparison to bond-burn magnitude: the bond is denominated
+separately and added on top.
 
 Closes the analytical component of #15. The empirical component (devnet
 fee-flow trajectory) lands when devnet ships.
@@ -46,22 +51,22 @@ NAMED_POINTS = {
     "high-volume": 4.0,  # busy attestation chain
 }
 
-# Relative slash-deterrent strength of pure-stake-bond baseline.
-# This is the floor below which PoUA's reputation deterrent is dominated
-# by pure-stake bond. We normalize by setting it = 1.0.
-PURE_STAKE_DETERRENT = 1.0
-
-# The "crossover" is where (R_b + R_f) / R_b = floor multiplier; pick a
-# concrete value to highlight the threshold below which reputation alone
-# is weaker than the bond. Recommended: floor = 1.5x the bond.
-CROSSOVER_FLOOR = 1.5
+# The R_f = 0 floor of the reputation-channel deterrent (block-reward-only).
+# Plotted as a horizontal reference line at ρ_vol = 1.0. NOT a comparison
+# to bond-burn magnitude; the bond is denominated separately and is added
+# on top of the reputation channel in PoUA's total slash deterrent.
+RHO_VOL_FLOOR = 1.0
 
 OUT = Path(__file__).resolve().parent.parent / "out"
 OUT.mkdir(exist_ok=True)
 
 
 def rho_vol(r_f_over_r_b: np.ndarray | float) -> np.ndarray | float:
-    """Volume-deterrent ratio: ``(R_b + R_f) / R_b = 1 + R_f / R_b``."""
+    """Volume-deterrent ratio: ``(R_b + R_f) / R_b = 1 + R_f / R_b``.
+
+    Interpreted as the magnitude scaling on the reputation-channel slash
+    deterrent relative to its ``R_f = 0`` floor.
+    """
     return 1.0 + r_f_over_r_b
 
 
@@ -70,17 +75,13 @@ def main() -> None:
 
     rho = rho_vol(R_F_OVER_R_B)
 
-    # Find the crossover point where rho_vol = CROSSOVER_FLOOR.
-    crossover_x = CROSSOVER_FLOOR - 1.0  # since rho = 1 + x, x = floor - 1
-
     # Save data
     data = {
         "config": {
             "r_f_over_r_b_min": float(R_F_OVER_R_B.min()),
             "r_f_over_r_b_max": float(R_F_OVER_R_B.max()),
             "n_points": len(R_F_OVER_R_B),
-            "crossover_floor": CROSSOVER_FLOOR,
-            "crossover_x": crossover_x,
+            "rho_vol_floor": RHO_VOL_FLOOR,
         },
         "samples": [
             {"r_f_over_r_b": float(x), "rho_vol": float(rho_vol(x))}
@@ -98,35 +99,24 @@ def main() -> None:
     out_json.write_text(json.dumps(data, indent=2))
     print(f"saved {out_json}", flush=True)
 
-    print(f"\nVolume-deterrent at named operating points:")
+    print(f"\nReputation-channel deterrent multiplier (relative to R_f=0 floor) at named operating points:")
     for name, x in NAMED_POINTS.items():
-        print(f"  {name:>14}: R_f / R_b = {x:>5.2f}, ρ_vol = {rho_vol(x):.3f}x bond-only")
+        print(f"  {name:>14}: R_f / R_b = {x:>5.2f}, ρ_vol = {rho_vol(x):.3f}x floor")
 
-    print(f"\nCrossover where ρ_vol = {CROSSOVER_FLOOR}x:")
-    print(f"  R_f / R_b = {crossover_x:.3f}")
-    print(f"  Below this ratio, PoUA's reputation deterrent is weaker than a")
-    print(f"  {CROSSOVER_FLOOR:.1f}x bond multiplier; pure-stake PoS would have a tighter floor.")
+    print(f"\nNote on framing: the reputation-channel deterrent has its minimum at R_f=0 (block-reward-only).")
+    print(f"PoUA's total slash deterrent = bond burn + reputation-channel quantity, always >= pure-stake PoS.")
+    print(f"This script plots only the magnitude scaling on the reputation-channel premium.")
 
     # Figure
     fig, ax = plt.subplots(figsize=(8.5, 5.5), dpi=120)
 
     ax.semilogx(R_F_OVER_R_B, rho, color="#b91c1c", linewidth=2.2,
-                label=r"PoUA reputation deterrent: $\rho_{\mathrm{vol}}(R_f / R_b) = 1 + R_f / R_b$")
+                label=r"PoUA reputation-channel deterrent: $\rho_{\mathrm{vol}}(R_f / R_b) = 1 + R_f / R_b$")
 
-    # Pure-stake bond baseline.
-    ax.axhline(y=PURE_STAKE_DETERRENT, color="#1f77b4", linestyle="--",
-               linewidth=1.5, label=r"Pure-stake bond baseline (volume-independent)")
-
-    # Crossover threshold.
-    ax.axhline(y=CROSSOVER_FLOOR, color="gray", linestyle=":", linewidth=1.0, alpha=0.6)
-    ax.axvline(x=crossover_x, color="gray", linestyle=":", linewidth=1.0, alpha=0.6)
-    ax.text(
-        crossover_x * 1.1,
-        CROSSOVER_FLOOR + 0.1,
-        f"crossover\n$R_f / R_b = {crossover_x:.2f}$",
-        fontsize=9,
-        color="gray",
-    )
+    # R_f = 0 floor reference line. Not a comparison to bond magnitude.
+    ax.axhline(y=RHO_VOL_FLOOR, color="gray", linestyle="--",
+               linewidth=1.5, alpha=0.7,
+               label=r"Reputation-channel floor at $R_f = 0$ (block-reward-only)")
 
     # Named points.
     for name, x in NAMED_POINTS.items():
@@ -142,23 +132,23 @@ def main() -> None:
 
     ax.fill_between(
         R_F_OVER_R_B,
-        PURE_STAKE_DETERRENT,
+        RHO_VOL_FLOOR,
         rho,
-        where=(rho >= PURE_STAKE_DETERRENT),
+        where=(rho >= RHO_VOL_FLOOR),
         color="#bbf7d0",
         alpha=0.3,
-        label="PoUA premium over pure-stake (volume-positive)",
+        label=r"Reputation-channel premium over $R_f = 0$ floor (volume-driven)",
     )
 
     ax.set_xlabel(r"$R_f / R_b$ (attestation fee flow / block reward)")
-    ax.set_ylabel(r"Slash deterrent multiplier (pure-stake bond = 1)")
+    ax.set_ylabel(r"Reputation-channel deterrent multiplier (relative to $R_f = 0$ floor)")
     ax.set_xlim(R_F_OVER_R_B.min(), R_F_OVER_R_B.max())
-    ax.set_ylim(0.5, max(rho.max() + 0.5, CROSSOVER_FLOOR + 1))
+    ax.set_ylim(0.5, rho.max() + 0.5)
     ax.grid(True, linestyle=":", which="both", alpha=0.4)
     ax.legend(loc="upper left", fontsize=9, framealpha=0.95)
     ax.set_title(
-        "PoUA volume-dependent slash deterrent vs. pure-stake bond baseline\n"
-        "(reputation deterrent attenuates as $R_f \\to 0$, §6.3)",
+        "PoUA reputation-channel deterrent: magnitude scaling vs. fee flow\n"
+        "(the bond-burn slash is unchanged across PoS variants and is added on top, §6.3)",
         fontsize=10,
     )
 

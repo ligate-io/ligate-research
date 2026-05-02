@@ -2,7 +2,7 @@
 
 ## A Consensus Primitive for Attestation-Native Chains
 
-**Ligate Labs Research, Working Paper v0.7**
+**Ligate Labs Research, Working Paper v0.7.1**
 
 **Date:** 2026-05-01
 
@@ -20,7 +20,7 @@
 
 Consensus mechanisms for chains whose primary economic activity is attestation production - content provenance, AI-output attribution, threshold-signed credentials, supply-chain traceability - are misaligned with the workload they secure. Validators on a generic Proof of Stake chain earn the same fees regardless of whether they handle attestation work correctly or selectively censor it. **Proof of Useful Attestation (PoUA)** changes that.
 
-In PoUA, validator influence is computed as bonded stake multiplied by a non-transferable reputation score that grows with valid attestation processing and shrinks under detected misbehavior. The primitive is designed for chains whose runtime, fee market, and economic model are purpose-built for attestations - Ligate Chain is the worked example throughout. We give the protocol specification, a threat model under standard partial-synchrony, an incentive analysis under a profit-maximizing validator model, and a concrete integration with the Sovereign SDK rollup framework. PoUA inherits the safety and liveness properties of its underlying BFT primitive (Tendermint-style optimistic finality, in deployment) and constructs a multiplicative cost-to-attack premium of $4\times$ to $10\times$ over equivalent pure-stake chains.
+In PoUA, validator influence is computed as bonded stake multiplied by a non-transferable reputation score that grows with valid attestation processing and shrinks under detected misbehavior. The primitive is designed for chains whose runtime, fee market, and economic model are purpose-built for attestations - Ligate Chain is the worked example throughout. We give the protocol specification, a threat model under standard partial-synchrony, an incentive analysis under a profit-maximizing validator model, and a concrete integration with the Sovereign SDK rollup framework. PoUA inherits the safety and liveness properties of its underlying BFT primitive (Tendermint-style optimistic finality, in deployment) and constructs a multiplicative cost-to-attack premium of $4\times$ to $10\times$ over equivalent pure-stake chains (Figure \ref{fig:cost-to-attack}; reproduced empirically by \texttt{prototypes/poua-sim/scripts/run\_capital\_scan.py}).
 
 The contribution is not a new cryptographic primitive. It is a synthesis: reputation-weighted consensus (Yu et al., 2019; Eyal, 2015), proof-of-useful-work (Helium 2018; Filecoin 2017), and restaking with non-transferable bonds (EigenLayer, 2023), recombined to fit attestation-native chains, and given the specific mechanism choices, Sybil-resistance argument, and engineering integration that prior work does not. The hard part - defending against compound capital-and-grinding adversaries who control validators, attestor sets, and submitter addresses simultaneously - is treated through a layered defense whose load-bearing piece is a formal cost-to-grind bound (Lemma 1).
 
@@ -88,7 +88,7 @@ The key formal result, derived in Section 5.3, is that the cost-to-attack premiu
 
 $$\kappa = \frac{\bar{r}_H}{r_{\min}}$$
 
-where $\bar{r}_H$ is the mean reputation of honest validators at attack time. With recommended parameters ($r_{\max}/r_{\min} \in [4, 10]$), a healthy steady-state chain achieves a cost-to-attack premium of $4\times$ to $10\times$ over equivalent pure-stake PoS. This is the formal moat referenced in Section 1.1.
+where $\bar{r}_H$ is the mean reputation of honest validators at attack time. With recommended parameters ($r_{\max}/r_{\min} \in [4, 10]$), a healthy steady-state chain achieves a cost-to-attack premium of $4\times$ to $10\times$ over equivalent pure-stake PoS. This is the formal moat referenced in Section 1.1, and the §5.3 derivation matches empirical Monte Carlo from the reference simulator (Figure \ref{fig:cost-to-attack}; \texttt{run\_capital\_scan.py}) to within binomial variance.
 
 ### 1.6 Contributions
 
@@ -513,7 +513,7 @@ Compared to the cost of acquiring weight fraction $\rho$ in pure-stake PoS (cost
 
 $$\boxed{\kappa = \frac{\bar{r}_H}{r_{\min}}}$$
 
-In a healthy chain at steady state, $\bar{r}_H$ approaches $r_{\max}$, giving $\kappa \to r_{\max}/r_{\min}$. Per Section 4.4 design guidance ($r_{\max}/r_{\min} \in [4, 10]$), the capital adversary's cost-to-attack is **up to 4 to 10 times higher** than an equivalent pure-stake PoS chain *at steady state*. The realized $\kappa$ is lower during the warmup window, during validator-set ramp, and immediately after a slash; §5.3.1 quantifies these transition-state effects.
+In a healthy chain at steady state, $\bar{r}_H$ approaches $r_{\max}$, giving $\kappa \to r_{\max}/r_{\min}$. Per Section 4.4 design guidance ($r_{\max}/r_{\min} \in [4, 10]$), the capital adversary's cost-to-attack is **up to 4 to 10 times higher** than an equivalent pure-stake PoS chain *at steady state* (Figure \ref{fig:cost-to-attack}). The realized $\kappa$ is lower during the warmup window, during validator-set ramp, and immediately after a slash; §5.3.1 quantifies these transition-state effects (empirical trajectory: Figure \ref{fig:kappa-trajectory}).
 
 This premium $\kappa$ is the formal moat PoUA constructs over generic PoS. Figure 2 plots the relationship $s_{\mathcal{C}} / S_H = \kappa \cdot \rho/(1-\rho)$ for three values of $\kappa$, with empirical Monte Carlo points overlaid from the reference simulator.
 
@@ -649,7 +649,7 @@ $$\alpha_{\text{eff}}(m, k) = \alpha + \frac{(m - 1) \cdot \beta}{k}.$$
 
 $$\text{cartel-total per attestation} = \left(\alpha + (m - 1) \cdot \frac{\beta}{k}\right) \cdot \text{fee}(\alpha) \cdot \eta = \alpha_{\text{eff}}(m, k) \cdot \text{fee}(\alpha) \cdot \eta.$$
 
-Distributing the gain uniformly across $m$ members (the cartel's optimal allocation strategy when each member's stake-weighted vote is required for an attack, achieved by rotating the proposer role): each member needs $\Delta r$ reputation. Across $N$ attestations the cartel processes,
+Distributing the gain uniformly across $m$ members (achieved by rotating the proposer role through the cartel): each member needs $\Delta r$ reputation. The cartel's *cost-effective* allocation may concentrate reputation on a single high-stake member if only that member's weight is needed for the attack; uniform allocation is the optimal strategy when **each cartel member's stake-weighted vote is required for the BFT-fraction attack** (the case of an $m$-member coalition that needs all $m$ at high reputation simultaneously to collectively cross the $1/3$ weight threshold). For attacks that need only one high-reputation entity, the bound reduces to the $m = 1$ case applied to that entity, which is strictly tighter; the uniform-allocation framing is therefore the *upper-bound-compatible* attack mode against which Lemma 1 must hold. Across $N$ attestations the cartel processes,
 
 $$m \cdot \Delta r \leq N \cdot \text{fee} \cdot \eta \cdot \alpha_{\text{eff}}(m, k),$$
 
@@ -675,7 +675,7 @@ $$F_{\mathcal{CR}}^{\text{net, per member}} \to \frac{0.5 \cdot 7}{0.001 \cdot 0
 
 $$F_{\mathcal{CR}}^{\text{net, per member}} \geq \frac{0.5 \cdot 7}{0.001 \cdot 0.775} \approx 4{,}516 \text{ fee-units per cartel member.}$$
 
-The Byzantine-fraction cartel pays $\sim 12.5\%$ less per cartel member than a single-proposer adversary in the asymptotic limit, and $\sim 9.7\%$ less at finite $k = 12$ (a typical small-validator-set value). For practical mainnet sizes ($k \geq 100$) the finite-$k$ correction shrinks to a fraction of a percent: at $k = 100, m = 33$, $\alpha_{\text{eff}} = 0.796$ and the discount is $\sim 12.06\%$, within $0.5\%$ of the asymptotic $12.5\%$.
+The Byzantine-fraction cartel pays $\sim 12.5\%$ less per cartel member than a single-proposer adversary in the asymptotic limit, and $\sim 9.7\%$ less at finite $k = 12$ (a typical small-validator-set value). For practical mainnet sizes ($k \geq 100$) the finite-$k$ correction shrinks to a fraction of a percent: at $k = 100, m = 33$, $\alpha_{\text{eff}} = 0.796$ and the discount is $\sim 12.06\%$, within $0.5\%$ of the asymptotic $12.5\%$. (See \texttt{prototypes/poua-sim/test\_vectors/alpha\_eff.json} and \texttt{prototypes/poua-sim/test\_vectors/lemma1\_cost\_to\_grind.json} for the per-input values; \texttt{run\_lemma1\_scan.py} validates the bound across the empirical scan.)
 
 The cartel-aggregate burn is correspondingly $m \cdot F^{\text{net, per member}}$, much larger in absolute terms than the single-proposer floor. The per-member discount is the price of the voter channel; it is bounded above by $\beta / (\alpha k / m + \beta)$, which approaches $\beta / (3 \alpha + \beta)$ at the Byzantine cap as $k \to \infty$. For the recommended $\alpha = 0.7, \beta = 0.3$ split, the asymptotic ceiling is $0.3 / 2.4 = 12.5\%$.
 
@@ -807,24 +807,26 @@ where $\Delta_{\text{recovery}}$ is the time required to rebuild reputation to i
 
 #### 6.3.1 Volume-Dependence of the Slash Deterrent
 
-The PV-of-slash bound depends linearly on the chain's per-epoch revenue $R_b + R_f$. This is an asymmetry vs. pure-stake PoS, which depends only on the burned bond. Define the *volume-deterrent ratio*:
+The PV-of-slash bound depends linearly on the chain's per-epoch revenue $R_b + R_f$. The reputation-channel component therefore scales with volume in a way pure-stake-bond slashing does not. **PoUA retains the bond-burn slash on top of the reputation channel**: the bond deterrent is unchanged across PoS variants. What follows describes the magnitude scaling of the reputation-channel premium relative to its block-reward-only floor; PoUA's *total* slash deterrent is always the bond burn *plus* this reputation-channel quantity, never less than pure-stake PoS.
+
+Define the *volume-deterrent ratio* as the magnitude scaling on the reputation-channel premium:
 
 $$\rho_{\text{vol}}(R_f / R_b) := \frac{R_b + R_f}{R_b} = 1 + \frac{R_f}{R_b}.$$
 
-In a low-volume regime $R_f \to 0$, $\rho_{\text{vol}} \to 1$: the reputation-channel slash deterrent collapses to the bond-only baseline. PoUA's incentive alignment becomes volume-dependent in a way pure-stake PoS is not. Figure \ref{fig:volume-deterrent} shows the curve across realistic operating points.
+At $R_f \to 0$, $\rho_{\text{vol}} \to 1$: the reputation-channel deterrent reaches its block-reward-only floor (not zero, and not the bond — a smaller, $R_b$-scaled value). At $R_f / R_b = 1$ (fee revenue equals block reward), the reputation-channel deterrent is $2\times$ its floor. Figure \ref{fig:volume-deterrent} shows the curve across realistic operating points.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.92\textwidth]{../../prototypes/poua-sim/out/volume_deterrent.png}
-\caption{Volume-deterrent ratio $\rho_{\text{vol}} = 1 + R_f/R_b$ across attestation-fee-flow regimes. Pure-stake bond baseline (dashed blue) is volume-independent at $1.0$. Crossover (dotted gray) at $R_f / R_b = 0.5$ marks where the reputation-channel deterrent gives a $1.5\times$ premium over bond-only. At bootstrap ($R_f / R_b \approx 0.05$), the reputation deterrent is only $1.05\times$ the bond baseline; at mature ($R_f / R_b \approx 2.0$), $3.0\times$. Produced by \texttt{prototypes/poua-sim/scripts/run\_volume\_deterrent.py}.}
+\caption{Volume-deterrent ratio $\rho_{\text{vol}} = 1 + R_f/R_b$ across attestation-fee-flow regimes: the magnitude scaling on the reputation-channel slash deterrent relative to its $R_f = 0$ floor. The dashed line at $1.0$ is the floor (block-reward-only reputation deterrent); the curve rises linearly with $R_f / R_b$. Named operating points: bootstrap ($R_f / R_b \approx 0.05$, $\rho_{\text{vol}} \approx 1.05$), early ($\approx 0.5$, $\approx 1.5$), mature ($\approx 2.0$, $\approx 3.0$), high-volume ($\approx 4.0$, $\approx 5.0$). The reference dashed line is \emph{not} a comparison to pure-stake-bond magnitude; bond-burn deterrent is denominated separately and added on top of the reputation channel in PoUA's total deterrent. Produced by \texttt{prototypes/poua-sim/scripts/run\_volume\_deterrent.py}.}
 \label{fig:volume-deterrent}
 \end{figure}
 
-**Implications.** Three operational regimes warrant explicit mitigation:
+**Implications.** Three operational regimes warrant explicit mitigation, because in each the reputation-channel premium attenuates toward its floor (PoUA still retains the bond-burn slash; total deterrent never falls below pure-stake PoS):
 
-1. **Chain bootstrap.** Devnet-and-early-mainnet periods have $R_f / R_b \ll 1$. The reputation deterrent is weak. Mitigations: extended permissioned phase, higher initial $\tau_{\text{burn}}$, or a volume-independent slash component until fee flow stabilizes.
-2. **Network-wide volume troughs.** Bear markets, post-shock recovery, low-utilization periods. The deterrent attenuates symmetrically. Mitigations: minimum-fee floor enforced by governance, or a fee-floor schedule indexed to market activity.
-3. **Schemas with low fee schedules.** A schema whose attestor set chooses a low fee per attestation (race-to-the-bottom) reduces the reputation-channel slash deterrent for any validator processing that schema's attestations. Mitigations: per-schema fee minimums, or a global $\text{fee}_{\min}$ enforced at the runtime layer.
+1. **Chain bootstrap.** Devnet-and-early-mainnet periods have $R_f / R_b \ll 1$. The reputation-channel premium over its floor is small; PoUA's incentive alignment is dominated by the bond plus the floor. Mitigations: extended permissioned phase, higher initial $\tau_{\text{burn}}$, or a volume-independent slash component (e.g., a fixed protocol fee) until fee flow stabilizes.
+2. **Network-wide volume troughs.** Bear markets, post-shock recovery, low-utilization periods. The reputation-channel premium attenuates symmetrically. Mitigations: minimum-fee floor enforced by governance, or a fee-floor schedule indexed to market activity.
+3. **Schemas with low fee schedules.** A schema whose attestor set chooses a low fee per attestation (race-to-the-bottom) reduces the reputation-channel slash premium for any validator processing that schema's attestations. Mitigations: per-schema fee minimums, or a global $\text{fee}_{\min}$ enforced at the runtime layer.
 
 §4.4.2 specifies the **adaptive $\tau_{\text{burn}}$ rebase** mechanism that reacts automatically to drift below a published $\rho_{\text{vol}}$ floor; that is the protocol-level countermeasure to (1)-(3) at scale. The simulator at \texttt{prototypes/poua-sim/scripts/run\_volume\_deterrent.py} produces the canonical figure used to set the floor parameter.
 
@@ -1227,6 +1229,6 @@ $$b_v(t) = \sum_{i \in \{1,2,3\}} \Lambda_i \cdot |\{\text{detected slashes of s
 
 ---
 
-*End of working paper v0.7. Comments welcome to hello@ligate.io.*
+*End of working paper v0.7.1. Comments welcome to hello@ligate.io.*
 
 *Roadmap: v0.8 will add devnet calibration data, the empirical $\eta$ / $\lambda$ rebase specification (mirroring §4.4.2 for $\tau_{\text{burn}}$), and external-reviewer-driven revisions. Target: Q3 2026.*
