@@ -6,7 +6,8 @@ Working papers on Ligate's protocol-level research direction.
 
 | Paper | Latest | Status | Topic |
 |---|---|---|---|
-| [PoUA — Proof of Useful Attestation](poua/) | v0.7 (2026-05-02) | Draft, internal review | Consensus weighting primitive aligning validator influence with valid attestation work |
+| [PoUA — Proof of Useful Attestation](poua/) | v0.7.1 (2026-05-02) | Draft, internal review | Consensus weighting primitive aligning validator influence with valid attestation work |
+| [Per-Schema Fee Markets](per-schema-fees/) | v0.1 (2026-05-02) | Outline | EIP-1559-style demand curves per attestation schema, with sponsored-gas integration |
 
 PoUA v0.7 is the empirical-validation milestone: every load-bearing claim has a published figure produced by the [reference simulator](../prototypes/poua-sim/), and cross-language test vectors at [`prototypes/poua-sim/test_vectors/`](../prototypes/poua-sim/test_vectors/) encode the analytical truths so the production implementation can re-validate the algebra in lockstep.
 
@@ -16,7 +17,6 @@ Filed as GitHub issues in this repo. Each will land here as a working draft when
 
 | Paper | Issue | Topic |
 |---|---|---|
-| Per-schema fee markets | [#4](https://github.com/ligate-io/ligate-research/issues/4) | EIP-1559-style demand curves per attestation schema, with sponsored-gas integration |
 | Native delegation | [#5](https://github.com/ligate-io/ligate-research/issues/5) | Hot-key / master-key separation as a runtime primitive; foundation for Iris MCP relayer |
 | Cross-schema composition | [#6](https://github.com/ligate-io/ligate-research/issues/6) | Typed attestation references with slashing-aware proof propagation |
 | Time-locked / commit-reveal attestations | [#7](https://github.com/ligate-io/ligate-research/issues/7) | Sealed-bid auctions, embargoed press, regulatory time-locks |
