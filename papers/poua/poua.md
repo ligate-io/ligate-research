@@ -2,7 +2,7 @@
 
 ## A Consensus Primitive for Attestation-Native Chains
 
-**Ligate Labs Research, Working Paper v0.7**
+**Ligate Labs Research, Working Paper v0.7.1**
 
 **Date:** 2026-05-01
 
@@ -20,7 +20,7 @@
 
 Consensus mechanisms for chains whose primary economic activity is attestation production - content provenance, AI-output attribution, threshold-signed credentials, supply-chain traceability - are misaligned with the workload they secure. Validators on a generic Proof of Stake chain earn the same fees regardless of whether they handle attestation work correctly or selectively censor it. **Proof of Useful Attestation (PoUA)** changes that.
 
-In PoUA, validator influence is computed as bonded stake multiplied by a non-transferable reputation score that grows with valid attestation processing and shrinks under detected misbehavior. The primitive is designed for chains whose runtime, fee market, and economic model are purpose-built for attestations - Ligate Chain is the worked example throughout. We give the protocol specification, a threat model under standard partial-synchrony, an incentive analysis under a profit-maximizing validator model, and a concrete integration with the Sovereign SDK rollup framework. PoUA inherits the safety and liveness properties of its underlying BFT primitive (Tendermint-style optimistic finality, in deployment) and constructs a multiplicative cost-to-attack premium of $4\times$ to $10\times$ over equivalent pure-stake chains.
+In PoUA, validator influence is computed as bonded stake multiplied by a non-transferable reputation score that grows with valid attestation processing and shrinks under detected misbehavior. The primitive is designed for chains whose runtime, fee market, and economic model are purpose-built for attestations - Ligate Chain is the worked example throughout. We give the protocol specification, a threat model under standard partial-synchrony, an incentive analysis under a profit-maximizing validator model, and a concrete integration with the Sovereign SDK rollup framework. PoUA inherits the safety and liveness properties of its underlying BFT primitive (Tendermint-style optimistic finality, in deployment) and constructs a multiplicative cost-to-attack premium of $4\times$ to $10\times$ over equivalent pure-stake chains (Figure \ref{fig:cost-to-attack}; reproduced empirically by \texttt{prototypes/poua-sim/scripts/run\_capital\_scan.py}).
 
 The contribution is not a new cryptographic primitive. It is a synthesis: reputation-weighted consensus (Yu et al., 2019; Eyal, 2015), proof-of-useful-work (Helium 2018; Filecoin 2017), and restaking with non-transferable bonds (EigenLayer, 2023), recombined to fit attestation-native chains, and given the specific mechanism choices, Sybil-resistance argument, and engineering integration that prior work does not. The hard part - defending against compound capital-and-grinding adversaries who control validators, attestor sets, and submitter addresses simultaneously - is treated through a layered defense whose load-bearing piece is a formal cost-to-grind bound (Lemma 1).
 
@@ -88,7 +88,7 @@ The key formal result, derived in Section 5.3, is that the cost-to-attack premiu
 
 $$\kappa = \frac{\bar{r}_H}{r_{\min}}$$
 
-where $\bar{r}_H$ is the mean reputation of honest validators at attack time. With recommended parameters ($r_{\max}/r_{\min} \in [4, 10]$), a healthy steady-state chain achieves a cost-to-attack premium of $4\times$ to $10\times$ over equivalent pure-stake PoS. This is the formal moat referenced in Section 1.1.
+where $\bar{r}_H$ is the mean reputation of honest validators at attack time. With recommended parameters ($r_{\max}/r_{\min} \in [4, 10]$), a healthy steady-state chain achieves a cost-to-attack premium of $4\times$ to $10\times$ over equivalent pure-stake PoS. This is the formal moat referenced in Section 1.1, and the §5.3 derivation matches empirical Monte Carlo from the reference simulator (Figure \ref{fig:cost-to-attack}; \texttt{run\_capital\_scan.py}) to within binomial variance.
 
 ### 1.6 Contributions
 
@@ -513,7 +513,7 @@ Compared to the cost of acquiring weight fraction $\rho$ in pure-stake PoS (cost
 
 $$\boxed{\kappa = \frac{\bar{r}_H}{r_{\min}}}$$
 
-In a healthy chain at steady state, $\bar{r}_H$ approaches $r_{\max}$, giving $\kappa \to r_{\max}/r_{\min}$. Per Section 4.4 design guidance ($r_{\max}/r_{\min} \in [4, 10]$), the capital adversary's cost-to-attack is **up to 4 to 10 times higher** than an equivalent pure-stake PoS chain *at steady state*. The realized $\kappa$ is lower during the warmup window, during validator-set ramp, and immediately after a slash; §5.3.1 quantifies these transition-state effects.
+In a healthy chain at steady state, $\bar{r}_H$ approaches $r_{\max}$, giving $\kappa \to r_{\max}/r_{\min}$. Per Section 4.4 design guidance ($r_{\max}/r_{\min} \in [4, 10]$), the capital adversary's cost-to-attack is **up to 4 to 10 times higher** than an equivalent pure-stake PoS chain *at steady state* (Figure \ref{fig:cost-to-attack}). The realized $\kappa$ is lower during the warmup window, during validator-set ramp, and immediately after a slash; §5.3.1 quantifies these transition-state effects (empirical trajectory: Figure \ref{fig:kappa-trajectory}).
 
 This premium $\kappa$ is the formal moat PoUA constructs over generic PoS. Figure 2 plots the relationship $s_{\mathcal{C}} / S_H = \kappa \cdot \rho/(1-\rho)$ for three values of $\kappa$, with empirical Monte Carlo points overlaid from the reference simulator.
 
@@ -675,7 +675,7 @@ $$F_{\mathcal{CR}}^{\text{net, per member}} \to \frac{0.5 \cdot 7}{0.001 \cdot 0
 
 $$F_{\mathcal{CR}}^{\text{net, per member}} \geq \frac{0.5 \cdot 7}{0.001 \cdot 0.775} \approx 4{,}516 \text{ fee-units per cartel member.}$$
 
-The Byzantine-fraction cartel pays $\sim 12.5\%$ less per cartel member than a single-proposer adversary in the asymptotic limit, and $\sim 9.7\%$ less at finite $k = 12$ (a typical small-validator-set value). For practical mainnet sizes ($k \geq 100$) the finite-$k$ correction shrinks to a fraction of a percent: at $k = 100, m = 33$, $\alpha_{\text{eff}} = 0.796$ and the discount is $\sim 12.06\%$, within $0.5\%$ of the asymptotic $12.5\%$.
+The Byzantine-fraction cartel pays $\sim 12.5\%$ less per cartel member than a single-proposer adversary in the asymptotic limit, and $\sim 9.7\%$ less at finite $k = 12$ (a typical small-validator-set value). For practical mainnet sizes ($k \geq 100$) the finite-$k$ correction shrinks to a fraction of a percent: at $k = 100, m = 33$, $\alpha_{\text{eff}} = 0.796$ and the discount is $\sim 12.06\%$, within $0.5\%$ of the asymptotic $12.5\%$. (See \texttt{prototypes/poua-sim/test\_vectors/alpha\_eff.json} and \texttt{prototypes/poua-sim/test\_vectors/lemma1\_cost\_to\_grind.json} for the per-input values; \texttt{run\_lemma1\_scan.py} validates the bound across the empirical scan.)
 
 The cartel-aggregate burn is correspondingly $m \cdot F^{\text{net, per member}}$, much larger in absolute terms than the single-proposer floor. The per-member discount is the price of the voter channel; it is bounded above by $\beta / (\alpha k / m + \beta)$, which approaches $\beta / (3 \alpha + \beta)$ at the Byzantine cap as $k \to \infty$. For the recommended $\alpha = 0.7, \beta = 0.3$ split, the asymptotic ceiling is $0.3 / 2.4 = 12.5\%$.
 
@@ -1227,6 +1227,6 @@ $$b_v(t) = \sum_{i \in \{1,2,3\}} \Lambda_i \cdot |\{\text{detected slashes of s
 
 ---
 
-*End of working paper v0.7. Comments welcome to hello@ligate.io.*
+*End of working paper v0.7.1. Comments welcome to hello@ligate.io.*
 
 *Roadmap: v0.8 will add devnet calibration data, the empirical $\eta$ / $\lambda$ rebase specification (mirroring §4.4.2 for $\tau_{\text{burn}}$), and external-reviewer-driven revisions. Target: Q3 2026.*
