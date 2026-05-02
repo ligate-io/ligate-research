@@ -6,7 +6,7 @@ Working papers on Ligate's protocol-level research direction.
 
 | Paper | Latest | Status | Topic |
 |---|---|---|---|
-| [PoUA — Proof of Useful Attestation](poua/) | v0.7.1 (2026-05-02) | Draft, internal review | Consensus weighting primitive aligning validator influence with valid attestation work |
+| [PoUA — Proof of Useful Attestation](poua/) | v0.7.2 (2026-05-03) | Draft, external review (sending) | Consensus weighting primitive aligning validator influence with valid attestation work |
 | [Per-Schema Fee Markets](per-schema-fees/) | v0.1 (2026-05-02) | Outline | EIP-1559-style demand curves per attestation schema, with sponsored-gas integration |
 
 PoUA v0.7 is the empirical-validation milestone: every load-bearing claim has a published figure produced by the [reference simulator](../prototypes/poua-sim/), and cross-language test vectors at [`prototypes/poua-sim/test_vectors/`](../prototypes/poua-sim/test_vectors/) encode the analytical truths so the production implementation can re-validate the algebra in lockstep.

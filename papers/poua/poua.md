@@ -2,7 +2,7 @@
 
 ## A Consensus Primitive for Attestation-Native Chains
 
-**Ligate Labs Research, Working Paper v0.7.1**
+**Ligate Labs Research, Working Paper v0.7.2**
 
 **Date:** 2026-05-01
 
@@ -617,7 +617,13 @@ PoUA defends against this attack with a **layered defense** of six mechanisms op
 
 Implementation: the runtime maintains a sliding-window adjacency map of fund transfers between addresses. Computing distance-$d$ reachability is cheap for small $d$ ($O(|V| \cdot d)$ per query in the worst case; in practice the relevant subgraph is sparse).
 
-**Cost to evade.** The adversary must route the submitter's funding through $d$ or more intermediate addresses, none of which can have direct funding ties to $v$. Each intermediate address must itself be funded from somewhere - either an exchange (real cost: KYC + withdrawal), a mixer (real cost: mixer fees + observable mixer interaction, which is itself a heuristic flag), or another previously-laundered address (compounding the setup work). For a determined adversary, this is bypassable with sustained pre-attack address staging; for casual reputation farming, it is a hard barrier.
+**Cost to evade.** The adversary must route the submitter's funding through $d$ or more intermediate addresses, none of which can have direct funding ties to $v$. Each intermediate address must itself be funded from somewhere. Three sources, each with real cost: an exchange (KYC + withdrawal latency), a mixer (mixer fees plus observable mixer interaction, which is itself a heuristic flag), or another previously-laundered address (compounding the setup work).
+
+A concrete lower bound on the per-attack staging cost: let $K$ be the number of staged intermediate addresses (with $K \geq d$ for distance compliance), $T_{\text{kyc}}$ the time cost of producing one KYC-verified withdrawal address (typically hours to days per identity), and $F_{\text{mixer}}$ the per-pass mixer fee fraction (typically 0.5-3% of the funded amount per Tornado Cash, Wasabi, or analogous mixer). The adversary's working-capital cost is at least
+
+$$F_{\text{stage}} \geq K \cdot F_{\text{mixer}} \cdot s_{\text{submitter}}$$
+
+where $s_{\text{submitter}}$ is the funding amount routed through each intermediate, and the time cost is at least $K \cdot T_{\text{kyc}}$ in attacker labor (or pre-staged from earlier compromised accounts, which is itself a constraint). For $d = 3$ and $F_{\text{mixer}} = 0.01$: routing $1{,}000$ tokens through 3 intermediates costs at minimum $30$ tokens in mixer fees alone, plus the labor cost of staging three KYC-verified deposit accounts. This is bypassable with sustained pre-attack staging; for casual reputation farming it is a hard barrier. The bound is loose (mixer fees vary, KYC time varies), but it establishes the economic floor below which evasion is implausible.
 
 #### 5.5.3 Layer 3 — Non-recoverable treasury share (formal, economic)
 
@@ -762,14 +768,16 @@ $$R_v = R_b + R_f - S.$$
 
 **Claim.** In PoUA at steady state, the strategy "propose all valid attestations encountered, vote honestly, do not equivocate, do not censor" is a Nash equilibrium.
 
-**Argument.** Consider a validator $v$ deviating from honest play to action $a$:
+**Argument.** Consider a validator $v$ deviating from honest play to action $a$. We enumerate six named deviations spanning the strategy space, and argue each is dominated under standard parameter calibration:
 
-- Equivocation (signing two blocks at the same height): detectable by any honest validator, slashed at $\Lambda_{\text{eq}}$. Expected cost of equivocation $\gg$ block reward gain. Not profitable.
-- Including invalid attestations (A1): detectable at vote time, slashed at $\Lambda_1$. The marginal "benefit" of including a bad attestation (a non-existent fee, since invalid attestations don't pay) is zero. Not profitable.
-- Selective censorship (A2): foregoes the censored attestation's fee, plus carries detection risk and slash. Not profitable in expectation absent an external bribe exceeding both.
-- Reputation grinding (A3): yields reputation gain at zero direct cost (in the colluding-attestor case), but carries detection risk. Profitability depends on the false-negative rate of A3 detection.
+- **Equivocation** (signing two blocks at the same height): detectable by any honest validator, slashed at $\Lambda_{\text{eq}}$. Expected cost of equivocation $\gg$ block reward gain. Not profitable.
+- **Including invalid attestations (A1)**: detectable at vote time, slashed at $\Lambda_1$. The marginal "benefit" of including a bad attestation (a non-existent fee, since invalid attestations don't pay) is zero. Not profitable.
+- **Selective censorship (A2)**: foregoes the censored attestation's fee, plus carries detection risk and slash. Not profitable in expectation absent an external bribe exceeding both.
+- **Reputation grinding (A3)**: yields reputation gain at zero *direct* cost in the colluding-attestor case, but bounded below by Lemma 1's cost-to-grind floor under Layer 3 plus carrying §A.2 detection risk. Profitability depends on the false-negative rate of A3 detection; cost is dominated by the Layer 3 burn for any realistic parameter calibration.
+- **Free-riding voter** (validator votes on others' blocks but never proposes when selected, or proposes empty blocks): forgoes the proposer-channel reputation injection $\alpha \cdot \text{fee} \cdot \eta$ per attestation while still earning the voter share. Per §4.3, the proposer share dominates ($\alpha = 0.7$ vs. $\beta/k = 0.3/k \ll \alpha$ for any reasonably-sized validator set), so a free-riding voter accrues reputation at rate strictly below an honest proposer's. Combined with §4.4's $G_{\max}$ cap and the zero block reward when not proposing (the validator forgoes block reward for proposing slots), net revenue under free-riding is strictly worse than honest play. Not profitable.
+- **Selective fork-choice gaming**: a validator that votes on a non-canonical fork (or withholds vote on the canonical one) hoping to influence which branch finalizes. The PoUA vote tally inherits the underlying BFT primitive's fork-choice rule (Tendermint-style two-round optimistic finality in deployment); voting against the converging branch carries the underlying primitive's slash for inconsistent voting (surround-vote slashing), independent of attestation rewards. Not profitable absent an external coordination gain that exceeds the surround-vote slash.
 
-The first three deviations are unambiguously dominated by honest play. Reputation grinding is dominated by honest play *if* A3 detection is sufficiently sensitive; this is the heuristic-detection limitation acknowledged in Section 5.5.
+The first three and the last two deviations are unambiguously dominated by honest play. Reputation grinding (A3) is dominated by honest play *if* the §A.2 detection false-negative rate is sufficiently low *and* Layer 3 burn parameters satisfy the cost-equivalence inequality from §5.5.3 calibration. Both conditions are subject to empirical validation through the simulator at [`prototypes/poua-sim/`](https://github.com/ligate-io/ligate-research/tree/main/prototypes/poua-sim) and devnet operation; we do not claim the equilibrium is robust against profit-maximizing adversaries that have not yet been simulated. The full strategy-space search against rational adversarial agents is the M6 simulator extension tracked at [issue #30](https://github.com/ligate-io/ligate-research/issues/30); v0.8 of this paper will incorporate the empirical results.
 
 ### 6.3 Reputation as Future Revenue
 
@@ -804,6 +812,8 @@ A validator considering a one-shot deviation must weigh the immediate gain (capp
 $$\text{PV}(\text{slash loss}) \approx \Delta r \cdot \frac{s_v}{S}(R_b + R_f) \cdot \frac{1 - e^{-\delta \Delta_{\text{recovery}}}}{\delta}$$
 
 where $\Delta_{\text{recovery}}$ is the time required to rebuild reputation to its pre-slash level (a function of $\eta$ and the validator's epoch participation rate). For high-reputation validators with substantial stake, this future-revenue loss can dwarf any plausible one-shot deviation gain, providing a *time-locked* incentive alignment that pure-stake PoS lacks: in pure PoS, a slash costs only the burned bond, not foregone future selection-share premium.
+
+The $s_v / S$ factor in the formula treats the validator's stake-weighted share as constant across the recovery window. This is approximate: immediately after a $\Lambda$-severity slash that drops reputation from $r_v$ to $r_{\min}$, the validator's effective weight share drops from $s_v r_v / S$ to $s_v r_{\min} / S$, and during recovery the share rises back monotonically as reputation rebuilds. The formula's use of pre-slash $s_v / S$ therefore *over-estimates* the PV-of-slash by a factor bounded above by $r_v / r_{\min}$, since the validator earns less revenue during the recovery period than the formula assumes. The conservative direction ($\text{PV}_{\text{actual}} \leq \text{PV}_{\text{formula}}$) means the bound on validator deviation-incentive is an *upper* bound on the deterrent, and the actual deterrent is somewhat weaker. This is a known approximation; a tighter bound would integrate a time-varying $w_v(t)/S(t)$ across the recovery, which closes to within a few percent for high-reputation validators (where $r_v \approx r_{\max}$) but materially weakens for mid-reputation validators near the median. v0.8 will refine the bound; the qualitative claim ("time-locked incentive alignment that pure-stake PoS lacks") is robust to this refinement.
 
 #### 6.3.1 Volume-Dependence of the Slash Deterrent
 
@@ -1023,13 +1033,13 @@ The synthesis is the contribution. We claim novelty in the synthesis, not in any
 
 ### Q4. Isn't this just RepuCoin or EigenTrust with a new name?
 
-**No, and the differences matter for the security argument.**
+**No, and the differences matter for the security argument.** The contrast operates along three axes: what the reputation *measures*, where the reputation *enters* the consensus computation, and what the *cost-to-grind* argument relies on.
 
-- **RepuCoin** (Yu et al., 2019) builds reputation from PoW mining history. The "work" being measured is hash computation, not application-layer activity. RepuCoin is also research-stage; we are not aware of a production deployment.
-- **EigenTrust** (Kamvar et al., 2003) is a peer-to-peer reputation algorithm for decentralized file-sharing and trust networks. It does not weight BFT consensus directly; it scores nodes based on transitive interaction history.
-- **PoUA** measures application-layer attestation processing, with reputation entering BFT vote weight directly via $w_v = s_v \cdot r_v$. The mechanism design choices (additive update, bounded interval, non-transferability, fee-weighted earning, layered Sybil defense) are specific to this application and do not appear in either prior system as a coherent package.
+- **RepuCoin** (Yu et al., 2019) builds reputation from PoW mining history. The "work" being measured is hash computation, which is *externally anchored* (validators expend out-of-protocol resources to acquire reputation). PoW-as-useful-work is a generic signal: any chain whose validators also mine PoW can adopt it. The Sybil-resistance argument depends on the cost of acquiring sustained PoW capacity. RepuCoin is also research-stage; we are not aware of a production deployment. PoUA's "work" is the chain's *own paid productive workload* (attestation processing), which is *intrinsically anchored*: a different chain hosting the same attestation contracts cannot replicate the reputation premium without rebuilding consensus, because the workload measurement happens at the consensus-runtime boundary that contract-layer systems don't control.
+- **EigenTrust** (Kamvar et al., 2003) is a peer-to-peer reputation algorithm for decentralized file-sharing and trust networks. It does not weight BFT consensus directly; it scores nodes based on transitive interaction history (which peers each peer trusted, propagated transitively). PoUA's reputation is non-transitive (each validator earns from chain activity, not from being trusted by other validators) and enters BFT vote weight directly via $w_v = s_v \cdot r_v$. EigenTrust solves a different problem (file-sharing trust) with different mechanics (transitive aggregation); the "reputation" word covers both but the formal objects do not overlap.
+- **PoUA** measures application-layer attestation processing, with reputation entering BFT vote weight directly via $w_v = s_v \cdot r_v$. The mechanism design choices (additive update, bounded interval, non-transferability, fee-weighted earning, Lemma 1 cost-to-grind floor under Layer 3 burn, layered Sybil defense across six independently-breakable mechanisms) are specific to this application and do not appear in either prior system as a coherent package. The cost-to-grind argument is *economic-by-construction*: the chain's own non-recoverable burn floor (Lemma 1, §5.5.3) bounds the per-fee-unit cost of grinding from below, independent of out-of-protocol resources or peer trust transitivity.
 
-The differentiated property: **PoUA is the first reputation-weighted BFT scheme where the "work" the reputation tracks is the protocol's own paid productive workload, not an externally-anchored signal (mining, storage, peer interactions).** This is what makes the moat economic-by-construction rather than relying on an external scarcity assumption.
+The differentiated property: **PoUA is the first reputation-weighted BFT scheme where the "work" the reputation tracks is the protocol's own paid productive workload, not an externally-anchored signal (mining, storage, peer interactions), AND where the cost-to-grind floor is bounded by an intrinsic protocol parameter ($\tau_{\text{burn}}$) rather than depending on out-of-protocol scarcity assumptions.** This is what makes the moat economic-by-construction. RepuCoin's moat depends on PoW capacity scarcity; EigenTrust's depends on the social-network-graph structure of who trusts whom; PoUA's depends on the chain's own fee-burn parameter, which is observable, calibrable, and adaptive (§4.4.2). The synthesis is the contribution; no single component is novel in isolation.
 
 ### Q5. Why not just use restaking (EigenLayer) on Ethereum?
 
@@ -1182,6 +1192,8 @@ It does **not** establish **power** (the rate at which the detector catches actu
 
 v1.0 of this paper will incorporate empirical power analysis from one or both sources, replacing the analytical bounds with calibrated values where appropriate.
 
+**Explicit acknowledgment of the Erdős-Rényi assumption gap.** The §A.2 A3 detector threshold is derived under the assumption that, under the null hypothesis, edges in the bipartite (submitter, attestor) graph form independently with uniform probability $p_{\text{base}}$ (Erdős-Rényi). Real chain transaction graphs are *not* Erdős-Rényi: they are scale-free, with hub addresses (exchanges, bridges, popular dApps, large enterprise submitters) generating edge clusters that violate the independence assumption. The simulator-driven empirical comparison in Figure \ref{fig:a3-fpr-comparison} below shows this explicitly: under a Chung-Lu scale-free null (power-law degree distribution, $\alpha \in \{2.0, 2.5, 3.0\}$), realized FPR sits 1-3 orders of magnitude below the nominal $\beta_3 = 1\%$ target. The detector is consistently *more conservative* than the analytical claim under realistic graph structure, which means the false-positive guarantee is honored in practice but the threshold is too loose for attack detection (the corresponding TPR is also depressed). This is a calibration issue, not a security flaw: production deployment should re-derive the threshold against an empirical chain-graph baseline (Chung-Lu fit to the chain's own transaction history) rather than retain the ER assumption. Open issue [#16](https://github.com/ligate-io/ligate-research/issues/16) tracks the v0.8 reformulation.
+
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.92\textwidth]{../../prototypes/poua-sim/out/a3_fpr_comparison.png}
@@ -1229,6 +1241,6 @@ $$b_v(t) = \sum_{i \in \{1,2,3\}} \Lambda_i \cdot |\{\text{detected slashes of s
 
 ---
 
-*End of working paper v0.7.1. Comments welcome to hello@ligate.io.*
+*End of working paper v0.7.2. Comments welcome to hello@ligate.io.*
 
 *Roadmap: v0.8 will add devnet calibration data, the empirical $\eta$ / $\lambda$ rebase specification (mirroring §4.4.2 for $\tau_{\text{burn}}$), and external-reviewer-driven revisions. Target: Q3 2026.*
