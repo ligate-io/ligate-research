@@ -1,0 +1,14 @@
+# Python build / install artifacts
+*.egg-info/
+build/
+dist/
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Editor / IDE
+.vscode/
+.idea/
