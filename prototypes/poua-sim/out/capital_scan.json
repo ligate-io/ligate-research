@@ -1,0 +1,6302 @@
+[
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 0,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0525
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 1,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.055
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 2,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0505
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 3,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.037
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 4,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0455
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 5,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.056
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 6,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.048
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 7,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.045
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 8,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0415
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 9,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0535
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 10,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0495
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 11,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0455
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 12,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0495
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 13,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.054
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 14,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.054
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 15,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.054
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 16,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.053
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 17,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.052
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 18,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0525
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 19,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0495
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 20,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.051
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 21,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.061
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 22,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0475
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 23,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.059
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 24,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0515
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 25,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.056
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 26,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0475
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 27,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.054
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 28,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0515
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "seed": 29,
+    "s_c": 52.631578947368425,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.052631578947368425,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0445
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 0,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1045
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 1,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1075
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 2,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1025
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 3,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0855
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 4,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.105
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 5,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.12
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 6,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.092
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 7,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0885
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 8,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.091
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 9,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1055
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 10,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0985
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 11,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0975
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 12,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0995
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 13,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1035
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 14,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.097
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 15,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.11
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 16,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0995
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 17,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.108
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 18,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0985
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 19,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.095
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 20,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.094
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 21,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1015
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 22,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.089
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 23,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.108
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 24,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.108
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 25,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0975
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 26,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.098
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 27,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.106
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 28,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.097
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "seed": 29,
+    "s_c": 111.11111111111111,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.11111111111111112,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0945
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 0,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1565
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 1,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1515
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 2,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1485
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 3,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1385
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 4,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1555
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 5,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1715
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 6,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1505
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 7,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.141
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 8,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1395
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 9,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1535
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 10,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.146
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 11,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.141
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 12,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1415
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 13,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.157
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 14,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1405
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 15,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.162
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 16,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.147
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 17,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1605
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 18,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.15
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 19,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1495
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 20,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.137
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 21,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.15
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 22,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1455
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 23,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1555
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 24,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1505
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 25,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1535
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 26,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1435
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 27,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1565
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 28,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.144
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "seed": 29,
+    "s_c": 176.47058823529412,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.17647058823529413,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.147
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 0,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2065
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 1,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2095
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 2,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.208
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 3,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1885
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 4,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1985
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 5,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2235
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 6,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.198
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 7,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1875
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 8,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.192
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 9,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1945
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 10,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1895
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 11,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.193
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 12,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1885
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 13,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2005
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 14,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.192
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 15,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2165
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 16,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.196
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 17,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.209
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 18,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.199
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 19,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.201
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 20,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2005
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 21,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1945
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 22,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.196
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 23,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1995
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 24,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.206
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 25,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1965
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 26,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.198
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 27,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.206
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 28,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1895
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "seed": 29,
+    "s_c": 250.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.25,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.186
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 0,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.262
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 1,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.258
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 2,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2615
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 3,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2395
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 4,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.251
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 5,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2765
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 6,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2475
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 7,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2365
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 8,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2425
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 9,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.247
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 10,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.237
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 11,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.246
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 12,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2435
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 13,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2545
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 14,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.241
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 15,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.274
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 16,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.244
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 17,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.258
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 18,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.251
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 19,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2495
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 20,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2495
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 21,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.249
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 22,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.252
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 23,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.242
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 24,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2595
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 25,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2445
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 26,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.253
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 27,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.257
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 28,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.231
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "seed": 29,
+    "s_c": 333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.237
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 0,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.309
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 1,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.31
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 2,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.316
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 3,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2945
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 4,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2975
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 5,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.33
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 6,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2975
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 7,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.291
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 8,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2905
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 9,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.295
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 10,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.29
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 11,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2895
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 12,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2875
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 13,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.3145
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 14,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2935
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 15,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.316
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 16,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.297
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 17,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.309
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 18,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.294
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 19,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.298
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 20,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.3055
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 21,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2995
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 22,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2955
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 23,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.289
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 24,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.3135
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 25,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2945
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 26,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.294
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 27,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.3135
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 28,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2875
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "seed": 29,
+    "s_c": 428.5714285714286,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4285714285714286,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2935
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 0,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3365
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 1,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.345
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 2,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.347
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 3,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.323
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 4,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3345
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 5,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3635
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 6,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3265
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 7,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.325
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 8,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.323
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 9,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.326
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 10,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.323
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 11,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3185
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 12,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3175
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 13,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.343
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 14,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.332
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 15,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.35
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 16,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.341
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 17,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.343
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 18,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3275
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 19,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.327
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 20,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.338
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 21,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3305
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 22,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3365
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 23,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.322
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 24,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.347
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 25,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3345
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 26,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3315
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 27,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.347
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 28,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.319
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 29,
+    "s_c": 499.99999999999994,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.49999999999999994,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.329
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 0,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0525
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 1,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.055
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 2,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0505
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 3,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.037
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 4,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0455
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 5,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.056
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 6,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.048
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 7,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.045
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 8,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0415
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 9,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0535
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 10,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0495
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 11,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0455
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 12,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0495
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 13,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.054
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 14,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.054
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 15,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.054
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 16,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.053
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 17,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.052
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 18,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0525
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 19,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0495
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 20,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.051
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 21,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.061
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 22,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0475
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 23,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.059
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 24,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0515
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 25,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.056
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 26,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0475
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 27,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.054
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 28,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0515
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "seed": 29,
+    "s_c": 210.5263157894737,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.2105263157894737,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0445
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 0,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1045
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 1,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1075
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 2,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1025
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 3,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0855
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 4,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.105
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 5,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.12
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 6,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.092
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 7,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0885
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 8,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.091
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 9,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1055
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 10,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0985
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 11,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0975
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 12,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0995
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 13,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1035
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 14,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.097
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 15,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.11
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 16,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0995
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 17,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.108
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 18,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0985
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 19,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.095
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 20,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.094
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 21,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1015
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 22,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.089
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 23,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.108
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 24,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.108
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 25,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0975
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 26,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.098
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 27,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.106
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 28,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.097
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "seed": 29,
+    "s_c": 444.44444444444446,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4444444444444445,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0945
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 0,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1565
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 1,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1515
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 2,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1485
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 3,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1385
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 4,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1555
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 5,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1715
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 6,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1505
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 7,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.141
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 8,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1395
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 9,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1535
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 10,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.146
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 11,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.141
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 12,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1415
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 13,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.157
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 14,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1405
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 15,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.162
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 16,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.147
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 17,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1605
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 18,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.15
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 19,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1495
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 20,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.137
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 21,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.15
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 22,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1455
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 23,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1555
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 24,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1505
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 25,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1535
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 26,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1435
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 27,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1565
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 28,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.144
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "seed": 29,
+    "s_c": 705.8823529411765,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.7058823529411765,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.147
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 0,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2065
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 1,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2095
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 2,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.208
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 3,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1885
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 4,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1985
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 5,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2235
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 6,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.198
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 7,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1875
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 8,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.192
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 9,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1945
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 10,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1895
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 11,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.193
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 12,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1885
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 13,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2005
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 14,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.192
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 15,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2165
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 16,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.196
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 17,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.209
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 18,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.199
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 19,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.201
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 20,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2005
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 21,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1945
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 22,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.196
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 23,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1995
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 24,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.206
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 25,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1965
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 26,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.198
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 27,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.206
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 28,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1895
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "seed": 29,
+    "s_c": 1000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.186
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 0,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.262
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 1,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.258
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 2,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2615
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 3,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2395
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 4,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.251
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 5,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2765
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 6,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2475
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 7,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2365
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 8,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2425
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 9,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.247
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 10,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.237
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 11,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.246
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 12,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2435
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 13,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2545
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 14,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.241
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 15,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.274
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 16,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.244
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 17,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.258
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 18,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.251
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 19,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2495
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 20,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2495
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 21,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.249
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 22,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.252
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 23,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.242
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 24,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2595
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 25,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2445
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 26,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.253
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 27,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.257
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 28,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.231
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "seed": 29,
+    "s_c": 1333.3333333333333,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.3333333333333333,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.237
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 0,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.309
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 1,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.31
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 2,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.316
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 3,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2945
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 4,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2975
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 5,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.33
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 6,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2975
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 7,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.291
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 8,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2905
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 9,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.295
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 10,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.29
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 11,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2895
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 12,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2875
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 13,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.3145
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 14,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2935
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 15,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.316
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 16,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.297
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 17,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.309
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 18,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.294
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 19,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.298
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 20,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.3055
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 21,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2995
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 22,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2955
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 23,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.289
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 24,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.3135
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 25,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2945
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 26,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.294
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 27,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.3135
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 28,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2875
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "seed": 29,
+    "s_c": 1714.2857142857144,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.7142857142857144,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2935
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 0,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3365
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 1,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.345
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 2,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.347
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 3,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.323
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 4,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3345
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 5,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3635
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 6,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3265
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 7,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.325
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 8,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.323
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 9,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.326
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 10,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.323
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 11,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3185
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 12,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3175
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 13,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.343
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 14,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.332
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 15,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.35
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 16,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.341
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 17,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.343
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 18,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3275
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 19,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.327
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 20,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.338
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 21,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3305
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 22,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3365
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 23,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.322
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 24,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.347
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 25,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3345
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 26,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3315
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 27,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.347
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 28,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.319
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 29,
+    "s_c": 1999.9999999999998,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.9999999999999998,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.329
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 0,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0525
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 1,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.055
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 2,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0505
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 3,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.037
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 4,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0455
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 5,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.056
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 6,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.048
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 7,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.045
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 8,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0415
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 9,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0535
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 10,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0495
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 11,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0455
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 12,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0495
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 13,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.054
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 14,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.054
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 15,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.054
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 16,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.053
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 17,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.052
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 18,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0525
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 19,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0495
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 20,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.051
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 21,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.061
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 22,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0475
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 23,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.059
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 24,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0515
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 25,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.056
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 26,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0475
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 27,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.054
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 28,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0515
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "seed": 29,
+    "s_c": 421.0526315789474,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.4210526315789474,
+    "realized_weight_share": 0.05000000000000001,
+    "empirical_proposer_share": 0.0445
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 0,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1045
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 1,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1075
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 2,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1025
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 3,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0855
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 4,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.105
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 5,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.12
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 6,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.092
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 7,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0885
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 8,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.091
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 9,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1055
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 10,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0985
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 11,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0975
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 12,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0995
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 13,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1035
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 14,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.097
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 15,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.11
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 16,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0995
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 17,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.108
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 18,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0985
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 19,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.095
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 20,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.094
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 21,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.1015
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 22,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.089
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 23,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.108
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 24,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.108
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 25,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0975
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 26,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.098
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 27,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.106
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 28,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.097
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "seed": 29,
+    "s_c": 888.8888888888889,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 0.888888888888889,
+    "realized_weight_share": 0.1,
+    "empirical_proposer_share": 0.0945
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 0,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1565
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 1,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1515
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 2,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1485
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 3,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1385
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 4,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1555
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 5,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1715
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 6,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1505
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 7,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.141
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 8,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1395
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 9,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1535
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 10,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.146
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 11,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.141
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 12,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1415
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 13,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.157
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 14,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1405
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 15,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.162
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 16,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.147
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 17,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1605
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 18,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.15
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 19,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1495
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 20,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.137
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 21,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.15
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 22,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1455
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 23,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1555
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 24,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1505
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 25,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1535
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 26,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1435
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 27,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.1565
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 28,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.144
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "seed": 29,
+    "s_c": 1411.764705882353,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 1.411764705882353,
+    "realized_weight_share": 0.15,
+    "empirical_proposer_share": 0.147
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 0,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2065
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 1,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2095
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 2,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.208
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 3,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1885
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 4,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1985
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 5,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2235
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 6,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.198
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 7,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1875
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 8,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.192
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 9,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1945
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 10,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1895
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 11,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.193
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 12,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1885
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 13,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2005
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 14,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.192
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 15,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2165
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 16,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.196
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 17,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.209
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 18,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.199
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 19,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.201
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 20,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.2005
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 21,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1945
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 22,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.196
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 23,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1995
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 24,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.206
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 25,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1965
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 26,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.198
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 27,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.206
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 28,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.1895
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "seed": 29,
+    "s_c": 2000.0,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.0,
+    "realized_weight_share": 0.2,
+    "empirical_proposer_share": 0.186
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 0,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.262
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 1,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.258
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 2,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2615
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 3,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2395
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 4,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.251
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 5,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2765
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 6,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2475
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 7,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2365
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 8,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2425
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 9,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.247
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 10,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.237
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 11,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.246
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 12,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2435
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 13,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2545
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 14,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.241
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 15,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.274
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 16,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.244
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 17,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.258
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 18,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.251
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 19,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2495
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 20,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2495
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 21,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.249
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 22,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.252
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 23,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.242
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 24,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2595
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 25,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.2445
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 26,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.253
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 27,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.257
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 28,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.231
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "seed": 29,
+    "s_c": 2666.6666666666665,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 2.6666666666666665,
+    "realized_weight_share": 0.25,
+    "empirical_proposer_share": 0.237
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 0,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.309
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 1,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.31
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 2,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.316
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 3,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2945
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 4,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2975
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 5,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.33
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 6,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2975
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 7,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.291
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 8,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2905
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 9,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.295
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 10,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.29
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 11,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2895
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 12,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2875
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 13,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.3145
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 14,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2935
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 15,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.316
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 16,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.297
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 17,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.309
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 18,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.294
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 19,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.298
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 20,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.3055
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 21,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2995
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 22,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2955
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 23,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.289
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 24,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.3135
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 25,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2945
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 26,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.294
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 27,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.3135
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 28,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2875
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "seed": 29,
+    "s_c": 3428.571428571429,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.428571428571429,
+    "realized_weight_share": 0.3,
+    "empirical_proposer_share": 0.2935
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 0,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3365
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 1,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.345
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 2,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.347
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 3,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.323
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 4,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3345
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 5,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3635
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 6,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3265
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 7,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.325
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 8,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.323
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 9,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.326
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 10,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.323
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 11,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3185
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 12,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3175
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 13,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.343
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 14,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.332
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 15,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.35
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 16,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.341
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 17,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.343
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 18,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3275
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 19,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.327
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 20,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.338
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 21,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3305
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 22,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3365
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 23,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.322
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 24,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.347
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 25,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3345
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 26,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.3315
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 27,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.347
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 28,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.319
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "seed": 29,
+    "s_c": 3999.9999999999995,
+    "honest_total_stake": 1000.0,
+    "cost_ratio": 3.9999999999999996,
+    "realized_weight_share": 0.3333333333333333,
+    "empirical_proposer_share": 0.329
+  }
+]

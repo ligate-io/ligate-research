@@ -1,0 +1,212 @@
+[
+  {
+    "kappa": 1.0,
+    "target_rho": 0.05,
+    "cost_ratio": 0.052631578947368425,
+    "empirical_mean": 0.050716666666666674,
+    "empirical_std": 0.004984448035863371,
+    "empirical_min": 0.037,
+    "empirical_max": 0.061,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.1,
+    "cost_ratio": 0.11111111111111112,
+    "empirical_mean": 0.10008333333333334,
+    "empirical_std": 0.0073474296337033545,
+    "empirical_min": 0.0855,
+    "empirical_max": 0.12,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.15,
+    "cost_ratio": 0.17647058823529413,
+    "empirical_mean": 0.14948333333333338,
+    "empirical_std": 0.007747562340647686,
+    "empirical_min": 0.137,
+    "empirical_max": 0.1715,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.2,
+    "cost_ratio": 0.25,
+    "empirical_mean": 0.19880000000000003,
+    "empirical_std": 0.008684852714160824,
+    "empirical_min": 0.186,
+    "empirical_max": 0.2235,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.25,
+    "cost_ratio": 0.3333333333333333,
+    "empirical_mean": 0.24983333333333332,
+    "empirical_std": 0.010312074907063516,
+    "empirical_min": 0.231,
+    "empirical_max": 0.2765,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3,
+    "cost_ratio": 0.4285714285714286,
+    "empirical_mean": 0.30019999999999997,
+    "empirical_std": 0.010615711626326966,
+    "empirical_min": 0.2875,
+    "empirical_max": 0.33,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 1.0,
+    "target_rho": 0.3333333333333333,
+    "cost_ratio": 0.49999999999999994,
+    "empirical_mean": 0.33358333333333334,
+    "empirical_std": 0.010914121840787532,
+    "empirical_min": 0.3175,
+    "empirical_max": 0.3635,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.05,
+    "cost_ratio": 0.2105263157894737,
+    "empirical_mean": 0.050716666666666674,
+    "empirical_std": 0.004984448035863371,
+    "empirical_min": 0.037,
+    "empirical_max": 0.061,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.1,
+    "cost_ratio": 0.4444444444444445,
+    "empirical_mean": 0.10008333333333334,
+    "empirical_std": 0.0073474296337033545,
+    "empirical_min": 0.0855,
+    "empirical_max": 0.12,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.15,
+    "cost_ratio": 0.7058823529411765,
+    "empirical_mean": 0.14948333333333338,
+    "empirical_std": 0.007747562340647686,
+    "empirical_min": 0.137,
+    "empirical_max": 0.1715,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.2,
+    "cost_ratio": 1.0,
+    "empirical_mean": 0.19880000000000003,
+    "empirical_std": 0.008684852714160824,
+    "empirical_min": 0.186,
+    "empirical_max": 0.2235,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.25,
+    "cost_ratio": 1.3333333333333333,
+    "empirical_mean": 0.24983333333333332,
+    "empirical_std": 0.010312074907063516,
+    "empirical_min": 0.231,
+    "empirical_max": 0.2765,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3,
+    "cost_ratio": 1.7142857142857144,
+    "empirical_mean": 0.30019999999999997,
+    "empirical_std": 0.010615711626326966,
+    "empirical_min": 0.2875,
+    "empirical_max": 0.33,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 4.0,
+    "target_rho": 0.3333333333333333,
+    "cost_ratio": 1.9999999999999998,
+    "empirical_mean": 0.33358333333333334,
+    "empirical_std": 0.010914121840787532,
+    "empirical_min": 0.3175,
+    "empirical_max": 0.3635,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.05,
+    "cost_ratio": 0.4210526315789474,
+    "empirical_mean": 0.050716666666666674,
+    "empirical_std": 0.004984448035863371,
+    "empirical_min": 0.037,
+    "empirical_max": 0.061,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.1,
+    "cost_ratio": 0.888888888888889,
+    "empirical_mean": 0.10008333333333334,
+    "empirical_std": 0.0073474296337033545,
+    "empirical_min": 0.0855,
+    "empirical_max": 0.12,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.15,
+    "cost_ratio": 1.411764705882353,
+    "empirical_mean": 0.14948333333333338,
+    "empirical_std": 0.007747562340647686,
+    "empirical_min": 0.137,
+    "empirical_max": 0.1715,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.2,
+    "cost_ratio": 2.0,
+    "empirical_mean": 0.19880000000000003,
+    "empirical_std": 0.008684852714160824,
+    "empirical_min": 0.186,
+    "empirical_max": 0.2235,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.25,
+    "cost_ratio": 2.6666666666666665,
+    "empirical_mean": 0.24983333333333332,
+    "empirical_std": 0.010312074907063516,
+    "empirical_min": 0.231,
+    "empirical_max": 0.2765,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3,
+    "cost_ratio": 3.428571428571429,
+    "empirical_mean": 0.30019999999999997,
+    "empirical_std": 0.010615711626326966,
+    "empirical_min": 0.2875,
+    "empirical_max": 0.33,
+    "n_seeds": 30
+  },
+  {
+    "kappa": 8.0,
+    "target_rho": 0.3333333333333333,
+    "cost_ratio": 3.9999999999999996,
+    "empirical_mean": 0.33358333333333334,
+    "empirical_std": 0.010914121840787532,
+    "empirical_min": 0.3175,
+    "empirical_max": 0.3635,
+    "n_seeds": 30
+  }
+]
