@@ -19,11 +19,12 @@ pytest -v
 
 ```
 src/poua_sim/
-  chain.py        Chain state + per-slot block production loop
-  validator.py    Validator dataclass: stake, reputation, weight property
+  chain.py        Chain state + per-slot block production loop + epoch updates
+  validator.py    Validator dataclass: stake, reputation, weight, epoch tallies
   proposer.py     Weighted random proposer selection (§4.1)
+  attestation.py  Attestation primitive (fee, validity)
+  reputation.py   §4.3 update function with α, β, G_max, λ + ReputationParams
 
-  reputation.py   M2: §4.3 update function with α, β, G_max, λ
   layers.py       M4: §5.5 Layer 1 (address exclusion), 2 (graph distance),
                        3 (burn destination), 4 (statistical detectors)
   adversary/      M3-M4: capital, reputation, compound (single + cartel)
@@ -36,7 +37,7 @@ src/poua_sim/
 Tracked in [issue #3](https://github.com/ligate-io/ligate-research/issues/3) with full sequencing in [the comment thread](https://github.com/ligate-io/ligate-research/issues/3#issuecomment-4362297744).
 
 - [x] **M1** — Skeleton: validator set, weighted-random proposer, χ²-validated empirical distribution
-- [ ] **M2** — Reputation update (§4.3): convergence to `r_max` over `T_ramp` epochs of honest participation
+- [x] **M2** — Reputation update (§4.3): convergence to `r_max` over `T_ramp` epochs of honest participation
 - [ ] **M3** — Capital adversary (§5.3): empirical κ premium within 5% of analytical across 100 Monte Carlo seeds
 - [ ] **M4** — Compound adversary (§5.5): cartel-aware Lemma 1 validated; per-burn-destination bounds checked
 - [ ] **M5** — Detection (§A.1, §A.2): A2/A3 detector FPR under realistic graph models; v0.7 paper figures
@@ -52,14 +53,25 @@ Each milestone targets specific issues:
 | [#15](https://github.com/ligate-io/ligate-research/issues/15) Volume slash deterrent | M5 |
 | [#16](https://github.com/ligate-io/ligate-research/issues/16) A3 ER mismatch | M5 |
 
-## M1 acceptance
+## M1 acceptance (closed)
 
 - `Validator` dataclass with stake-times-reputation weight
 - `Chain` with per-slot block production loop
 - `select_proposer` with weighted-random sampling
 - χ² goodness-of-fit tests for uniform stake, proportional stake, and reputation-weighted proposer distributions; all pass at the 1% rejection level over 10K-30K slot runs
 
-Run `pytest tests/ -v` to verify.
+## M2 acceptance (closed)
+
+- `ReputationParams` with v0 defaults from §7.2 (η=0.001, λ=1.0, α=0.7, β=0.3, r_min=1, r_max=8, G_max=233, E=14400) and full validation
+- `compute_g_v` and `apply_reputation_update` implementing §4.3 exactly: `r_v(t+E) = clip(r_v + η·g_v - λ·b_v)`, with `g_v = min(G_max, α·G_prop + β·G_vote)`
+- `Chain` extended with per-block tallying (proposer-side and voter-side, fee-weighted) and deferred update at epoch boundaries
+- **Convergence**: 10 validators, 30 epochs of E=300 slots, 20 atts/block fee 1.0, all reach r_max within 0.05 tolerance
+- **Slash**: severity ≥ (r_max - r_min)/λ + (η · G_max)/λ clips reputation to r_min in one epoch even under full participation
+- **Inactivity**: a non-participating validator's reputation does not decay (g_v = 0, b_v = 0 leaves r_v unchanged, per §4.3)
+- **Sensitivity to α**: across α ∈ {0.5, 0.7, 0.9}, all validators still converge to r_max within 40 epochs
+- **Boundedness**: r_v stays in [r_min, r_max] under arbitrarily large g_v or b_v
+
+Run `pytest tests/ -v` to verify (43 tests).
 
 ## Reproducibility
 

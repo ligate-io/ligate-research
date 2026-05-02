@@ -3,8 +3,10 @@
 A validator carries:
 - ``address``: short identifier (display only; the simulator does not model keys)
 - ``stake``: bonded LGT
-- ``reputation``: scalar in [r_min, r_max]; initialized to 1.0 in M1 where the
-  reputation update function is not yet implemented (see M2)
+- ``reputation``: scalar in [r_min, r_max], updated at each epoch boundary
+  via the §4.3 update function
+- ``epoch_g_prop``, ``epoch_g_vote``, ``epoch_b``: per-epoch tallies that
+  accumulate during the epoch and reset to 0 at the boundary, per §4.3
 
 The product ``stake * reputation`` is the validator's consensus weight, used
 by the proposer selection (§4.1) and the BFT vote tally (§4.2).
@@ -26,14 +28,26 @@ class Validator:
     stake : float
         Bonded stake. Must be > 0.
     reputation : float
-        Scalar in ``[r_min, r_max]``. Defaults to ``1.0`` (the M1 case where
-        reputation is not yet wired into the update function; this matches
-        ``r_min`` for the recommended v0 parameters in §7.2).
+        Scalar in ``[r_min, r_max]``. Defaults to ``1.0`` which matches
+        ``r_min`` for the recommended v0 parameters in §7.2.
+    epoch_g_prop : float
+        Fee-weighted valid-attestation count from blocks this validator
+        proposed in the current epoch. Resets to 0 at each epoch boundary.
+    epoch_g_vote : float
+        Per-voter share of fee-weighted valid-attestation work from blocks
+        this validator voted on but did not propose, in the current epoch.
+        Resets to 0 at each epoch boundary.
+    epoch_b : float
+        Aggregate severity-weighted slash count for this validator in the
+        current epoch. Resets to 0 at each epoch boundary.
     """
 
     address: str
     stake: float
     reputation: float = 1.0
+    epoch_g_prop: float = 0.0
+    epoch_g_vote: float = 0.0
+    epoch_b: float = 0.0
 
     def __post_init__(self) -> None:
         if self.stake <= 0:
