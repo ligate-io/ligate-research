@@ -5,7 +5,7 @@ A consensus weighting primitive for attestation-native chains.
 ## Latest
 
 - **Working paper**: [`poua.pdf`](poua.pdf) (compiled) / [`poua.md`](poua.md) (markdown source) / [`poua.tex`](poua.tex) (LaTeX source for arXiv)
-- **Version**: v0.6
+- **Version**: v0.6.1
 - **Status**: Draft for internal review and design-partner circulation
 - **Date**: 2026-05-02
 
@@ -32,6 +32,7 @@ See the root [CONTRIBUTING.md](../../CONTRIBUTING.md) for tooling setup.
 
 ## Version history
 
+- **v0.6.1** (2026-05-02): patch fix for Lemma 1 proof. Reference simulator (M2) revealed a discrepancy between the v0.6 Lemma 1 proof (which credited the proposer with own-block voter-channel reputation) and §4.3 of the same paper (which excludes the proposer from $G_v^{\text{vote}}$ on own-block per the explicit ``but did not propose'' rule). v0.6.1 corrects the proof to match §4.3 strictly, yielding $\alpha_{\text{eff}} = \alpha + (m-1)\beta/k$ instead of v0.6's $\alpha + m\beta/k$. The two formulas agree at $m = 1$ and at $k \to \infty$ at fixed $m/k$; at finite $k$ the v0.6.1 bound is slightly tighter (smaller $\alpha_{\text{eff}}$, larger $F^{\text{net}}$ floor). Numerical examples updated to distinguish the asymptotic and finite-$k$ cases. Empirically validated by simulator at $m \in \{1, 2, 3, 4\}, k = 12$ to floating-point precision.
 - **v0.6** (2026-05-02): tightened Lemma 1 to cover coordinated voter cartels (closes [#10](https://github.com/ligate-io/ligate-research/issues/10)); pinned Layer 3 burn destination to pure-burn with treasury and redistribution as opt-in alternatives carrying separate bounds (closes [#11](https://github.com/ligate-io/ligate-research/issues/11)); added §5.3.1 transition-state κ analysis covering warmup, validator-set ramp, and post-slash recovery (closes [#12](https://github.com/ligate-io/ligate-research/issues/12)); softened §5.3 headline to "up to 4-10× steady-state" with explicit transition envelope; added §1.6.1 status-of-claims panel separating proven, bounded-under-stated-assumptions, and empirical/heuristic claims.
 - **v0.5** (2026-05-01): prose pass on high-visibility sections (Abstract, §1.1-1.6, §5.1, §5.5, §6.1, §10, §11 opener). Reduced hedging filler, varied sentence rhythm, cut bulleted-claim density where flowing prose worked. Technical content unchanged.
 - **v0.4** (2026-05-01): replaced Theorem 1 and 2 proof sketches with reduction-style full proofs supported by Lemma 2 (weighted quorum intersection); replaced Appendix A skeleton with analytical false-positive bounds via $\chi^2$ approximation (A2) and Normal approximation (A3); updated §5.4 reputation-adversary bound for consistency with v0.3 Lemma 1; reordered bibliography alphabetically; added Lemma 1 and Lemma 2 to Appendix B recap.

@@ -20,7 +20,7 @@ This repository is the upstream of the technical claims our marketing surface (l
 
 | Paper | Status | Latest version | Topic |
 |---|---|---|---|
-| [Proof of Useful Attestation (PoUA)](papers/poua/) | Working draft | v0.6 (2026-05-02) | Consensus weighting primitive that aligns validator influence with the production of valid attestation work |
+| [Proof of Useful Attestation (PoUA)](papers/poua/) | Working draft | v0.6.1 (2026-05-02) | Consensus weighting primitive that aligns validator influence with the production of valid attestation work |
 
 Future papers planned (filed as issues in this repo):
 
