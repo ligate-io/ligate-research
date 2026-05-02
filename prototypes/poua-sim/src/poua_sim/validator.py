@@ -48,6 +48,13 @@ class Validator:
     epoch_g_prop: float = 0.0
     epoch_g_vote: float = 0.0
     epoch_b: float = 0.0
+    # M4 instrumentation: cartel-channel tallies for empirical Lemma 1
+    # validation. These mirror ``epoch_g_prop`` / ``epoch_g_vote`` but
+    # accumulate ONLY from attestations whose ``cartel_marker`` flag is
+    # set. They do not affect the reputation update applied at the epoch
+    # boundary; they are read by metrics code.
+    epoch_g_prop_from_cartel: float = 0.0
+    epoch_g_vote_from_cartel: float = 0.0
 
     def __post_init__(self) -> None:
         if self.stake <= 0:

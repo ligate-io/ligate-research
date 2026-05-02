@@ -39,7 +39,7 @@ Tracked in [issue #3](https://github.com/ligate-io/ligate-research/issues/3) wit
 - [x] **M1** — Skeleton: validator set, weighted-random proposer, χ²-validated empirical distribution
 - [x] **M2** — Reputation update (§4.3): convergence to `r_max` over `T_ramp` epochs of honest participation
 - [x] **M3** — Capital adversary (§5.3) + transition-state κ (§5.3.1): empirical κ matches analytical, realized κ trajectory validated across warmup / ramp / steady / post-slash
-- [ ] **M4** — Compound adversary (§5.5): cartel-aware Lemma 1 validated; per-burn-destination bounds checked
+- [x] **M4** — Compound adversary (§5.5): Layer 1 self-submitted exclusion, cartel-aware Lemma 1 validated within 10% across `m ∈ {1, 2, 3, 4}` in `k=12`, per-burn-destination bounds (pure burn / treasury / redistribution) checked
 - [ ] **M5** — Detection (§A.1, §A.2): A2/A3 detector FPR under realistic graph models; v0.7 paper figures
 
 Each milestone targets specific issues:
@@ -87,7 +87,21 @@ Generated artifacts (in `out/`, committed):
 
 These figures replace the all-analytical Figure 2 in v0.6 §5.3 and slot directly into v0.7's revision of §5.3.1, closing the empirical component of [#12](https://github.com/ligate-io/ligate-research/issues/12).
 
-Run `pytest tests/ -v` to verify (76 tests). Run `python scripts/run_capital_scan.py` and `python scripts/run_kappa_trajectory.py` to regenerate figures.
+## M4 acceptance (closed)
+
+- `Attestation` extended with `submitter` and `cartel_marker` fields
+- `Chain._tally_block` applies §5.5 Layer 1 (proposer-submitter exclusion) on both proposer and voter sides; cartel-marker attestations also flow into per-validator `epoch_g_*_from_cartel` instrumentation buckets
+- `layers.py`: `BurnDestination` (PURE_BURN / TREASURY / REDISTRIBUTION), `Layer3Config`, `layer3_net_burn`, `alpha_eff(α, β, m, k) = α + (m-1)β/k`
+- `CompoundAdversary` injects cartel validators at `r_min`, ships `cartel_attestations` generator that emits cartel-submitted (cartel_marker=True) attestations on cartel-proposed blocks
+- **Lemma 1 single-proposer (m=1)** holds within 10% under pure burn
+- **Lemma 1 cartel (m ∈ {2, 3})** holds within 10% with `α_eff = α + (m-1)β/k`
+- **Burn destination weakening** verified: pure burn (Lemma 1 base), treasury at 10% recovery (Lemma 1 × 0.9), redistribution at Byzantine stake share (Lemma 1 × 2/3)
+- **Layer 1 zeroes self-submitted attestations** (proven by chain-level test)
+- `out/lemma1_burn_destinations.png` — empirical points sit exactly on analytical lines for all three burn destinations across `m ∈ {1, 2, 3, 4}`
+
+Note for v0.7 paper: the v0.6 Lemma 1 proof uses `α_eff = α + mβ/k` (assumes proposer also earns voter share on own block). The simulator follows §4.3 strictly (proposer excluded from own-block voter tally), giving `α_eff = α + (m-1)β/k`. Both forms agree at `m=1`; the cartel discount at `m=k/3` differs by `β/k`. The v0.7 reconciliation should update either the proof or §4.3 — see comments in `layers.py:alpha_eff`.
+
+Run `pytest tests/ -v` to verify (99 tests). Run `python scripts/run_*.py` to regenerate figures.
 
 ## Reproducibility
 

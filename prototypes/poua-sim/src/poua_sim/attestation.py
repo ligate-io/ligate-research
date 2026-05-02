@@ -30,7 +30,21 @@ class Attestation:
         Whether the attestation's threshold signature would verify (§3.4).
         M2 emits ``True`` only; M4 introduces invalid attestations as part
         of the §5.5 compound-adversary model.
+    submitter : str | None
+        Address of the entity that submitted the attestation. Used by §5.5
+        Layer 1 (proposer-submitter exclusion): an attestation contributes
+        0 to ``g_v(t)`` if ``submitter == v.address``. ``None`` means the
+        chain treats the attestation as honestly submitted by an unspecified
+        entity, which is the M1/M2/M3 default.
+    cartel_marker : bool
+        ``True`` for attestations submitted by a §5.5 compound adversary's
+        controlled submitter address. The chain uses this only to feed the
+        per-validator ``epoch_g_*_from_cartel`` accounting buckets that
+        underpin empirical validation of Lemma 1; protocol-level rules
+        (Layer 1, Layer 3) do not depend on this field.
     """
 
     fee: float
     is_valid: bool = True
+    submitter: str | None = None
+    cartel_marker: bool = False
