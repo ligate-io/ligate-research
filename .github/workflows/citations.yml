@@ -1,0 +1,30 @@
+name: Paper citations
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "papers/**"
+      - "prototypes/**"
+      - "scripts/check_citations.py"
+      - ".github/workflows/citations.yml"
+  pull_request:
+    paths:
+      - "papers/**"
+      - "prototypes/**"
+      - "scripts/check_citations.py"
+      - ".github/workflows/citations.yml"
+
+jobs:
+  check-citations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate paper citations resolve to real files
+        run: python scripts/check_citations.py --verbose
