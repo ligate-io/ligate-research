@@ -25,6 +25,7 @@ This repository is the upstream of the technical claims our marketing surface (l
 | Paper | Status | Latest version | Topic |
 |---|---|---|---|
 | [Proof of Useful Attestation (PoUA)](papers/poua/) | Working draft | v0.7.1 (2026-05-02) | Consensus weighting primitive that aligns validator influence with the production of valid attestation work |
+| [Per-Schema Fee Markets](papers/per-schema-fees/) | Outline | v0.1 (2026-05-02) | EIP-1559-style demand curves per attestation schema, with sponsored-gas integration |
 
 Future papers planned (filed as issues in this repo):
 
