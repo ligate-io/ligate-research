@@ -105,6 +105,11 @@ class Chain:
     def __post_init__(self) -> None:
         if not self.validators:
             raise ValueError("validators must be non-empty")
+        # Defensive copy: ``add_validator`` mutates ``self.validators``, and
+        # callers commonly pass a list constructed in their own scope. Without
+        # this copy, ``add_validator`` would mutate that caller-side list too,
+        # producing surprising aliasing bugs in adversary-injection scenarios.
+        self.validators = list(self.validators)
         # Build an address index for fast lookup during reputation tally.
         self._validators_by_address: dict[str, Validator] = {
             v.address: v for v in self.validators
@@ -166,6 +171,26 @@ class Chain:
             raise ValueError(f"severity must be non-negative, got {severity}")
         validator = self._validators_by_address[address]
         validator.epoch_b += severity
+
+    def add_validator(self, validator: Validator) -> None:
+        """Add a validator to ``V(t)`` mid-run.
+
+        Used by adversary scenarios (§5.3 capital adversary, §5.5 compound
+        adversary) to inject fresh validators at a chosen point in the
+        simulation. The new validator joins with whatever reputation it
+        was constructed with; the §5.3 capital adversary specifically
+        constructs them at ``r_min``.
+
+        Raises ``ValueError`` if the address already exists.
+        """
+        if validator.address in self._validators_by_address:
+            raise ValueError(f"validator {validator.address} already exists")
+        self.validators.append(validator)
+        self._validators_by_address[validator.address] = validator
+
+    def get_validator(self, address: str) -> Validator:
+        """Return the validator at ``address``. Raises ``KeyError`` if absent."""
+        return self._validators_by_address[address]
 
     # --- internal helpers ---------------------------------------------------
 

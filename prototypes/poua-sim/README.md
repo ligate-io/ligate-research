@@ -38,7 +38,7 @@ Tracked in [issue #3](https://github.com/ligate-io/ligate-research/issues/3) wit
 
 - [x] **M1** — Skeleton: validator set, weighted-random proposer, χ²-validated empirical distribution
 - [x] **M2** — Reputation update (§4.3): convergence to `r_max` over `T_ramp` epochs of honest participation
-- [ ] **M3** — Capital adversary (§5.3): empirical κ premium within 5% of analytical across 100 Monte Carlo seeds
+- [x] **M3** — Capital adversary (§5.3) + transition-state κ (§5.3.1): empirical κ matches analytical, realized κ trajectory validated across warmup / ramp / steady / post-slash
 - [ ] **M4** — Compound adversary (§5.5): cartel-aware Lemma 1 validated; per-burn-destination bounds checked
 - [ ] **M5** — Detection (§A.1, §A.2): A2/A3 detector FPR under realistic graph models; v0.7 paper figures
 
@@ -71,7 +71,23 @@ Each milestone targets specific issues:
 - **Sensitivity to α**: across α ∈ {0.5, 0.7, 0.9}, all validators still converge to r_max within 40 epochs
 - **Boundedness**: r_v stays in [r_min, r_max] under arbitrarily large g_v or b_v
 
-Run `pytest tests/ -v` to verify (43 tests).
+## M3 acceptance (closed)
+
+- `CapitalAdversary` injects fresh stake at `r_min` per §5.3, with multi-validator splits and address-prefix configurability
+- `metrics.py` exposes `realized_weight_share`, `realized_kappa` (stake-weighted bar(r)_H per §5.3), `proposer_share`, `analytical_attack_stake` (§5.3 inversion)
+- **Algebraic exactness**: for every target ρ ∈ {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 1/3} and every κ ∈ {1, 4, 8}, injecting `s_C = (ρ/(1-ρ)) · (W_H/r_min)` yields realized weight share = ρ within floating-point precision
+- **Empirical proposer share = ρ within 2σ binomial variance** across 30 Monte Carlo seeds
+- **κ trajectory across warmup → ramp → steady → post-slash** matches §5.3.1 envelope: `κ=1` in warmup, climbs linearly to `r_max/r_min=8` over T_ramp, dips by `(s_v/S_H)·(r_max-r_min)` at slash event, recovers over T_ramp
+
+Generated artifacts (in `out/`, committed):
+
+- `cost_to_attack.png` — empirical Monte Carlo points sit on analytical κ ∈ {1, 4, 8} curves
+- `kappa_trajectory.png` — full lifecycle: warmup, ramp, steady, post-slash recovery
+- `capital_scan.json`, `capital_scan_summary.json`, `kappa_trajectory.json` — raw + aggregated data
+
+These figures replace the all-analytical Figure 2 in v0.6 §5.3 and slot directly into v0.7's revision of §5.3.1, closing the empirical component of [#12](https://github.com/ligate-io/ligate-research/issues/12).
+
+Run `pytest tests/ -v` to verify (76 tests). Run `python scripts/run_capital_scan.py` and `python scripts/run_kappa_trajectory.py` to regenerate figures.
 
 ## Reproducibility
 
