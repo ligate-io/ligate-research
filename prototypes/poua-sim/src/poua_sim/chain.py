@@ -1,12 +1,9 @@
 """Chain state and block production loop.
 
-M2 scope: validator set, weighted-random proposer per slot, attestations
-per block, voter sets, per-validator reputation tallying within an epoch,
-deferred reputation update at epoch boundaries.
-
-Slashing infrastructure (the ``b_v`` channel) is wired through but the
-simulator does not yet *generate* slashable infractions — that arrives with
-the §5.5 compound adversary in M4.
+M4 scope: M2/M3 features plus §5.5 Layer 1 (proposer-submitter exclusion)
+in the per-block reputation tally, and a cartel-channel accounting bucket
+on each validator that the empirical Lemma 1 test reads to compute
+``F_net / Δr_cartel``.
 """
 
 from __future__ import annotations
@@ -25,7 +22,13 @@ from poua_sim.reputation import (
 )
 from poua_sim.validator import Validator
 
-AttestationGenerator = Callable[[np.random.Generator, int], list[Attestation]]
+AttestationGenerator = Callable[[np.random.Generator, int, str], list[Attestation]]
+"""Callable producing the per-block attestation list.
+
+Signature ``(rng, slot, proposer_address) -> list[Attestation]``. The
+proposer address lets generators emit different attestation patterns
+when a cartel member is proposing (M4) without inspecting chain state.
+"""
 
 
 @dataclass(slots=True)
@@ -58,12 +61,12 @@ def constant_attestations(
 ) -> AttestationGenerator:
     """Default attestation generator: ``n_per_block`` valid fee-1.0 attestations.
 
-    Suitable for M2 tests where the block production load is held constant
-    so that reputation trajectories depend only on protocol parameters and
-    proposer rotation, not on traffic variance.
+    Suitable for M2/M3 tests where the block production load is held
+    constant so that reputation trajectories depend only on protocol
+    parameters and proposer rotation, not on traffic variance.
     """
 
-    def _gen(rng: np.random.Generator, slot: int) -> list[Attestation]:
+    def _gen(rng: np.random.Generator, slot: int, proposer_address: str) -> list[Attestation]:
         return [Attestation(fee=fee, is_valid=True) for _ in range(n_per_block)]
 
     return _gen
@@ -137,7 +140,7 @@ class Chain:
            reputation update for every validator.
         """
         proposer = select_proposer(self.validators, rng)
-        attestations = self.attestation_generator(rng, self.slot)
+        attestations = self.attestation_generator(rng, self.slot, proposer.address)
         voters = (
             [v.address for v in self.validators] if self.all_validators_vote else [proposer.address]
         )
@@ -199,25 +202,58 @@ class Chain:
 
         Per §4.3, ``G_v_prop`` sums fee-weighted valid attestations from
         blocks ``v`` proposed; ``G_v_vote`` sums per-voter shares from blocks
-        ``v`` voted on but did NOT propose. The proposer is excluded from
-        the voter-side tally for their own block to avoid double-counting.
+        ``v`` voted on but did NOT propose.
+
+        §5.5 Layer 1 ("proposer-submitter address exclusion"): an
+        attestation ``α`` contributes 0 to ``g_v(t)`` if
+        ``α.submitter == v.address``. Applied to both proposer and voter
+        sides.
+
+        ``cartel_marker`` attestations additionally accumulate into the
+        ``epoch_g_*_from_cartel`` buckets used by the empirical Lemma 1
+        validation in M4. This is instrumentation, not a protocol rule.
         """
-        valid_fee_total = sum(a.fee for a in block.attestations if a.is_valid)
-        if valid_fee_total <= 0:
+        if not block.attestations:
             return
 
-        proposer = self._validators_by_address[block.proposer]
-        proposer.epoch_g_prop += valid_fee_total
+        proposer_addr = block.proposer
+        proposer = self._validators_by_address[proposer_addr]
+
+        # Proposer side: sum fees of valid attestations whose submitter is
+        # not the proposer (Layer 1).
+        proposer_eligible_total = 0.0
+        proposer_eligible_cartel = 0.0
+        for a in block.attestations:
+            if not a.is_valid:
+                continue
+            if a.submitter == proposer_addr:
+                continue  # Layer 1
+            proposer_eligible_total += a.fee
+            if a.cartel_marker:
+                proposer_eligible_cartel += a.fee
+
+        proposer.epoch_g_prop += proposer_eligible_total
+        proposer.epoch_g_prop_from_cartel += proposer_eligible_cartel
 
         n_voters = len(block.voters)
         if n_voters == 0:
             return
-        per_voter_share = valid_fee_total / n_voters
         for voter_addr in block.voters:
-            if voter_addr == block.proposer:
+            if voter_addr == proposer_addr:
                 continue  # §4.3: proposer earns through G_prop, not G_vote, on own block
+            voter_eligible = 0.0
+            voter_eligible_cartel = 0.0
+            for a in block.attestations:
+                if not a.is_valid:
+                    continue
+                if a.submitter == voter_addr:
+                    continue  # Layer 1 on the voter side
+                voter_eligible += a.fee
+                if a.cartel_marker:
+                    voter_eligible_cartel += a.fee
             voter = self._validators_by_address[voter_addr]
-            voter.epoch_g_vote += per_voter_share
+            voter.epoch_g_vote += voter_eligible / n_voters
+            voter.epoch_g_vote_from_cartel += voter_eligible_cartel / n_voters
 
     def _apply_epoch_reputation_update(self) -> None:
         """Fire the §4.3 reputation update for every validator at epoch boundary."""
@@ -228,6 +264,8 @@ class Chain:
             v.epoch_g_prop = 0.0
             v.epoch_g_vote = 0.0
             v.epoch_b = 0.0
+            v.epoch_g_prop_from_cartel = 0.0
+            v.epoch_g_vote_from_cartel = 0.0
 
 
 def make_uniform_validator_set(n: int, stake: float = 100.0) -> list[Validator]:

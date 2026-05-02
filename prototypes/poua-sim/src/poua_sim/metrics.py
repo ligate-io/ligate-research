@@ -100,3 +100,36 @@ def stake_weighted_mean_reputation(validators: Iterable[Validator]) -> float:
     if total_stake <= 0:
         return 0.0
     return weighted / total_stake
+
+
+def cartel_channel_predicted_dr(
+    cartel_validators: Iterable[Validator],
+    params,
+) -> float:
+    """Predicted total cartel-channel reputation gain from the current
+    epoch's tally, IGNORING the ``G_max`` cap.
+
+    Used by the empirical Lemma 1 test (M4): with ``epoch_length`` set
+    high enough that no update fires during the test, this returns
+    ``η · sum_v (α · g_prop_cartel_v + β · g_vote_cartel_v)``, the
+    reputation the cartel WOULD gain if the update fired now and
+    ``G_max`` were not binding. Lemma 1's bound depends on this uncapped
+    quantity; the test bypasses the cap by setting ``g_max`` very high.
+    """
+    total = 0.0
+    for v in cartel_validators:
+        total += params.eta * (
+            params.alpha * v.epoch_g_prop_from_cartel
+            + params.beta * v.epoch_g_vote_from_cartel
+        )
+    return total
+
+
+def cartel_channel_gross_fees(chain: Chain) -> float:
+    """Sum of fees on cartel-marked attestations across the chain's block log."""
+    return sum(
+        a.fee
+        for b in chain.blocks
+        for a in b.attestations
+        if a.is_valid and a.cartel_marker
+    )

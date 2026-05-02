@@ -1,0 +1,54 @@
+[
+  {
+    "m": 1,
+    "k": 12,
+    "f_gross": 25510.0,
+    "dr_cartel": 17.857,
+    "adv_stake_share": 0.08333333333333333,
+    "params": {
+      "eta": 0.001,
+      "alpha": 0.7,
+      "beta": 0.3,
+      "tau_burn": 0.5
+    }
+  },
+  {
+    "m": 2,
+    "k": 12,
+    "f_gross": 49670.0,
+    "dr_cartel": 36.01074999999996,
+    "adv_stake_share": 0.16666666666666666,
+    "params": {
+      "eta": 0.001,
+      "alpha": 0.7,
+      "beta": 0.3,
+      "tau_burn": 0.5
+    }
+  },
+  {
+    "m": 3,
+    "k": 12,
+    "f_gross": 75860.0,
+    "dr_cartel": 56.89500000000022,
+    "adv_stake_share": 0.25,
+    "params": {
+      "eta": 0.001,
+      "alpha": 0.7,
+      "beta": 0.3,
+      "tau_burn": 0.5
+    }
+  },
+  {
+    "m": 4,
+    "k": 12,
+    "f_gross": 99620.0,
+    "dr_cartel": 77.20549999999943,
+    "adv_stake_share": 0.3333333333333333,
+    "params": {
+      "eta": 0.001,
+      "alpha": 0.7,
+      "beta": 0.3,
+      "tau_burn": 0.5
+    }
+  }
+]
