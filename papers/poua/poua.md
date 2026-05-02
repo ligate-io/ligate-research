@@ -2,7 +2,7 @@
 
 ## A Consensus Primitive for Attestation-Native Chains
 
-**Ligate Labs Research, Working Paper v0.5**
+**Ligate Labs Research, Working Paper v0.6**
 
 **Date:** 2026-05-01
 
@@ -104,6 +104,33 @@ An **implementation specification** in §7 covers the integration of PoUA into t
 
 A **comparative analysis** in §8 positions PoUA against reputation-weighted consensus (RepuCoin, EigenTrust), proof-of-useful-work systems (Helium, Filecoin), restaking (EigenLayer), and pure-stake Proof of Stake (Tendermint, Algorand) across six axes. PoUA is novel as a synthesis, not in any single component, and §8 identifies the specific synthesis point.
 
+### 1.6.1 Status of Claims: Proven, Bounded, and Empirical
+
+Reviewers asking the right questions converge on the same separation. We name it explicitly so that readers know which claims rest on formal proof, which rest on stated assumptions, and which require devnet or simulator validation we have not yet completed.
+
+**Proven, in the sense of formal mathematical argument under standard cryptographic and BFT assumptions:**
+
+- BFT safety and liveness inheritance under $f < n/3$ Byzantine *weight* (Theorems 1 and 2, §5.2, via the weighted quorum-intersection Lemma 2).
+- The cost-to-attack premium algebra $\kappa = \bar{r}_H / r_{\min}$ for a pure capital adversary (§5.3).
+- The cost-to-grind lower bound under Layer 3 with stated burn destination: $F^{\text{net, per member}}_{\mathcal{CR}} \geq \tau_{\text{burn}} \cdot \Delta r / [\eta \cdot \alpha_{\text{eff}}(m, k)]$ (Lemma 1, §5.5.3), with explicit cartel-size and burn-destination parameter dependence.
+- Boundedness, monotonicity, and stability of the reputation update function (§4.3, by clip plus linearity of the additive update).
+
+**Bounded under stated assumptions, where the assumptions are non-trivial and named:**
+
+- The "up to $4\times$ to $10\times$ moat" headline is a *steady-state ceiling*, depressed during the warmup window, the validator-set ramp, and post-slash recovery. §5.3.1 quantifies the transition envelope; the realized $\kappa$ is a stake-weighted average of validator-specific reputation values, which approaches the ceiling only when warmup is complete, churn is low, and no recent major slash has occurred.
+- The cartel cost-to-grind bound holds as stated under the recommended pure-burn destination. The treasury and redistribution alternatives in §5.5.3 carry weaker bounds explicitly derived per variant.
+- The honest equilibrium argument (§6.2) assumes profit-maximizing validators with full information about protocol rules and other validators' strategies. Validators with non-economic motives sit outside the model.
+- Reputation as forward-revenue (§6.3) assumes attestation fee flow $R_f$ is positive and approximately stationary across the validator's discount horizon. In low-volume periods the slash deterrent attenuates.
+
+**Empirical or heuristic, named as such, requiring devnet or simulator validation:**
+
+- A2 (censorship) and A3 (grinding) detection. Appendix A gives analytical false-positive bounds under stated null hypotheses ($\chi^2$ for A2, Erdős-Rényi-style for A3); detection *power* (true-positive rate against realistic adversaries) requires devnet traffic and is deferred to v0.7.
+- The Erdős-Rényi null hypothesis for A3 detection does not match real chain transaction graphs, which are typically scale-free. The analytical $\beta_3 = 1\%$ false-positive target may understate realistic FPR; §A.4 acknowledges this and defers to empirical calibration.
+- Validator behavior at scale under adversarial conditions. Reputation distribution dynamics, the cold-start premium's practical impact, and the realized $\kappa$ trajectory are modeled, not measured. The reference simulator at [`prototypes/poua-sim/`](https://github.com/ligate-io/ligate-research/tree/main/prototypes/poua-sim) is the planned validation surface.
+- Full mechanism-design-grade incentive compatibility. §6 gives a game-theoretic argument, not a Hurwicz-style proof of full strategy-proofness. §9.1 acknowledges this as v0.7+ research.
+
+The honest one-line takeaway: **PoUA is a mechanism design proposal with a formal economic floor (Lemma 1) plus inherited BFT safety and liveness (Theorems 1-2), tested against named limitations and a published v0.7 validation roadmap.** It is not a complete cryptographic security proof. Where the paper makes "if-then" arguments, the "if" is named and bounded; where the argument is heuristic, the heuristic is labeled and the limitation acknowledged.
+
 ### 1.7 Scope and Non-Goals
 
 **In scope:**
@@ -124,7 +151,7 @@ A **comparative analysis** in §8 positions PoUA against reputation-weighted con
 
 ### 1.8 Document Structure
 
-Section 2 surveys background and prior art across Proof of Stake, Proof of Useful Work, reputation-weighted consensus, restaking, and Proof of Authority families. Section 3 fixes notation and the system model. Section 4 specifies the PoUA protocol in full. Section 5 analyzes security, including the layered defense against compound capital-plus-grinding adversaries (§5.5). Section 6 analyzes incentives. Section 7 describes the Ligate Chain implementation, including concrete v0 parameter recommendations. Section 8 compares PoUA with prior systems across six analytical axes. Section 9 lists limitations and future work. Section 10 concludes. Section 11 collects frequently asked questions and addresses common misunderstandings raised in early review. References follow. Appendix A specifies (in skeleton form) the statistical detection procedures for heuristic slashing conditions. Appendix B collects formal definitions used throughout.
+Section 1.6.1 separates the paper's claims into proven, bounded-under-stated-assumptions, and empirical-or-heuristic; readers in a hurry may want to start there. Section 2 surveys background and prior art across Proof of Stake, Proof of Useful Work, reputation-weighted consensus, restaking, and Proof of Authority families. Section 3 fixes notation and the system model. Section 4 specifies the PoUA protocol in full. Section 5 analyzes security, including the transition-state $\kappa$ envelope (§5.3.1) and the layered defense against compound capital-plus-grinding adversaries (§5.5). Section 6 analyzes incentives. Section 7 describes the Ligate Chain implementation, including concrete v0 parameter recommendations. Section 8 compares PoUA with prior systems across six analytical axes. Section 9 lists limitations and future work. Section 10 concludes. Section 11 collects frequently asked questions and addresses common misunderstandings raised in early review. References follow. Appendix A specifies the statistical detection procedures for heuristic slashing conditions, with analytical false-positive bounds. Appendix B collects formal definitions used throughout.
 
 ---
 
@@ -310,7 +337,7 @@ $$g_v(t) = \min\bigl(G_{\max},\; \alpha \cdot G_v^{\text{prop}}(t) + \beta \cdot
 
 The choice of additive (rather than multiplicative) updates is deliberate: additive updates make reputation grinding cost linear in attestation fee paid, providing a clean economic argument for Sybil resistance (Section 5.4). The voter component breaks the proposer-only accumulation pattern; the per-epoch cap $G_{\max}$ ensures the rate at which reputation propagates through the validator set is bounded by protocol design rather than by the contingencies of proposer selection.
 
-The choice $\alpha = 0.7, \beta = 0.3$ reflects two design intuitions: (1) proposers do strictly more work (block construction, validity verification of every attestation in their block, network propagation) than voters (verification only), so they earn more; (2) but voters earn enough that a validator participating honestly across an epoch accumulates non-negligible reputation even without ever being selected as proposer. A new validator with stake $s$ but $r_v = r_{\min}$ has selection probability $s \cdot r_{\min} / S$, so they will rarely propose early; the $\beta$ component ensures their honest voting still ramps their reputation toward $r_{\max}$ at a rate bounded below by $\eta \cdot \beta \cdot G_v^{\text{vote}}$.
+The choice $\alpha = 0.7, \beta = 0.3$ reflects three design considerations: (1) proposers do strictly more work (block construction, validity verification of every attestation in their block, network propagation) than voters (verification only), so they earn more; (2) but voters earn enough that a validator participating honestly across an epoch accumulates non-negligible reputation even without ever being selected as proposer (a new validator with stake $s$ but $r_v = r_{\min}$ has selection probability $s \cdot r_{\min} / S$, so they will rarely propose early; the $\beta$ component ensures their honest voting still ramps their reputation toward $r_{\max}$ at a rate bounded below by $\eta \cdot \beta \cdot G_v^{\text{vote}}$); (3) the split also bounds the *coordinated-cartel reputation discount* under Lemma 1's cost-to-grind bound. With $\alpha = 0.7$, a Byzantine-fraction cartel pays at most $\sim 12.5\%$ less per member than a single-proposer attacker would pay for the same per-member reputation ramp; for $\alpha = 0.5$ the discount widens to $25\%$, and for $\alpha = 0.9$ it shrinks to $\sim 3.6\%$. Higher $\alpha$ tightens the cartel bound but worsens proposer-rich-get-richer; lower $\alpha$ improves voter ramp but loosens the cartel bound. See §5.5.3 for the full sensitivity analysis.
 
 ### 4.4 Parameter Calibration
 
@@ -411,7 +438,7 @@ Compared to the cost of acquiring weight fraction $\rho$ in pure-stake PoS (cost
 
 $$\boxed{\kappa = \frac{\bar{r}_H}{r_{\min}}}$$
 
-In a healthy chain at steady state, $\bar{r}_H$ approaches $r_{\max}$, giving $\kappa \to r_{\max}/r_{\min}$. Per Section 4.4 design guidance ($r_{\max}/r_{\min} \in [4, 10]$), the capital adversary's cost-to-attack is **4 to 10 times higher** than an equivalent pure-stake PoS chain.
+In a healthy chain at steady state, $\bar{r}_H$ approaches $r_{\max}$, giving $\kappa \to r_{\max}/r_{\min}$. Per Section 4.4 design guidance ($r_{\max}/r_{\min} \in [4, 10]$), the capital adversary's cost-to-attack is **up to 4 to 10 times higher** than an equivalent pure-stake PoS chain *at steady state*. The realized $\kappa$ is lower during the warmup window, during validator-set ramp, and immediately after a slash; §5.3.1 quantifies these transition-state effects.
 
 This premium $\kappa$ is the formal moat PoUA constructs over generic PoS. Figure 2 plots the relationship $s_{\mathcal{C}} / S_H = \kappa \cdot \rho/(1-\rho)$ for three values of $\kappa$, illustrating the multiplicative effect of the reputation premium on capital required to acquire any target weight fraction $\rho$.
 
@@ -453,9 +480,47 @@ This premium $\kappa$ is the formal moat PoUA constructs over generic PoS. Figur
 
 \end{axis}
 \end{tikzpicture}
-\caption{Cost-to-attack curves for pure stake-weighted PoS and for PoUA at two reputation-premium values, derived from $s_{\mathcal{C}} / S_H = \kappa \cdot \rho/(1-\rho)$. The vertical dashed line marks the BFT safety threshold $\rho = 1/3$. At this threshold, pure PoS requires $0.5 \, S_H$ in fresh stake, while PoUA at $\kappa = 8$ requires $4.0 \, S_H$, a multiplicative moat of $8\times$. The curves diverge most sharply as the attack fraction grows.}
+\caption{Cost-to-attack curves for pure stake-weighted PoS and for PoUA at two reputation-premium values, derived from $s_{\mathcal{C}} / S_H = \kappa \cdot \rho/(1-\rho)$. The vertical dashed line marks the BFT safety threshold $\rho = 1/3$. At this threshold, pure PoS requires $0.5 \, S_H$ in fresh stake, while PoUA at $\kappa = 8$ requires $4.0 \, S_H$, a multiplicative moat of $8\times$. The curves diverge most sharply as the attack fraction grows. Curves assume $\bar{r}_H = r_{\max}$ (steady state); §5.3.1 quantifies the transition-state envelope.}
 \label{fig:cost-to-attack}
 \end{figure}
+
+### 5.3.1 Transition-State $\kappa$
+
+The cost-to-attack premium $\kappa = \bar{r}_H / r_{\min}$ is a steady-state ceiling. Three lifecycle conditions push the realized $\kappa$ below this ceiling, and an attacker timing entry to those windows extracts a real (if bounded) discount.
+
+**Warmup window.** Per §4.6, for the first $T_{\text{warmup}}$ epochs after genesis (recommended 14 epochs $\approx$ 2-3 days), the chain operates as pure stake-weighted PoS: reputation values are computed but not folded into vote weight. During this window:
+
+$$\kappa_{\text{warmup}} = 1 \quad \text{for } t \in [0, T_{\text{warmup}}].$$
+
+A capital adversary timing an attack to land before $T_{\text{warmup}}$ pays the same $\rho/(1-\rho)$ cost ratio as on a pure-PoS chain, with no premium. The warmup is a deliberate trade: it gives validators a uniform window to accumulate baseline reputation under symmetric conditions, at the cost of leaving the chain at $\kappa = 1$ for that window. Mitigations: pin a high genesis-validator-set quality bar, run an extended permissioned phase before mainnet activation, or shorten $T_{\text{warmup}}$ at the cost of a noisier reputation distribution at activation.
+
+**Validator-set ramp.** A validator entering at epoch $t_e > T_{\text{warmup}}$ joins with $r_v = r_{\min}$ and ramps toward $r_{\max}$ over $T_{\text{ramp}}$ epochs of honest participation (recommended $\approx 30$ epochs $\approx$ 5 days). The reputation contribution of this validator to $\bar{r}_H$ during ramp is:
+
+$$r_v(t) \approx r_{\min} + \min\!\left(1, \frac{t - t_e}{T_{\text{ramp}}}\right) \cdot (r_{\max} - r_{\min}) \quad \text{for } t \geq t_e.$$
+
+For a validator set with churn rate $\mu$ (fraction of validators replaced per epoch), the steady-state share of validators in their ramp window is $\mu \cdot T_{\text{ramp}}$, each contributing on average $r_{\min} + (r_{\max} - r_{\min})/2$ to $\bar{r}_H$. The realized $\bar{r}_H$ at steady state with churn:
+
+$$\bar{r}_H(\mu) \approx (1 - \mu T_{\text{ramp}}) \cdot r_{\max} + \mu T_{\text{ramp}} \cdot \tfrac{r_{\min} + r_{\max}}{2}.$$
+
+For typical churn ($\mu \approx 0.001$ per epoch, i.e., $\sim 1\%$ validator turnover per month) and $T_{\text{ramp}} = 30$, the ramp share is $\mu T_{\text{ramp}} = 0.03$ ($3\%$ of validators in their ramp window at any time), and $\bar{r}_H \approx 0.985 \cdot r_{\max} + 0.015 \cdot (r_{\min} + r_{\max})/2$. With $r_{\max}/r_{\min} = 8$: $\bar{r}_H/r_{\min} \approx 7.93$, only $\sim 1\%$ below the steady-state ceiling. For a validator set with high churn (e.g., $\mu = 0.01$ per epoch, $30\%$ in ramp window), $\bar{r}_H/r_{\min} \approx 6.65$, an $\sim 17\%$ moat reduction. **Operational implication:** a chain that experiences a large coordinated entry of new validators (e.g., a validator-set expansion event) sees $\kappa$ depressed for $T_{\text{ramp}}$ afterward, and security-conscious chain operators should sequence such events away from periods of expected attack pressure.
+
+**Post-slash recovery.** When validator $v$ is slashed at severity $\Lambda$, their reputation drops to $r_{\min}$ (per §4.5, recommended $\lambda$ chosen such that a single severe slash drops $r_v$ from $r_{\max}$ to $r_{\min}$). If $v$ controls stake share $s_v / S_H$ at the time of slashing, $\bar{r}_H$ drops by:
+
+$$\Delta \bar{r}_H = -\frac{s_v}{S_H} \cdot (r_{\max} - r_{\min})$$
+
+(approximately; the exact reduction depends on whether $v$ exits or remains slashed-but-active). Recovery to the pre-slash $\bar{r}_H$ takes at least $T_{\text{ramp}}$ if $v$ exits and is replaced by a fresh validator of equal stake, or $T_{\text{ramp}}$ if $v$ remains active and rebuilds reputation. For a slash of a small-stake validator ($s_v / S_H \ll 1$), $\bar{r}_H$ barely moves; for a slash of a major validator ($s_v / S_H \approx 0.1$), $\bar{r}_H$ drops by $\sim 0.1 \cdot (r_{\max} - r_{\min})$, weakening $\kappa$ by approximately the same factor for the duration of the recovery window.
+
+**Weighted-average formulation.** Combining the three effects, the chain's realized $\kappa$ at time $t$ is:
+
+$$\kappa(t) = \begin{cases} 1 & t < T_{\text{warmup}}, \\ \dfrac{\bar{r}_H(t)}{r_{\min}} & t \geq T_{\text{warmup}}, \end{cases}$$
+
+with $\bar{r}_H(t)$ a stake-weighted average over all validators of their current reputation. The steady-state ceiling $r_{\max}/r_{\min}$ is reached only when (i) $t \gg T_{\text{warmup}} + T_{\text{ramp}}$, (ii) churn is low ($\mu T_{\text{ramp}} \ll 1$), and (iii) no recent major slash has occurred.
+
+**Operational guidance.** Chains should:
+
+- Avoid scheduling protocol-critical events (governance votes, treasury releases, schema activations) inside the warmup window or immediately after a major slash.
+- Publish $\bar{r}_H(t)$ as part of the chain's public telemetry so off-chain consumers can adjust their trust assumptions during transition periods.
+- Treat the headline "$4-10\times$ moat" as a steady-state guarantee, not an instantaneous one.
 
 ### 5.4 Reputation Adversary
 
@@ -509,29 +574,61 @@ Implementation: the runtime maintains a sliding-window adjacency map of fund tra
 
 #### 5.5.3 Layer 3 — Non-recoverable treasury share (formal, economic)
 
-**Rule.** Every attestation fee is split: a fixed minimum fraction $\tau_{\text{burn}} \in (0, 1]$ flows to a non-recoverable destination (protocol treasury, burn address, or per-epoch reward pool distributed to *all* validators by stake-and-reputation share, *not* by inclusion). The schema's `fee_routing_bps` parameter routes only the residual $1 - \tau_{\text{burn}}$ fraction.
+**Rule.** Every attestation fee is split: a fixed minimum fraction $\tau_{\text{burn}} \in (0, 1]$ flows to a non-recoverable destination. The schema's `fee_routing_bps` parameter routes only the residual $1 - \tau_{\text{burn}}$ fraction.
 
-**Recommended parameter.** $\tau_{\text{burn}} = 0.5$ for v0.3.
+**Burn destinations.** PoUA admits three protocol-level destinations for the $\tau_{\text{burn}}$ share, each with a distinct cost-to-grind bound:
+
+1. **Pure burn** (default for v0.6): the $\tau_{\text{burn}}$ share is sent to a provably-unspendable address. Non-recoverable by construction; no governance pathway can return the funds. Lemma 1's bound holds as stated.
+2. **Treasury** (allowed with rate-cap): the $\tau_{\text{burn}}$ share accrues to a protocol treasury. The treasury is governance-spendable, so an adversary holding governance influence can recover a fraction of their burn over a long horizon. Lemma 1 holds modulo a treasury-recovery-rate assumption that must be specified by the chain (recommended cap: governance can spend at most $\rho_{\text{gov}} \leq 0.1$ of treasury per year, bounding the adversary's expected recovery to $\rho_{\text{gov}} \cdot \tau_{\text{burn}}$ over the attack horizon).
+3. **Per-validator-by-stake redistribution** (NOT recommended): the $\tau_{\text{burn}}$ share is redistributed each epoch to all validators by stake-and-reputation share, *not* by inclusion. This destination weakens Lemma 1: an attacker holding stake share $\rho_{\text{stake}}$ recovers $\rho_{\text{stake}} \cdot \tau_{\text{burn}}$ of their burn. The effective non-recoverable fraction drops to $\tau_{\text{burn}} \cdot (1 - \rho_{\text{stake}})$, and the bound becomes $F_{\mathcal{CR}}^{\text{net, per member}} \geq \tau_{\text{burn}} \cdot (1 - \rho_{\text{stake}}) \cdot \Delta r / [\eta \cdot \alpha_{\text{eff}}(m, k)]$. For an adversary at the Byzantine threshold $\rho_{\text{stake}} \to 1/3$, the effective fraction is $\sim 67\%$ of nominal. Redistribution is allowed only if the chain is willing to accept a $1/3$ weakening of Lemma 1 in exchange for the rebate-to-honest-validators ergonomics.
+
+**v0.6 default: pure burn.** All numerical examples and bounds in this paper assume the pure-burn destination. A chain operator may opt into treasury or redistribution by governance, with the cost-to-grind bound adjusted accordingly. The `burn_destination` choice is a $\S 7.2$ protocol parameter, not a per-schema knob.
+
+**Recommended parameter.** $\tau_{\text{burn}} = 0.5$ for v0.6.
 
 **Cost to grind.** This is the **load-bearing economic defense**. Even if the adversary perfectly evades Layers 1 and 2, the fees they submit are not fully recoverable. We formalize the cost-to-grind floor:
 
-**Lemma 1 (Cost-to-grind bound, v0.3).** *Under Layer 3 with parameter $\tau_{\text{burn}} \in (0, 1]$ and the §4.3 reputation update with proposer-share $\alpha \in (0, 1]$, any compound adversary acting as block proposer to acquire reputation gain $\Delta r$ pays non-recoverable fees of at least*
+**Lemma 1 (Cost-to-grind bound, v0.6).** *Let $m \geq 1$ be the size of a coordinated adversarial validator cartel and $k \geq m$ the per-block voter count. Under Layer 3 with parameter $\tau_{\text{burn}} \in (0, 1]$ and the §4.3 reputation update with proposer-share $\alpha \in (0, 1]$ and voter-share $\beta = 1 - \alpha$, any compound adversary cartel acting as block proposer (with proposer-role rotation among cartel members) to acquire per-member reputation gain $\Delta r$ pays per-member non-recoverable fees of at least*
 
-$$F_{\mathcal{CR}}^{\text{net}} \geq \frac{\tau_{\text{burn}} \cdot \Delta r}{\eta \cdot \alpha} \tag{Lemma 1}$$
+$$F_{\mathcal{CR}}^{\text{net, per member}} \geq \frac{\tau_{\text{burn}} \cdot \Delta r}{\eta \cdot \alpha_{\text{eff}}(m, k)} \tag{Lemma 1}$$
 
-*in protocol-denominated tokens. In the special case $\alpha = 1$ (proposer captures all reputation, equivalent to v0.1's reputation update without the voter share), this reduces to the looser bound $\tau_{\text{burn}} \cdot \Delta r / \eta$.*
+*where the effective proposer share is*
 
-*Proof.* By the §4.3 reputation update, the proposer component of $g_v(t)$ contributes at most $\alpha \cdot \text{fee}(\alpha)$ to reputation per included attestation $\alpha$ (the voter component, with coefficient $\beta$ divided by $|\text{voters}(B)|$, contributes negligibly per attestation in any reasonably-sized validator set). Summing across the attestations the adversary submits as proposer: $\Delta r \leq \eta \cdot \alpha \cdot F_{\mathcal{CR}}^{\text{gross}}$, where $F_{\mathcal{CR}}^{\text{gross}}$ is the gross fees the adversary pays for those attestations. Therefore $F_{\mathcal{CR}}^{\text{gross}} \geq \Delta r / (\eta \cdot \alpha)$. By construction of Layer 3, every valid attestation incurs a non-recoverable fee fraction $\tau_{\text{burn}}$. The adversary's net cost is at least $\tau_{\text{burn}} \cdot F_{\mathcal{CR}}^{\text{gross}} \geq \tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha)$. $\square$
+$$\alpha_{\text{eff}}(m, k) = \alpha + \frac{m \cdot \beta}{k}.$$
 
-**Comparison to honest acquisition.** A naive capital adversary (§5.3) acquires weight fraction $\rho$ at stake cost $\frac{\rho}{1-\rho} \cdot \frac{W}{r_{\min}}$. The compound grinding adversary, having acquired stake $s_v$ already, can attempt to multiply their effective weight by the reputation premium $r_{\max}/r_{\min}$, gaining $\Delta r = r_{\max} - r_{\min}$. The cost-to-grind for this full ramp is at least $\tau_{\text{burn}} \cdot (r_{\max} - r_{\min}) / (\eta \cdot \alpha)$ in non-recoverable fees.
+*The single-validator case $m = 1$ recovers $\alpha_{\text{eff}} = \alpha + \beta/k \approx \alpha$ for any reasonably-sized validator set ($k \gg 1$). In the special case $\alpha = 1$ (proposer captures all reputation, equivalent to v0.1's reputation update without the voter share), this reduces to the looser bound $\tau_{\text{burn}} \cdot \Delta r / \eta$ regardless of cartel size.*
 
-For v0.3 parameters ($\tau_{\text{burn}} = 0.5$, $\eta = 0.001$, $\alpha = 0.7$, $r_{\max} - r_{\min} = 7$):
+*Proof.* By the §4.3 reputation update, each cartel-controlled attestation included in a cartel-proposed block injects per-attestation reputation $\alpha \cdot \text{fee}(\alpha) \cdot \eta$ to the proposer and $\beta \cdot \text{fee}(\alpha) / k \cdot \eta$ to each voter. The proposer also votes on its own block, so the proposer's total per-attestation injection is $(\alpha + \beta/k) \cdot \text{fee}(\alpha) \cdot \eta$, while each of the remaining $m-1$ cartel voters earns $\beta \cdot \text{fee}(\alpha) / k \cdot \eta$. Summed across the cartel:
 
-$$F_{\mathcal{CR}}^{\text{net}} \geq \frac{0.5 \cdot 7}{0.001 \cdot 0.7} = 5000 \text{ fee-units.}$$
+$$\text{cartel-total per attestation} = \left(\alpha + \frac{\beta}{k} + (m-1) \cdot \frac{\beta}{k}\right) \cdot \text{fee}(\alpha) \cdot \eta = \alpha_{\text{eff}}(m, k) \cdot \text{fee}(\alpha) \cdot \eta.$$
 
-Calibration: setting the minimum attestation fee high enough that $5000 \times \text{fee}_{\min}$ exceeds the stake cost of the equivalent reputation-premium gain makes grinding strictly more expensive than honestly acquiring stake. This is a tunable: governance sets $\text{fee}_{\min}, \tau_{\text{burn}}, \alpha$ such that the cost-equivalence inequality holds for the chain's economics.
+Distributing the gain uniformly across $m$ members (the cartel's optimal allocation strategy when each member's stake-weighted vote is required for an attack, achieved by rotating the proposer role): each member needs $\Delta r$ reputation. Across $N$ attestations the cartel processes,
 
-**This converts the compound-adversary case from "moat collapses" to "moat is preserved by economic argument."** It is the primary defense improvement of v0.2 over v0.1, sharpened in v0.3 with the explicit $\alpha$-dependent bound.
+$$m \cdot \Delta r \leq N \cdot \text{fee} \cdot \eta \cdot \alpha_{\text{eff}}(m, k),$$
+
+so $F_{\mathcal{CR}}^{\text{gross}} = N \cdot \text{fee} \geq m \cdot \Delta r / [\eta \cdot \alpha_{\text{eff}}(m, k)]$. By Layer 3, every valid attestation incurs a non-recoverable fee fraction $\tau_{\text{burn}}$, giving cartel-total $F_{\mathcal{CR}}^{\text{net}} \geq \tau_{\text{burn}} \cdot m \cdot \Delta r / [\eta \cdot \alpha_{\text{eff}}(m, k)]$ and per-member $F_{\mathcal{CR}}^{\text{net, per member}} \geq \tau_{\text{burn}} \cdot \Delta r / [\eta \cdot \alpha_{\text{eff}}(m, k)]$. $\square$
+
+**Remark on the voter channel.** Earlier versions of this paper (v0.3 - v0.5) used a single-proposer bound $F^{\text{net}} \geq \tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha)$ and dismissed the voter channel as "negligible per attestation in any reasonably-sized validator set." That is true for an individual validator's marginal contribution but understates the *cumulative* voter-channel injection when multiple cartel members vote on the same cartel-proposed blocks. The cartel-aware bound above closes this gap by making $m$ explicit. The v0.3 - v0.5 single-proposer bound is recovered as the $m = 1$ specialization.
+
+**Comparison to honest acquisition.** A naive capital adversary (§5.3) acquires weight fraction $\rho$ at stake cost $\frac{\rho}{1-\rho} \cdot \frac{W}{r_{\min}}$. The compound grinding adversary, having acquired stake $s_v$ already, can attempt to multiply their effective weight by the reputation premium $r_{\max}/r_{\min}$, gaining $\Delta r = r_{\max} - r_{\min}$ per cartel member. The per-member cost-to-grind for this full ramp is at least $\tau_{\text{burn}} \cdot (r_{\max} - r_{\min}) / [\eta \cdot \alpha_{\text{eff}}(m, k)]$ in non-recoverable fees.
+
+For v0.6 parameters ($\tau_{\text{burn}} = 0.5$, $\eta = 0.001$, $\alpha = 0.7$, $\beta = 0.3$, $r_{\max} - r_{\min} = 7$):
+
+- **Single-proposer adversary** ($m = 1$, $\alpha_{\text{eff}} \approx 0.7$):
+
+$$F_{\mathcal{CR}}^{\text{net}} \geq \frac{0.5 \cdot 7}{0.001 \cdot 0.7} \approx 5{,}000 \text{ fee-units.}$$
+
+- **Byzantine-fraction cartel** ($m = k/3$, $\alpha_{\text{eff}} = \alpha + \beta/3 = 0.8$):
+
+$$F_{\mathcal{CR}}^{\text{net, per member}} \geq \frac{0.5 \cdot 7}{0.001 \cdot 0.8} = 4{,}375 \text{ fee-units per cartel member.}$$
+
+The Byzantine-fraction cartel pays $\sim 12.5\%$ less per cartel member than a single-proposer adversary attempting the same per-member reputation ramp. The cartel-aggregate burn is correspondingly $m \cdot 4{,}375$ fee-units, which is much larger in absolute terms than the single-proposer 5{,}000-unit floor. The per-member discount is the price of the voter channel; it is real but bounded above by $\beta / (\alpha k / m + \beta) \to \beta/(3\alpha + \beta)$ at the Byzantine cap. For the recommended $\alpha = 0.7, \beta = 0.3$ split, the maximum cartel discount is $0.3/(2.1 + 0.3) = 12.5\%$.
+
+**Sensitivity to $\alpha$.** The cartel discount widens as $\alpha$ shrinks (more reputation injected through the voter channel): for $\alpha = 0.5, \beta = 0.5$, the maximum cartel discount rises to $\beta/(3\alpha + \beta) = 0.5/2.0 = 25\%$. For $\alpha = 0.9, \beta = 0.1$, it shrinks to $0.1/2.8 \approx 3.6\%$. The recommended $\alpha = 0.7$ balances the cartel-discount tightness against the proposer-rich-get-richer entrenchment that motivated the voter channel in the first place (§4.3).
+
+Calibration: setting the minimum attestation fee high enough that $5{,}000 \times \text{fee}_{\min}$ exceeds the stake cost of the equivalent reputation-premium gain makes grinding strictly more expensive than honestly acquiring stake even under the cartel-aware bound (the cartel pays $0.875 \times$ that floor per member, still well above the honest-acquisition cost for any healthy parameter calibration). This is a tunable: governance sets $\text{fee}_{\min}, \tau_{\text{burn}}, \alpha$ such that the cost-equivalence inequality holds for the chain's economics across the full $m \in [1, k/3]$ cartel-size range.
+
+**This converts the compound-adversary case from "moat collapses" to "moat is preserved by economic argument."** It is the primary defense improvement of v0.2 over v0.1, sharpened in v0.3 with the explicit $\alpha$-dependent bound, and tightened in v0.6 to cover the voter channel under coordinated cartels.
 
 #### 5.5.4 Layer 4 — Statistical detection (heuristic)
 
@@ -569,7 +666,7 @@ This is not in v0.2 scope. It is named as future research in §9.2.
 
 After Layers 1-3, the compound-adversary cost-to-grind is at least:
 
-$$\underbrace{\text{stake cost}}_{\text{same as pure PoS}} + \underbrace{\tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha)}_{\text{net fees, Layer 3 (Lemma 1)}} + \underbrace{\text{address-staging cost}}_{\text{Layer 1 + 2 evasion}}$$
+$$\underbrace{\text{stake cost}}_{\text{same as pure PoS}} + \underbrace{\tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha_{\text{eff}}(m, k))}_{\text{per-member net fees, Layer 3 (Lemma 1)}} + \underbrace{\text{address-staging cost}}_{\text{Layer 1 + 2 evasion}}$$
 
 The first term is unavoidable. The second has a formal lower bound (Lemma 1). The third is real but harder to quantify - mixer fees, KYC withdrawals, the time-cost of address staging. Combined with Layer 4's detection probability and Layer 5's governance recourse, the expected cost of grinding meets or exceeds the cost of honest reputation acquisition under any reasonable parameter calibration.
 
@@ -692,6 +789,8 @@ For Ligate devnet, we propose:
 - $\lambda = 1.0$ (reputation per stake-equivalent slash)
 - $E = 14400$ slots $\approx$ 4 hours at $\tau = 1\,\text{s}$
 - $\alpha = 0.7, \beta = 0.3$ (proposer / voter reputation share, $\alpha + \beta = 1$)
+- $\tau_{\text{burn}} = 0.5$ (Layer 3 non-recoverable share)
+- `burn_destination = pure_burn` (Layer 3 destination; see §5.5.3 for the alternatives and their cost-to-grind implications)
 - $G_{\max} = (r_{\max} - r_{\min}) / (\eta \cdot T_{\text{ramp}}) = 7 / (0.001 \cdot 30) \approx 233$ fee-units per epoch (per-validator per-epoch growth cap)
 - $T_{\text{warmup}} = 14$ epochs $\approx$ 2.3 days
 - $T_{\text{ramp}} \approx 30$ epochs $\approx$ 5 days under median attestation volume
@@ -779,7 +878,7 @@ We acknowledge the following as real limitations of PoUA v0.1:
 
 4. **Cold-start dependent on initial validator set.** If the genesis validator set is poorly distributed, the warmup period may not produce a healthy reputation distribution, and the bootstrap conditions of the equilibrium may fail. We recommend devnet operation provides empirical evidence before mainnet launch.
 
-5. **No empirical validation.** This paper specifies a mechanism. Production-scale validation requires devnet operation, simulation studies, and comparison to baseline pure-PoS performance under realistic adversary models. The Ligate research roadmap commits to a reference simulator and devnet calibration studies in v0.2 of this paper.
+5. **No empirical validation.** This paper specifies a mechanism. Production-scale validation requires devnet operation, simulation studies, and comparison to baseline pure-PoS performance under realistic adversary models. The Ligate research roadmap commits to a reference simulator and devnet calibration studies in v0.7 of this paper.
 
 ### 9.2 Future Work
 
@@ -893,9 +992,9 @@ We do not claim PoUA is right for every chain. We claim it is right for chains w
 
 ### Q10. Why publish a working paper instead of waiting for a peer-reviewed result?
 
-**Working papers are the right artifact for the current stage.** The mechanism is novel enough that we want public review and critique; publishing a peer-reviewed result requires submitting to a venue, which has its own timeline (~12-18 months in cryptography conferences). v0.1 and v0.2 are working papers explicitly marked as such, with version histories and acknowledged limitations.
+**Working papers are the right artifact for the current stage.** The mechanism is novel enough that we want public review and critique; publishing a peer-reviewed result requires submitting to a venue, which has its own timeline (~12-18 months in cryptography conferences). v0.1 through v0.6 are working papers explicitly marked as such, with version histories and acknowledged limitations.
 
-The path forward: v0.2 → external technical reviewer feedback (mid-2026) → v0.3 with simulation results (late 2026) → arxiv submission (early 2027) → conference submission (mid-2027 if appropriate venue). At every stage, the paper is publicly available and explicitly versioned, so readers know what they are citing.
+The path forward: v0.6 → external technical reviewer feedback (mid-2026) → v0.7 with simulation results (late 2026) → arxiv submission (early 2027) → conference submission (mid-2027 if appropriate venue). At every stage, the paper is publicly available and explicitly versioned, so readers know what they are citing.
 
 ---
 
@@ -1032,10 +1131,10 @@ $$b_v(t) = \sum_{i \in \{1,2,3\}} \Lambda_i \cdot |\{\text{detected slashes of s
 
 **Lemma 2 (Weighted quorum intersection, recap).** Let $W = \sum_{u \in V} w_u$. For any $Q, Q' \subseteq V$ with $\sum_{v \in Q} w_v > \frac{2}{3} W$ and $\sum_{v \in Q'} w_v > \frac{2}{3} W$, the intersection satisfies $\sum_{v \in Q \cap Q'} w_v > \frac{1}{3} W$. (Proof: §5.2 via inclusion-exclusion. Used in Theorems 1 and 2.)
 
-**Lemma 1 (Cost-to-grind bound, recap).** Under Layer 3 with parameter $\tau_{\text{burn}}$ and proposer reputation share $\alpha$, any compound adversary acting as proposer to acquire reputation gain $\Delta r$ pays non-recoverable fees $F_{\mathcal{CR}}^{\text{net}} \geq \tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha)$. (Proof: §5.5.3.)
+**Lemma 1 (Cost-to-grind bound, recap).** Under Layer 3 with parameter $\tau_{\text{burn}}$, proposer reputation share $\alpha$ and voter share $\beta = 1 - \alpha$, an $m$-validator coordinated cartel within a $k$-voter set that acquires per-member reputation gain $\Delta r$ pays per-member non-recoverable fees $F_{\mathcal{CR}}^{\text{net, per member}} \geq \tau_{\text{burn}} \cdot \Delta r / [\eta \cdot \alpha_{\text{eff}}(m, k)]$, where $\alpha_{\text{eff}}(m, k) = \alpha + m\beta/k$. The single-validator case $m = 1$ recovers the v0.3 - v0.5 bound $\tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha)$. The Byzantine-fraction cartel ($m = k/3$, $\alpha = 0.7$) pays $\sim 12.5\%$ less per member than the single-validator case. (Proof: §5.5.3.)
 
 ---
 
-*End of working paper v0.4. Comments welcome to hello@ligate.io.*
+*End of working paper v0.6. Comments welcome to hello@ligate.io.*
 
-*Roadmap: v0.2 adds Appendix A statistical specifications, Section 6 formal incentive compatibility proof sketch, and devnet calibration data. Target: Q3 2026.*
+*Roadmap: v0.7 adds reference-simulator results, devnet calibration data, and external-reviewer-driven revisions. Target: Q3 2026.*
