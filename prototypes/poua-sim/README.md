@@ -40,7 +40,7 @@ Tracked in [issue #3](https://github.com/ligate-io/ligate-research/issues/3) wit
 - [x] **M2** — Reputation update (§4.3): convergence to `r_max` over `T_ramp` epochs of honest participation
 - [x] **M3** — Capital adversary (§5.3) + transition-state κ (§5.3.1): empirical κ matches analytical, realized κ trajectory validated across warmup / ramp / steady / post-slash
 - [x] **M4** — Compound adversary (§5.5): Layer 1 self-submitted exclusion, cartel-aware Lemma 1 validated within 10% across `m ∈ {1, 2, 3, 4}` in `k=12`, per-burn-destination bounds (pure burn / treasury / redistribution) checked
-- [ ] **M5** — Detection (§A.1, §A.2): A2/A3 detector FPR under realistic graph models; v0.7 paper figures
+- [x] **M5** — Statistical detection (§A.1, §A.2) + volume deterrent (§6.3): A2 KL-divergence detector + A3 bipartite-density detector with ER and Chung-Lu null hypotheses, realized A3 FPR under each null compared empirically; volume-deterrent ratio plot showing crossover with pure-stake bond baseline
 
 Each milestone targets specific issues:
 
@@ -101,7 +101,24 @@ These figures replace the all-analytical Figure 2 in v0.6 §5.3 and slot directl
 
 Note for v0.7 paper: the v0.6 Lemma 1 proof uses `α_eff = α + mβ/k` (assumes proposer also earns voter share on own block). The simulator follows §4.3 strictly (proposer excluded from own-block voter tally), giving `α_eff = α + (m-1)β/k`. Both forms agree at `m=1`; the cartel discount at `m=k/3` differs by `β/k`. The v0.7 reconciliation should update either the proof or §4.3 — see comments in `layers.py:alpha_eff`.
 
-Run `pytest tests/ -v` to verify (99 tests). Run `python scripts/run_*.py` to regenerate figures.
+## M5 acceptance (closed)
+
+- `Attestation` extended with `schema_id` (A2 input) and `attestor_set` (A3 input)
+- `detectors.py`: §A.1 A2 KL-divergence detector with χ² threshold; §A.2 A3 bipartite-density detector with switchable null hypothesis (`A3Null.ERDOS_RENYI`, `A3Null.CHUNG_LU`); plus null-hypothesis edge generators (`sample_erdos_renyi_edges`, `sample_chung_lu_edges`, `sample_power_law_degrees`)
+- **A2 FPR under uniform null**: realized FPR matches `fpr_target` within 2σ binomial across 500 trials × 5 schemas × 200 blocks
+- **A3 FPR under ER null**: realized FPR matches `fpr_target` within 2σ across 1,000 trials at `p_base = 0.1`
+- **A3 FPR under Chung-Lu null at α ∈ {2.0, 2.5, 3.0}**: realized FPR diverges from analytical β_3 = 0.01 target by 1-3 orders of magnitude across `p_base ∈ {0.02, 0.05, 0.10, 0.15, 0.20}` (5,000 trials each, 30×30 graph). The detector is consistently *more conservative* than the analytical target predicts, meaning fewer false positives than nominal but a calibration mismatch nonetheless. Closes empirical component of [#16](https://github.com/ligate-io/ligate-research/issues/16).
+- **Volume-deterrent ratio**: closed-form `ρ_vol = 1 + R_f/R_b` plotted across `R_f/R_b ∈ [0.01, 5.0]` with named operating points (bootstrap, early, mature, high-volume) and crossover marker at the bond-multiplier threshold. Closes analytical component of [#15](https://github.com/ligate-io/ligate-research/issues/15).
+- `out/a3_fpr_comparison.png` — ER vs Chung-Lu FPR comparison
+- `out/volume_deterrent.png` — volume-deterrent ratio curve
+
+Run `pytest tests/ -v` to verify (113 tests). Run `python scripts/run_*.py` to regenerate figures.
+
+## Open follow-ups
+
+- **Lemma 1 paper reconciliation** ([#22](https://github.com/ligate-io/ligate-research/pull/22), merged): the v0.6 proof and §4.3 disagreed on whether the proposer earns voter-channel reputation on its own block. Simulator implements §4.3 strictly and produced the empirical bound that flagged the inconsistency. v0.6.1 patched the proof to match.
+- **Adaptive τ_burn rebase** ([#17](https://github.com/ligate-io/ligate-research/issues/17)): the v0.6 paper specifies τ_burn as a static parameter and hand-waves drift to "subject to governance." Simulator can implement the threshold-triggered rebase curve once the v0.7 paper specifies it.
+- **Paper-claim discipline** ([#23](https://github.com/ligate-io/ligate-research/issues/23)): the v0.6 → v0.6.1 drift motivated a structural rule that every paper numerical claim must link to a simulator test. Audit + CI enforcement in v0.7 sweep.
 
 ## Reproducibility
 
