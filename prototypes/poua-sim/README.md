@@ -114,6 +114,26 @@ Note for v0.7 paper: the v0.6 Lemma 1 proof uses `α_eff = α + mβ/k` (assumes 
 
 Run `pytest tests/ -v` to verify (113 tests). Run `python scripts/run_*.py` to regenerate figures.
 
+## Cross-language test vectors
+
+`test_vectors/` holds JSON encoding of the simulator's analytical truths,
+keyed by paper section. The Python harness in `tests/test_test_vectors.py`
+re-runs the simulator's implementation against each vector and asserts the
+output matches expected within stated tolerance. A future Rust consumer in
+`ligate-chain` reads the same files and runs the same checks.
+
+If a paper claim changes, the workflow is:
+
+1. Update the analytical function in `poua_sim`.
+2. Re-run `python scripts/generate_test_vectors.py`.
+3. Both the Python and the Rust harness fail at the changed claim if either
+   implementation drifted.
+
+This is the structural fix from
+[ligate-research#23](https://github.com/ligate-io/ligate-research/issues/23):
+claim-vs-implementation drift becomes impossible without a CI failure in
+whichever repo lags. See `test_vectors/README.md` for the format spec.
+
 ## Open follow-ups
 
 - **Lemma 1 paper reconciliation** ([#22](https://github.com/ligate-io/ligate-research/pull/22), merged): the v0.6 proof and §4.3 disagreed on whether the proposer earns voter-channel reputation on its own block. Simulator implements §4.3 strictly and produced the empirical bound that flagged the inconsistency. v0.6.1 patched the proof to match.

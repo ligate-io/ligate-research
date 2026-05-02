@@ -1,0 +1,123 @@
+{
+  "vectors": [
+    {
+      "name": "single-proposer",
+      "description": "m=1 recovers \u03b1 exactly",
+      "paper_reference": "\u00a75.5.3 (Lemma 1 v0.6.1)",
+      "inputs": {
+        "alpha": 0.7,
+        "beta": 0.3,
+        "m": 1,
+        "k": 10
+      },
+      "expected": {
+        "alpha_eff": 0.7
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    },
+    {
+      "name": "byzantine-cartel-small-k",
+      "description": "m=k/3 finite-k case (k=12)",
+      "paper_reference": "\u00a75.5.3 (Lemma 1 v0.6.1)",
+      "inputs": {
+        "alpha": 0.7,
+        "beta": 0.3,
+        "m": 4,
+        "k": 12
+      },
+      "expected": {
+        "alpha_eff": 0.7749999999999999
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    },
+    {
+      "name": "byzantine-cartel-mainnet-k",
+      "description": "m=k/3 with k=99 close to asymptotic",
+      "paper_reference": "\u00a75.5.3 (Lemma 1 v0.6.1)",
+      "inputs": {
+        "alpha": 0.7,
+        "beta": 0.3,
+        "m": 33,
+        "k": 99
+      },
+      "expected": {
+        "alpha_eff": 0.7969696969696969
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    },
+    {
+      "name": "full-cartel-network",
+      "description": "m=k = whole network",
+      "paper_reference": "\u00a75.5.3 (Lemma 1 v0.6.1)",
+      "inputs": {
+        "alpha": 0.7,
+        "beta": 0.3,
+        "m": 10,
+        "k": 10
+      },
+      "expected": {
+        "alpha_eff": 0.97
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    },
+    {
+      "name": "alpha-half-byzantine",
+      "description": "\u03b1=0.5, \u03b2=0.5 widens cartel discount",
+      "paper_reference": "\u00a75.5.3 (Lemma 1 v0.6.1)",
+      "inputs": {
+        "alpha": 0.5,
+        "beta": 0.5,
+        "m": 4,
+        "k": 12
+      },
+      "expected": {
+        "alpha_eff": 0.625
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    },
+    {
+      "name": "alpha-high-byzantine",
+      "description": "\u03b1=0.9, \u03b2=0.1 shrinks cartel discount",
+      "paper_reference": "\u00a75.5.3 (Lemma 1 v0.6.1)",
+      "inputs": {
+        "alpha": 0.9,
+        "beta": 0.1,
+        "m": 4,
+        "k": 12
+      },
+      "expected": {
+        "alpha_eff": 0.925
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    },
+    {
+      "name": "proposer-only-extreme",
+      "description": "\u03b1=1.0, \u03b2=0.0 (no voter channel) at m=k",
+      "paper_reference": "\u00a75.5.3 (Lemma 1 v0.6.1)",
+      "inputs": {
+        "alpha": 1.0,
+        "beta": 0.0,
+        "m": 5,
+        "k": 5
+      },
+      "expected": {
+        "alpha_eff": 1.0
+      },
+      "tolerance": {
+        "absolute": 1e-09
+      }
+    }
+  ]
+}
