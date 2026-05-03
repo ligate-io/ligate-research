@@ -1,0 +1,24 @@
+{
+  "config": {
+    "phi": 0.3,
+    "delta": 0.1,
+    "n_consecutive": 30,
+    "T_total": 600
+  },
+  "initial": {
+    "eta": 0.001,
+    "lambda": 1.0,
+    "tau_burn": 0.5
+  },
+  "final": {
+    "eta": 0.0011,
+    "lambda": 0.9,
+    "tau_burn": 0.6050000000000001
+  },
+  "lyapunov": {
+    "initial": 1.2225,
+    "max": 1.2225,
+    "final": 0.273636,
+    "non_increasing_check": true
+  }
+}
