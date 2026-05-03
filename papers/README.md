@@ -10,6 +10,7 @@ Working papers on Ligate's protocol-level research direction.
 | [Per-Schema Fee Markets](per-schema-fees/) | v0.1 (2026-05-02) | Outline | EIP-1559-style demand curves per attestation schema, with sponsored-gas integration |
 | [Native Delegation](native-delegation/) | v0.1 (2026-05-03) | Outline | Hot-key / master-key separation as a runtime primitive; foundation for the Iris MCP relayer |
 | [Native DA Layer](native-da/) | v0.1 (2026-05-03) | Outline | Attestation-optimized data availability (post-Celestia track); per-schema indexed commitments, attestor-history queries, fee-market integration with PoUA τ_burn |
+| [Cross-Schema Composition](cross-schema-composition/) | v0.1 (2026-05-03) | Outline (deferred) | Typed attestation references with slashing-aware proof propagation; v2 protocol territory pending design-partner validation |
 
 PoUA v0.7 is the empirical-validation milestone: every load-bearing claim has a published figure produced by the [reference simulator](../prototypes/poua-sim/), and cross-language test vectors at [`prototypes/poua-sim/test_vectors/`](../prototypes/poua-sim/test_vectors/) encode the analytical truths so the production implementation can re-validate the algebra in lockstep.
 
@@ -19,7 +20,6 @@ Filed as GitHub issues in this repo. Each will land here as a working draft when
 
 | Paper | Issue | Topic |
 |---|---|---|
-| Cross-schema composition | [#6](https://github.com/ligate-io/ligate-research/issues/6) | Typed attestation references with slashing-aware proof propagation |
 | Time-locked / commit-reveal attestations | [#7](https://github.com/ligate-io/ligate-research/issues/7) | Sealed-bid auctions, embargoed press, regulatory time-locks |
 
 ## Status definitions
