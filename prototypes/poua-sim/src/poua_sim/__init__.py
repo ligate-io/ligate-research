@@ -11,6 +11,8 @@ Layout (M4):
                          and §5.5 Lemma 1 cartel-channel measurements
     poua_sim.layers      §5.5 layered defense: BurnDestination,
                          Layer3Config, layer3_net_burn, alpha_eff(m, k)
+    poua_sim.rebase      Adaptive η/λ/τ_burn rebase (v0.8 §4.4.3 spec
+                         scaffold; mirrors v0.7 §4.4.2 for τ_burn)
     poua_sim.adversary   Capital adversary (M3) + compound adversary (M4)
 
 Future modules (M5, milestones tracked in
@@ -47,6 +49,17 @@ from poua_sim.metrics import (
     stake_weighted_mean_reputation,
 )
 from poua_sim.proposer import select_proposer
+from poua_sim.rebase import (
+    RebaseConfig,
+    RebaseTelemetry,
+    compute_eta_drift,
+    compute_f_net_observation,
+    compute_lambda_drift,
+    compute_t_ramp_obs,
+    rebase_eta,
+    rebase_lambda,
+    rebase_tau_burn,
+)
 from poua_sim.reputation import (
     ReputationParams,
     apply_reputation_update,
@@ -66,6 +79,8 @@ __all__ = [
     "Chain",
     "CompoundAdversary",
     "Layer3Config",
+    "RebaseConfig",
+    "RebaseTelemetry",
     "ReputationParams",
     "Validator",
     "a2_empirical_distribution",
@@ -80,12 +95,19 @@ __all__ = [
     "cartel_attestations",
     "cartel_channel_gross_fees",
     "cartel_channel_predicted_dr",
+    "compute_eta_drift",
+    "compute_f_net_observation",
     "compute_g_v",
+    "compute_lambda_drift",
+    "compute_t_ramp_obs",
     "constant_attestations",
     "layer3_net_burn",
     "proposer_share",
     "realized_kappa",
     "realized_weight_share",
+    "rebase_eta",
+    "rebase_lambda",
+    "rebase_tau_burn",
     "sample_chung_lu_edges",
     "sample_erdos_renyi_edges",
     "sample_power_law_degrees",
