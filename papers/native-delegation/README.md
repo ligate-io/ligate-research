@@ -4,10 +4,10 @@ Hot-key / master-key separation for attestation-native chains, with slashing inh
 
 ## Latest
 
-- **Working paper**: [`native-delegation.md`](native-delegation.md) (markdown source), PDF to be generated when v0.2 has substantive content
-- **Version**: v0.1
-- **Status**: **Outline.** Section headings with intent annotations; no formal content yet. Authoring begins when [#5](https://github.com/ligate-io/ligate-research/issues/5) gets pulled into a focused work cycle, alongside Iris MCP relayer engineering.
-- **Date**: 2026-05-03
+- **Working paper**: [`native-delegation.md`](native-delegation.md) (markdown source). PDF to be generated when v0.2 substantive content lands across §3 + §4 + §5 + §6.
+- **Version**: v0.1.1
+- **Status**: **Outline + slashing-inheritance theorem substantive.** §5 (slashing inheritance) is now substantive prose with formal definitions, an optimality theorem, and a calibrated v0 recommendation $(w_m, w_h) = (0.7, 0.3)$. §1, §2, §3, §4, §6+ remain v0.1 outline.
+- **Date**: 2026-05-04 (updated; original v0.1 scaffold 2026-05-03)
 
 ## Abstract (placeholder)
 
