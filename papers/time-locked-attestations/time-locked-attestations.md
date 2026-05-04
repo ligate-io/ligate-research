@@ -116,25 +116,145 @@ The mechanism is positioned as a **v1.5 protocol feature**. v1 of Ligate Chain s
 
 ## 4. Mechanism
 
+This section specifies the three transaction types (`MsgCommit`, `MsgReveal`, `MsgCleanup`), the commitment lifecycle state machine, the optional deposit-on-commit mechanism, and the front-running defense via batched-reveal sequencing.
+
 ### 4.1 Commit Transaction
 
-[**v0.2:** Formal `MsgCommit` schema. Fields: schema-id, signer, $h$, $\text{reveal\_at}$, optional deposit, optional metadata. Validation: reveal\_at is in the future; deposit is non-negative; signer is in the schema's attestor set.]
+The **commit transaction** publishes a binding commitment to the chain without revealing the underlying payload.
+
+**Schema.**
+
+```
+MsgCommit = {
+  schema_id: SchemaId,             // schema this commitment belongs to
+  signer: AttestorSetSig,          // threshold signature from schema's attestor set
+  commitment_hash: Bytes32,        // h = H(payload || nonce)
+  reveal_at: BlockHeight,          // earliest height at which reveal becomes valid
+  ttl_blocks: int,                 // grace window after reveal_at before cleanup
+  deposit: TokenAmount,            // optional; >= schema's deposit floor
+  metadata_uri_hash: Bytes32       // optional; off-chain pointer for context
+}
+```
+
+**Validation at admission.**
+
+1. `schema_id` exists in $\Sigma$ and the signer matches its attestor set $\mathcal{A}_\sigma$.
+2. `commitment_hash` is exactly 32 bytes.
+3. `reveal_at` $>$ current chain height $H$ (cannot commit-and-reveal in the same block).
+4. `ttl_blocks` $\in [\text{ttl}_{\min}, \text{ttl}_{\max}]$ where the bounds are governance-set protocol parameters (defaults: `ttl_min` $= 6$ blocks $\approx 72$ seconds, `ttl_max` $= 100{,}800$ blocks $\approx 14$ days).
+5. `deposit` $\geq$ the schema's `deposit_floor` (registration-time parameter; default 0).
+6. Standard PoUA fee payment.
+
+**State transition.** On success: a new entry is appended to the chain's commitment table with state COMMITTED. Per-block tally counts this for proposer reputation (PoUA §4.3) at the schema's standard fee weight.
+
+**Per-schema deposit floor.** A schema may declare a non-zero `deposit_floor` at registration. Auction schemas typically set this to a meaningful fraction of the bid value; embargo schemas typically set it to zero. The deposit is held in escrow until reveal or cleanup (§4.4).
 
 ### 4.2 Reveal Transaction
 
-[**v0.2:** Formal `MsgReveal` schema. Fields: commitment-id, payload, nonce. Validation: commitment exists in COMMITTED state; current height $\in [\text{reveal\_at}, \text{reveal\_at} + \text{TTL}]$; $H(\text{payload} \| \text{nonce}) = h$. On success: state transitions to REVEALED, payload becomes the canonical attestation payload.]
+The **reveal transaction** publishes the original payload and proves it matches a prior commitment.
+
+**Schema.**
+
+```
+MsgReveal = {
+  commitment_id: CommitmentId,     // canonical id of the prior MsgCommit
+  payload: Bytes,                  // original payload
+  nonce: Bytes,                    // nonce used in H(payload || nonce)
+  signer: AttestorSetSig           // same threshold signature as the commit
+}
+```
+
+**Validation at admission.**
+
+1. `commitment_id` exists in the chain's commitment table.
+2. The commitment's state is COMMITTED.
+3. Current height $H \in [\text{reveal\_at}, \text{reveal\_at} + \text{ttl\_blocks})$.
+4. $H(\text{payload} \| \text{nonce}) = $ commitment's `commitment_hash` where $H$ is the schema-declared hash function (default SHA-256).
+5. The signer is the same attestor-set signature as the commit (prevents reveal by an unauthorized party).
+6. Standard PoUA fee payment.
+
+**State transition.** On success: commitment state transitions COMMITTED $\to$ REVEALED. The payload becomes the canonical attestation payload (visible to all readers, indexed by schema). Any deposit held in escrow returns to the committer's address.
+
+**Reveal-side reputation.** The schema's per-attestation reputation is credited at reveal time, not commit time. This is a deliberate design choice: the commitment alone is not a complete attestation (no payload); only the reveal closes the loop. PoUA §4.3 reputation accrual fires for the reveal signer.
 
 ### 4.3 Cleanup of Expired Commitments
 
-[**v0.2:** At $\text{reveal\_at} + \text{TTL}$, an unrevealed commitment transitions to EXPIRED. A subsequent `MsgCleanup` (callable by anyone, fee-incentivized) removes the commitment from active state and returns any deposit to a configured destination (committer, treasury, burn).]
+The **cleanup transaction** removes a never-revealed commitment from active chain state.
+
+**Schema.**
+
+```
+MsgCleanup = {
+  commitment_id: CommitmentId,     // canonical id
+  cleanup_runner: Address          // recipient of cleanup-runner reward
+}
+```
+
+**Validation at admission.**
+
+1. `commitment_id` exists.
+2. Commitment state is COMMITTED (not yet REVEALED or EXPIRED).
+3. Current height $H \geq \text{reveal\_at} + \text{ttl\_blocks}$.
+
+**State transition.** On success:
+
+1. Commitment state transitions COMMITTED $\to$ EXPIRED $\to$ CLEANED-UP (atomic in the same block).
+2. The commitment record is removed from the active commitment table (state pruning); a tombstone with `(commitment_id, EXPIRED)` is retained for query consistency.
+3. Any deposit is distributed per the schema's `deposit_destination`:
+   - `COMMITTER`: returned to the original committer (default for low-stakes embargo schemas)
+   - `TREASURY`: routed to the chain treasury (default for auction schemas)
+   - `BURN`: sent to the pure-burn address per PoUA §5.5.3 (matches the τ_burn destination)
+   - `CLEANUP_RUNNER`: routed to `cleanup_runner` field (incentivizes anyone to call cleanup on expired commits)
+   - Combinations: schemas can declare a split (e.g., 50% to runner + 50% to treasury) to fund cleanup-runner economics
+
+**Cleanup-runner economics.** A small protocol fee is rebated to `cleanup_runner` regardless of `deposit_destination`. This creates a permissionless cleanup market: anyone monitoring the chain for expired commitments can submit `MsgCleanup` and earn the fee. Validators have priority but no monopoly.
 
 ### 4.4 Deposit-on-Commit Mechanism
 
-[**v0.2:** Optional per-schema deposit requirement at commit time. If the committer reveals before TTL: deposit returned. If not: deposit goes to a designated destination (typically: cleanup-runner reward + treasury). Default-on for auction schemas; default-off for embargo schemas.]
+The **deposit** field on `MsgCommit` is optional but governed by the schema's `deposit_floor`.
+
+**Why deposits matter.** Without a deposit, an adversary can spam commitments with no economic cost. Each commitment consumes chain state until cleanup; spam attacks are bounded only by per-tx fees. With a deposit, spam attacks pay the deposit upfront and lose it on never-reveal.
+
+**Per-schema policy.**
+
+| Use case | `deposit_floor` | `deposit_destination` |
+|---|---|---|
+| Sealed-bid auction | high (e.g., $\geq$ minimum bid value) | `BURN` or `CLEANUP_RUNNER` (deters spam, never returns to committer) |
+| Embargoed announcement | zero or symbolic | `COMMITTER` (return on reveal; symbolic on cleanup) |
+| Regulatory time-lock | moderate | `TREASURY` (deters frivolous filings) |
+| Insurance claim | moderate | `COMMITTER` on reveal; `TREASURY` on expiry |
+
+**Deposit-floor calibration.** The `deposit_floor` should make the spam-cost-per-commitment exceed the cost of one `MsgCleanup` execution. At v0 chain parameters (estimated ~0.001 LGT per cleanup), a deposit floor of ~0.01 LGT (10x cleanup cost) is sufficient. Schemas with high-value commitments (e.g., auctions) set the floor much higher to bound the lost-deposit risk for honest committers.
+
+**Why deposits, not just fees.** The base commit fee is paid even on successful reveal; it does not deter never-reveal because reveal itself doesn't refund the fee. The deposit is the only mechanism that creates economic incentive to reveal: lose the deposit if you don't reveal. Deposits and fees are complementary: fees fund proposer reward / burn, deposits fund cleanup runner / spam deterrence.
 
 ### 4.5 Front-Running Defense
 
-[**v0.2:** A naive reveal exposes the payload in mempool before block inclusion. An MEV-aware adversary could submit a competing commit using the now-public payload. Defense: reveals are signed against the chain-id and are sequenced via batched-reveal blocks (validator includes all reveals at the start of the block, before any new commits). v0.2 specifies the canonical sequencing.]
+A naive reveal exposes the payload in the mempool before block inclusion. An MEV-aware adversary observing the reveal in the mempool could submit a competing commitment using the now-public payload + a fresh nonce, then race the original reveal to settlement. This is the **commit-reveal front-running attack**.
+
+**Defense: batched-reveal sequencing.**
+
+The proposer's block-construction rule mandates that **all reveals are sequenced before any new commits in the same block**. Specifically, a block's transaction order is:
+
+```
+1. All MsgReveal transactions (sorted by commitment_id; canonical order)
+2. All MsgCleanup transactions (sorted by commitment_id)
+3. All other transactions (MsgCommit, attestations, transfers, etc.)
+```
+
+This ordering is enforced by the runtime: a block whose `MsgCommit` precedes any `MsgReveal` is invalid. Proposers proposing a non-conforming block are slashed per PoUA §4.5.
+
+**Why this defends.** A reveal in the mempool can be observed, but the adversary cannot submit a competing commitment that lands in the same block before the reveal. The reveal is sequenced first; the original commitment is finalized; any competing commit lands in a later block. By the time the adversary's competing commit is included, the original payload is already canonical and the adversary's commit is at best a duplicate (rejected by the schema's `commitment_hash` uniqueness check, §4.1 admission).
+
+**Limitations.**
+
+- **Cross-block races.** The defense protects within a single block. If the reveal takes more than one block to settle (e.g., during network congestion), the adversary has multiple opportunities to compete. Mitigated by the schema declaring a tight `ttl_blocks` (forces resolution quickly) and by validators prioritizing reveals in their mempool.
+- **Validator collusion.** A validator who colludes with an adversary can submit the competing commit before the reveal. PoUA §A.1 / §A.2 detectors flag schema-mix anomalies; a validator persistently delaying reveals would deviate from the chain-wide null distribution and trigger slashing. Practical defense.
+- **Encrypted-mempool variants.** A future upgrade can use encrypted mempools (à la SUAVE, Shutter Network) to prevent reveal observation entirely. Out of scope for v0; tracked as future work.
+
+**Canonical ordering rule.** Within the reveals-first batch, reveals are sorted by `(reveal_at_block, commitment_id)` ascending. This is deterministic: every honest validator constructs the same block order given the same mempool, and the rule is verifiable post-hoc by any light client.
+
+---
 
 ---
 
