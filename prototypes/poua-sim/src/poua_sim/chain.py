@@ -4,6 +4,12 @@ M4 scope: M2/M3 features plus §5.5 Layer 1 (proposer-submitter exclusion)
 in the per-block reputation tally, and a cartel-channel accounting bucket
 on each validator that the empirical Lemma 1 test reads to compute
 ``F_net / Δr_cartel``.
+
+M6 phase 1 extension: per-validator behavior policy dispatch at
+proposer time. ``advance_slot`` consults the proposer's
+``behavior_policy`` and applies the policy-specific transformation
+(empty attestations for FREE_RIDE_VIA_VOTE_ONLY; equivocation slash for
+EQUIVOCATE) before tallying the block.
 """
 
 from __future__ import annotations
@@ -13,6 +19,11 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from poua_sim.agent import (
+    BehaviorPolicy,
+    apply_proposer_policy,
+    equivocation_slash_severity,
+)
 from poua_sim.attestation import Attestation
 from poua_sim.proposer import select_proposer
 from poua_sim.reputation import (
@@ -68,6 +79,44 @@ def constant_attestations(
 
     def _gen(rng: np.random.Generator, slot: int, proposer_address: str) -> list[Attestation]:
         return [Attestation(fee=fee, is_valid=True) for _ in range(n_per_block)]
+
+    return _gen
+
+
+def multi_schema_attestations(
+    schemas_per_block: dict[str, int],
+    fee: float = 1.0,
+) -> AttestationGenerator:
+    """Multi-schema attestation generator for M6 phase 2 testing.
+
+    Produces a fixed-mix per-block attestation set across one or more
+    registered schemas. Used by CENSOR_BY_SCHEMA tests to verify the
+    proposer correctly filters out attestations of the target schema
+    while keeping attestations of other schemas.
+
+    Parameters
+    ----------
+    schemas_per_block : dict[str, int]
+        Mapping from schema-id to per-block attestation count for that
+        schema. e.g. ``{"themisra.proof-of-prompt/v1": 5,
+        "mneme.tx/v1": 3}`` produces 8 attestations per block, 5 of one
+        schema and 3 of another.
+    fee : float
+        Per-attestation fee. Default 1.0.
+    """
+
+    def _gen(rng: np.random.Generator, slot: int, proposer_address: str) -> list[Attestation]:
+        attestations: list[Attestation] = []
+        for schema_id, count in schemas_per_block.items():
+            for _ in range(count):
+                attestations.append(
+                    Attestation(
+                        fee=fee,
+                        is_valid=True,
+                        schema_id=schema_id,
+                    )
+                )
+        return attestations
 
     return _gen
 
@@ -135,12 +184,29 @@ class Chain:
 
         1. Pick a proposer weighted by current ``w_v = s_v · r_v``.
         2. Generate the block's attestations and voter set.
-        3. Tally per-validator reputation contributions from this block.
-        4. Increment slot and, if a new epoch just ended, apply the §4.3
+        3. Apply the proposer's M6 ``behavior_policy`` transformation
+           to the attestation list (no-op for HONEST).
+        4. Apply equivocation slash if the proposer's policy is
+           EQUIVOCATE.
+        5. Tally per-validator reputation contributions from this block.
+        6. Increment slot and, if a new epoch just ended, apply the §4.3
            reputation update for every validator.
         """
         proposer = select_proposer(self.validators, rng)
         attestations = self.attestation_generator(rng, self.slot, proposer.address)
+        # M6 phase 1+2: dispatch on proposer's behavior policy.
+        attestations = apply_proposer_policy(
+            proposer.behavior_policy,
+            attestations,
+            proposer_address=proposer.address,
+            target_schema=proposer.target_schema_to_censor,
+            grind_attestation_count=proposer.grind_attestation_count,
+        )
+        if proposer.behavior_policy == BehaviorPolicy.EQUIVOCATE:
+            severity = equivocation_slash_severity(
+                self.params.r_max - self.params.r_min
+            )
+            self.slash(proposer.address, severity)
         voters = (
             [v.address for v in self.validators] if self.all_validators_vote else [proposer.address]
         )
