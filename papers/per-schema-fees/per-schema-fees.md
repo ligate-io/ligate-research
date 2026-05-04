@@ -94,7 +94,7 @@ A unified fee market across all transactions assumes homogeneous demand. Attesta
 
 ### 3.3 Demand Profile Taxonomy
 
-[**v0.2:** Three regimes, high-volume / low-fee, low-volume / high-fee, bursty / spiky, with worked examples.]
+[**v0.2:** Three regimes (high-volume / low-fee, low-volume / high-fee, bursty / spiky) with worked examples.]
 
 ---
 
@@ -123,7 +123,7 @@ clipped to $[b_\sigma^{\min}, b_\sigma^{\max}]$, where:
 
 **Convergence and stability.** The dynamics admit a fixed point at $u_\sigma^* = T_\sigma$. Around this fixed point, perturbations decay geometrically with rate $1 - \xi$ at first order. The mechanism inherits EIP-1559's convergence behavior; per-schema isolation means a high-utilization schema cannot drag down the base fee of a low-utilization schema. This is the central architectural advantage of the per-schema design.
 
-**Drift interaction with PoUA $\tau_{\text{burn}}$ rebase.** Both this paper's per-schema base fee and PoUA §4.4.2's $\tau_{\text{burn}}$ are time-varying parameters. The composition is hierarchical: $\tau_{\text{burn}}$ governs what fraction of $b_\sigma$ is burned (§4.4); $b_\sigma$ itself adjusts per-schema. The v0.8 PoUA paper §4.4.3 spec at [`papers/poua/specs/eta-lambda-rebase.md`](../poua/specs/eta-lambda-rebase.md) §5.2 verifies that the two rebases are first-order independent, schema-fee drift is the input to $b_\sigma$, while cost-to-grind drift is the input to $\tau_{\text{burn}}$.
+**Drift interaction with PoUA $\tau_{\text{burn}}$ rebase.** Both this paper's per-schema base fee and PoUA §4.4.2's $\tau_{\text{burn}}$ are time-varying parameters. The composition is hierarchical: $\tau_{\text{burn}}$ governs what fraction of $b_\sigma$ is burned (§4.4); $b_\sigma$ itself adjusts per-schema. The v0.8 PoUA paper §4.4.3 spec at [`papers/poua/specs/eta-lambda-rebase.md`](../poua/specs/eta-lambda-rebase.md) §5.2 verifies that the two rebases are first-order independent: schema-fee drift is the input to $b_\sigma$, while cost-to-grind drift is the input to $\tau_{\text{burn}}$.
 
 ### 4.2 Target Utilization Calibration
 
@@ -152,7 +152,7 @@ Within a schema's allocated capacity, attestations are admitted in order of tip-
 
 **Tip auction within block.** The proposer admits attestations greedily by descending $\tau_\alpha$ until the schema's allocated capacity is filled. Ties broken by first-seen mempool ordering. The greedy auction is welfare-suboptimal compared to a sealed-bid second-price design but matches EIP-1559's actual deployment behavior; v2 extensions can revisit.
 
-**Sponsored gas (paymaster pattern).** Iris-style relayers pay tips on behalf of agents that don't hold $LGT$. The protocol semantics are unchanged: a single signed transaction can declare a *fee payer* address distinct from the *attestor* address. The fee payer pays both base fee and tip; the attestor signs the attestation content. This composes orthogonally with native delegation ([#5](https://github.com/ligate-io/ligate-research/issues/5)), a delegated hot key can submit attestations whose fees are paid by a third-party paymaster. v2 of this paper details the formal fee-payer mechanism; v0.2 establishes that the design admits it cleanly.
+**Sponsored gas (paymaster pattern).** Iris-style relayers pay tips on behalf of agents that don't hold $LGT$. The protocol semantics are unchanged: a single signed transaction can declare a *fee payer* address distinct from the *attestor* address. The fee payer pays both base fee and tip; the attestor signs the attestation content. This composes orthogonally with native delegation ([#5](https://github.com/ligate-io/ligate-research/issues/5)): a delegated hot key can submit attestations whose fees are paid by a third-party paymaster. v2 of this paper details the formal fee-payer mechanism; v0.2 establishes that the design admits it cleanly.
 
 ### 4.4 Base-Fee Burn
 
@@ -182,7 +182,7 @@ The per-schema fee market interacts with PoUA reputation in three places.
 
 $$G_v^{\text{prop}}(t) = \sum_{B \in \text{Proposed}_v(t, t+E)} \sum_{\alpha \in B} \mathbb{1}[\alpha \text{ valid}] \cdot \text{fee}(\alpha)$$
 
-where $\text{fee}(\alpha) = b_\sigma + \tau_\alpha$ is the total fee paid (base + tip) for attestation $\alpha$ of schema $\sigma$. A validator who proposes blocks heavy in high-fee schema attestations accumulates reputation faster than one who specializes in low-fee schemas, but both accumulate strictly more than zero, preserving the §6.2 honest-equilibrium incentive structure.
+where $\text{fee}(\alpha) = b_\sigma + \tau_\alpha$ is the total fee paid (base + tip) for attestation $\alpha$ of schema $\sigma$. A validator who proposes blocks heavy in high-fee schema attestations accumulates reputation faster than one who specializes in low-fee schemas, but both accumulate strictly more than zero. This preserves the §6.2 honest-equilibrium incentive structure.
 
 **Validator income decomposition.** Per PoUA §6.1, validator income from block $B$ at slot $t$ is:
 
