@@ -29,7 +29,7 @@ The simulator at [`prototypes/poua-sim/`](../../prototypes/poua-sim/) produces t
 
 Proof of Useful Attestation (PoUA) is a consensus weighting primitive in which validator influence is determined by the joint product of bonded stake and a non-transferable reputation score derived from successful participation in the chain's attestation workload. PoUA preserves the safety and liveness properties of standard BFT under partial-synchrony with $f < n/3$ Byzantine validators, and constructs a multiplicative cost-to-attack premium of $4\times$ to $10\times$ over equivalent pure-stake Proof of Stake chains.
 
-The contribution is a synthesis of three existing lines of work — reputation-weighted consensus, proof-of-useful-work, and restaking with non-transferable bonds — applied to attestation-native chains, with a layered defense (formal protocol rules + economic disincentives + heuristic detection) against compound capital-plus-reputation-grinding adversaries.
+The contribution is a synthesis of three existing lines of work, reputation-weighted consensus, proof-of-useful-work, and restaking with non-transferable bonds, applied to attestation-native chains, with a layered defense (formal protocol rules + economic disincentives + heuristic detection) against compound capital-plus-reputation-grinding adversaries.
 
 ## Building
 
@@ -72,7 +72,7 @@ See the root [CONTRIBUTING.md](../../CONTRIBUTING.md) for tooling setup.
 
 - Full formal incentive compatibility proof (sketched in §6, full proof is v0.7+ work).
 - Empirical validation on production-scale traffic (devnet calibration is v0.7 work, prototype scheduled in [`prototypes/poua-sim/`](../../prototypes/poua-sim/)).
-- Cryptographic Sybil-resistance against all sophisticated adversaries — the heuristic Layer 4 is acknowledged as a residual defense, with a zk-proof upgrade path identified as future work (§5.5.6).
+- Cryptographic Sybil-resistance against all sophisticated adversaries, the heuristic Layer 4 is acknowledged as a residual defense, with a zk-proof upgrade path identified as future work (§5.5.6).
 
 ## Open questions for reviewers
 

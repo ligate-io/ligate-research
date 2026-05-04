@@ -4,7 +4,7 @@ A two-phase attestation primitive: commit phase publishes a binding commitment t
 
 ## Latest
 
-- **Working paper**: [`time-locked-attestations.md`](time-locked-attestations.md) (markdown source) — PDF to be generated when v0.2 has substantive content
+- **Working paper**: [`time-locked-attestations.md`](time-locked-attestations.md) (markdown source), PDF to be generated when v0.2 has substantive content
 - **Version**: v0.1
 - **Status**: **Outline.** Section headings with intent annotations; no formal content yet. Authoring is **deferred until use-case validation**: at least one design partner per category (auction, embargo, regulatory) submits a concrete use case before v0.2 begins.
 - **Date**: 2026-05-03

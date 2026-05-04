@@ -48,11 +48,11 @@
 
 ### 1.6 Contributions
 
-1. **[Specification]** — [what is precisely specified]
-2. **[Threat model and security analysis]** — [what is proved]
-3. **[Incentive analysis]** — [what equilibrium is established]
-4. **[Implementation]** — [how it integrates with Ligate Chain]
-5. **[Comparative analysis]** — [against which prior work]
+1. **[Specification]**, [what is precisely specified]
+2. **[Threat model and security analysis]**, [what is proved]
+3. **[Incentive analysis]**, [what equilibrium is established]
+4. **[Implementation]**, [how it integrates with Ligate Chain]
+5. **[Comparative analysis]**, [against which prior work]
 
 ### 1.7 Scope and Non-Goals
 

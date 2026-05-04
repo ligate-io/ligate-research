@@ -1,4 +1,4 @@
-# PoUA — Conventions and Scope
+# PoUA: Conventions and Scope
 
 A short orientation for readers approaching the PoUA paper. Documents what the paper covers, what it deliberately does not, and where the paper sits in the broader Ligate Chain roadmap. Distinct from the [reading guide](READING_GUIDE.md) (which routes readers by background) and the [paper itself](poua.md).
 

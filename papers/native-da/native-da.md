@@ -491,10 +491,10 @@ Three dominant queries account for the bulk of light-client load:
 
 ---
 
-## Appendix A — Simulator Validation Plan
+## Appendix A: Simulator Validation Plan
 
 [**v0.2:** What `prototypes/native-da-sim/` will contain. Workload generator (synthetic attestation traffic at devnet-realistic rates), sampling-protocol harness, light-client query benchmarks, fee-market interaction tests against the τ_burn rebase from `prototypes/poua-sim/src/poua_sim/rebase.py`.]
 
-## Appendix B — Comparison Methodology
+## Appendix B: Comparison Methodology
 
 [**v0.2:** How the §10.4 comparison table was constructed. Source of each system's published parameters, normalization across different threat-model framings, caveats for systems with evolving specs (0G).]

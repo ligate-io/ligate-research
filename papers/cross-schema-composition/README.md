@@ -4,7 +4,7 @@ Typed attestation references with slashing-aware proof propagation. Schemas decl
 
 ## Latest
 
-- **Working paper**: [`cross-schema-composition.md`](cross-schema-composition.md) (markdown source) — PDF to be generated when v0.2 has substantive content
+- **Working paper**: [`cross-schema-composition.md`](cross-schema-composition.md) (markdown source), PDF to be generated when v0.2 has substantive content
 - **Version**: v0.1
 - **Status**: **Outline.** Section headings with intent annotations; no formal content yet. Authoring is **deferred until use-case validation**: 2-3 concrete partner use cases must be in hand before v0.2 begins.
 - **Date**: 2026-05-03

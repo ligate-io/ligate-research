@@ -4,7 +4,7 @@ A native data availability layer specialized for the attestation workload, with 
 
 ## Latest
 
-- **Working paper**: [`native-da.md`](native-da.md) (markdown source) — PDF to be generated when v0.2 substantive content lands across §3 + §6 + §10
+- **Working paper**: [`native-da.md`](native-da.md) (markdown source), PDF to be generated when v0.2 substantive content lands across §3 + §6 + §10
 - **Version**: v0.1.1
 - **Status**: **Outline + workload-model section substantive.** §3 (workload model) is now substantive prose with formal definitions and v0.2.5-targeted measurement placeholders. §1, §2, §4-§14 remain v0.1 outline.
 - **Date**: 2026-05-04 (updated; original v0.1 scaffold 2026-05-03)

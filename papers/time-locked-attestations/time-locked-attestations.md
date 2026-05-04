@@ -250,7 +250,7 @@ The mechanism is positioned as a **v1.5 protocol feature**. v1 of Ligate Chain s
 
 ### 9.3 VDF-Based Hard Time-Locks
 
-[**v0.2:** Out of scope. Verifiable Delay Functions could provide "no early reveal even if the committer wants to" — different security model. Not a v1.5 priority.]
+[**v0.2:** Out of scope. Verifiable Delay Functions could provide "no early reveal even if the committer wants to", different security model. Not a v1.5 priority.]
 
 ### 9.4 Multi-Party Commit-Reveal
 
@@ -270,10 +270,10 @@ The mechanism is positioned as a **v1.5 protocol feature**. v1 of Ligate Chain s
 
 ---
 
-## Appendix A — Simulator Validation Plan
+## Appendix A: Simulator Validation Plan
 
 [**v0.2:** What `prototypes/time-locked-attestations-sim/` will contain. Test harness for commit-reveal correctness, never-reveal cleanup, front-running defense, nonce-entropy enforcement. Cross-language test vectors for the canonical commitment encoding.]
 
-## Appendix B — Formal Definitions
+## Appendix B: Formal Definitions
 
 [**v0.2:** Restated definitions of commitment, reveal, nonce, TTL, validity state machine, in formal notation.]

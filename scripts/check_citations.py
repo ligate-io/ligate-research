@@ -12,7 +12,7 @@ https://github.com/ligate-io/ligate-research/issues/23: every numerical
 claim in a paper that cites a simulator script or test vector must
 resolve to a real file. The check is lexical (no Python execution); it
 catches typos, renamed scripts, and deleted test vectors. It does NOT
-check that the cited test actually validates the cited claim — that is
+check that the cited test actually validates the cited claim, that is
 the author's responsibility.
 
 Patterns matched:

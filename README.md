@@ -36,7 +36,7 @@ Future papers planned (filed as issues in this repo):
 
 ## Reading and contributing
 
-These are working papers. They are public so that external review, critique, and collaboration are possible — not because they are finished. Each paper carries an explicit version history and a `STATUS` line in its title block. Drafts are marked as such; do not cite a v0.x paper as a finished result.
+These are working papers. They are public so that external review, critique, and collaboration are possible, not because they are finished. Each paper carries an explicit version history and a `STATUS` line in its title block. Drafts are marked as such; do not cite a v0.x paper as a finished result.
 
 Issues and pull requests are welcome:
 

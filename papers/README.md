@@ -6,7 +6,7 @@ Working papers on Ligate's protocol-level research direction.
 
 | Paper | Latest | Status | Topic |
 |---|---|---|---|
-| [PoUA — Proof of Useful Attestation](poua/) | v0.7.2 (2026-05-03) | Draft, external review (sending) | Consensus weighting primitive aligning validator influence with valid attestation work |
+| [PoUA, Proof of Useful Attestation](poua/) | v0.7.2 (2026-05-03) | Draft, external review (sending) | Consensus weighting primitive aligning validator influence with valid attestation work |
 | [Per-Schema Fee Markets](per-schema-fees/) | v0.1 (2026-05-02) | Outline | EIP-1559-style demand curves per attestation schema, with sponsored-gas integration |
 | [Native Delegation](native-delegation/) | v0.1 (2026-05-03) | Outline | Hot-key / master-key separation as a runtime primitive; foundation for the Iris MCP relayer |
 | [Native DA Layer](native-da/) | v0.1 (2026-05-03) | Outline | Attestation-optimized data availability (post-Celestia track); per-schema indexed commitments, attestor-history queries, fee-market integration with PoUA τ_burn |

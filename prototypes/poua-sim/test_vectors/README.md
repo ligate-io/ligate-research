@@ -112,7 +112,7 @@ extensions. Anything that can read JSON can consume them.
 What the vectors do NOT cover:
 
 - Probabilistic outputs (proposer selection variance, statistical-detector FPR)
-  — these need Monte Carlo aggregation, not a single (input, expected) check.
+ , these need Monte Carlo aggregation, not a single (input, expected) check.
 - Full chain-state evolution across many slots (covered by the integration
   tests in `tests/test_chain_epochs.py`).
 - Layered defense Layer 1 / Layer 2 enforcement (covered by `tests/test_compound_adversary.py`).

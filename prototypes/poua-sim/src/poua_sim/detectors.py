@@ -2,10 +2,10 @@
 
 Two heuristic detectors:
 
-- **A2 (selective schema censorship)** — KL-divergence between the validator's
+- **A2 (selective schema censorship)**: KL-divergence between the validator's
   empirical schema distribution and the network-wide distribution, with a
   $\\chi^2$-quantile threshold (§A.1).
-- **A3 (reputation grinding)** — bipartite edge density between attestation
+- **A3 (reputation grinding)**: bipartite edge density between attestation
   submitters and attestor-set members, with a Normal-approximation
   threshold (§A.2). The null hypothesis is configurable: the paper's
   current Erdős-Rényi assumption, or a Chung-Lu-style scale-free null
