@@ -9,7 +9,7 @@ PoUA retains the bond-burn slash on top of this reputation channel. The
 *total* slash deterrent in PoUA = bond burn + reputation-channel
 deterrent, never less than pure-stake PoS. What attenuates as
 ``R_f → 0`` is the reputation-channel premium, which approaches its
-``R_b``-only floor (not zero, not the bond — a smaller, ``R_b``-scaled
+``R_b``-only floor (not zero, not the bond, a smaller, ``R_b``-scaled
 quantity).
 
 This script computes the *volume-deterrent ratio*:

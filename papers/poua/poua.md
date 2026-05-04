@@ -581,7 +581,7 @@ where $F_{\mathcal{R}}^{\text{gross}}$ is the total gross fee submitted by the a
 
 $$F_{\mathcal{R}}^{\text{gross}} \geq \frac{r_{\mathcal{R}} - r_{\min}}{\eta \cdot \alpha}.$$
 
-To raise reputation to $r_{\max}$, the adversary must pay at least $(r_{\max} - r_{\min})/(\eta \cdot \alpha)$ in gross attestation fees. This cost is **paid into the chain's economy** (treasury, builder routing) — i.e., for the *pure* reputation adversary (no fee recovery via owned schemas) it is not pure deadweight loss, but it is also not recoverable.
+To raise reputation to $r_{\max}$, the adversary must pay at least $(r_{\max} - r_{\min})/(\eta \cdot \alpha)$ in gross attestation fees. This cost is **paid into the chain's economy** (treasury, builder routing), i.e., for the *pure* reputation adversary (no fee recovery via owned schemas) it is not pure deadweight loss, but it is also not recoverable.
 
 The pure-reputation adversary's strategy is thus economically equivalent to subsidizing the chain in exchange for a position of consensus influence. The compound adversary (§5.5) is the harder case: they attempt to recover fees via owned schemas, and the layered defense in §5.5 - particularly the Layer 3 treasury-burn rule and the formal cost-to-grind bound (Lemma 1) - prevents that recovery from collapsing the moat.
 
@@ -600,13 +600,13 @@ Net cost per attestation: zero. Reputation gained: full. If unchecked, this coll
 
 PoUA defends against this attack with a **layered defense** of six mechanisms operating at three levels: formal protocol rules, economic disincentives, and post-hoc detection. Each layer is independently breakable; the combination is not.
 
-#### 5.5.1 Layer 1 — Proposer-submitter address exclusion (formal)
+#### 5.5.1 Layer 1: Proposer-submitter address exclusion (formal)
 
 **Rule.** In the reputation update of §4.3, an attestation $\alpha$ contributes 0 to $g_v(t)$ if $\alpha.\text{submitter} = v.\text{address}$. The proposer-self-submission edge is permanently excluded.
 
 **Cost to evade.** Trivial (use a separate signing key as submitter). But it raises the floor: the adversary must now manage at least two distinct on-chain identities, with the second receiving funds from the first via observable transactions. This forces Layer 2.
 
-#### 5.5.2 Layer 2 — Address-graph distance (formal)
+#### 5.5.2 Layer 2: Address-graph distance (formal)
 
 **Rule.** An attestation $\alpha$ contributes 0 to $g_v(t)$ if the submitter address has *transaction-graph distance less than $d$* from the validator address. Distance is measured by direct fund-transfer hops in the chain's transaction history. Specifically, for distance threshold $d = 3$ (recommended for v0.2):
 
@@ -625,7 +625,7 @@ $$F_{\text{stage}} \geq K \cdot F_{\text{mixer}} \cdot s_{\text{submitter}}$$
 
 where $s_{\text{submitter}}$ is the funding amount routed through each intermediate, and the time cost is at least $K \cdot T_{\text{kyc}}$ in attacker labor (or pre-staged from earlier compromised accounts, which is itself a constraint). For $d = 3$ and $F_{\text{mixer}} = 0.01$: routing $1{,}000$ tokens through 3 intermediates costs at minimum $30$ tokens in mixer fees alone, plus the labor cost of staging three KYC-verified deposit accounts. This is bypassable with sustained pre-attack staging; for casual reputation farming it is a hard barrier. The bound is loose (mixer fees vary, KYC time varies), but it establishes the economic floor below which evasion is implausible.
 
-#### 5.5.3 Layer 3 — Non-recoverable treasury share (formal, economic)
+#### 5.5.3 Layer 3: Non-recoverable treasury share (formal, economic)
 
 **Rule.** Every attestation fee is split: a fixed minimum fraction $\tau_{\text{burn}} \in (0, 1]$ flows to a non-recoverable destination. The schema's `fee_routing_bps` parameter routes only the residual $1 - \tau_{\text{burn}}$ fraction.
 
@@ -698,7 +698,7 @@ Calibration: setting the minimum attestation fee high enough that $5{,}000 \time
 \label{fig:lemma1-burn-destinations}
 \end{figure}
 
-#### 5.5.4 Layer 4 — Statistical detection (heuristic)
+#### 5.5.4 Layer 4: Statistical detection (heuristic)
 
 For attacks that evade Layers 1-3 (e.g., adversary willing to pay the $\tau_{\text{burn}}$ cost to gain reputation premium under specific threat models), a heuristic detector watches for behavioral signatures of grinding:
 
@@ -712,13 +712,13 @@ When the detector fires above its confidence threshold, the validator is flagged
 
 **Cost to evade.** The detector is an arms race; sufficiently sophisticated adversaries can mimic honest traffic distributions. The detector is meaningful as a residual defense behind Layers 1-3, not a primary line.
 
-#### 5.5.5 Layer 5 — Governance appeal and slash review
+#### 5.5.5 Layer 5: Governance appeal and slash review
 
 A flagged validator is slashed at severity $\Lambda_3$. The slash is *contestable*: the validator may file an appeal via a governance transaction within $T_{\text{appeal}}$ epochs (recommended 14 epochs $\approx 2.3$ days). A majority of un-slashed, weight-weighted validators may reverse the slash if the appeal is found credible. False-positive recoveries are governance-mediated.
 
 Honest validators with explainable correlations (e.g., they also legitimately operate an attestor service for their own customers) have an avenue to contest. The governance machinery itself uses standard PoUA weighting, with the slashed validator excluded from the vote on their own appeal.
 
-#### 5.5.6 Layer 6 — Cryptographic future work
+#### 5.5.6 Layer 6: Cryptographic future work
 
 In v1+ of the protocol, the submitter could attach a zero-knowledge proof of *stake-graph independence*: a SNARK asserting that the submitter's address has no funding-graph relationship to the proposer of the block including the attestation, within depth $d$. This would replace Layer 2's heuristic with a formal cryptographic guarantee.
 
@@ -823,7 +823,7 @@ Define the *volume-deterrent ratio* as the magnitude scaling on the reputation-c
 
 $$\rho_{\text{vol}}(R_f / R_b) := \frac{R_b + R_f}{R_b} = 1 + \frac{R_f}{R_b}.$$
 
-At $R_f \to 0$, $\rho_{\text{vol}} \to 1$: the reputation-channel deterrent reaches its block-reward-only floor (not zero, and not the bond — a smaller, $R_b$-scaled value). At $R_f / R_b = 1$ (fee revenue equals block reward), the reputation-channel deterrent is $2\times$ its floor. Figure \ref{fig:volume-deterrent} shows the curve across realistic operating points.
+At $R_f \to 0$, $\rho_{\text{vol}} \to 1$: the reputation-channel deterrent reaches its block-reward-only floor (not zero, and not the bond, a smaller, $R_b$-scaled value). At $R_f / R_b = 1$ (fee revenue equals block reward), the reputation-channel deterrent is $2\times$ its floor. Figure \ref{fig:volume-deterrent} shows the curve across realistic operating points.
 
 \begin{figure}[h]
 \centering

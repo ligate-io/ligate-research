@@ -270,10 +270,10 @@ The mechanism is positioned as a **v2 protocol feature**. v1 of Ligate Chain shi
 
 ---
 
-## Appendix A — Simulator Validation Plan
+## Appendix A: Simulator Validation Plan
 
 [**v0.2:** What `prototypes/cross-schema-composition-sim/` will contain. Test harness for type-check correctness, slashing-cascade termination, cycle-detection, concurrent-invalidation race deduplication. Cross-language test vectors for the canonical type-check predicate encoding.]
 
-## Appendix B — Formal Definitions
+## Appendix B: Formal Definitions
 
 [**v0.2:** Restated definitions of schema, dependency edge, attestation, type predicate, validity state, cascade rule, in formal notation.]

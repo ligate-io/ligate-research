@@ -197,7 +197,7 @@ def gen_lemma1_vectors() -> dict:
             "tolerance": {"absolute": 1e-9},
         })
 
-    # Pure burn cases — match the §5.5.3 paper numerical example exactly.
+    # Pure burn cases, match the §5.5.3 paper numerical example exactly.
     case("single-pure-burn-v0",
          "v0 params, single proposer, pure burn, full ramp",
          alpha=0.7, beta=0.3, m=1, k=10, tau_burn=0.5,
@@ -211,14 +211,14 @@ def gen_lemma1_vectors() -> dict:
          alpha=0.7, beta=0.3, m=33, k=99, tau_burn=0.5,
          eta=0.001, delta_r=7.0, destination="pure_burn")
 
-    # Treasury with 10% governance recovery — bound weakens by 10%.
+    # Treasury with 10% governance recovery, bound weakens by 10%.
     case("byzantine-treasury-10pct",
          "v0 params, m=4 k=12, treasury with 10% governance recovery",
          alpha=0.7, beta=0.3, m=4, k=12, tau_burn=0.5,
          eta=0.001, delta_r=7.0, destination="treasury",
          governance_recovery_rate=0.1)
 
-    # Redistribution at Byzantine stake share — bound weakens by ρ_stake.
+    # Redistribution at Byzantine stake share, bound weakens by ρ_stake.
     case("byzantine-redistribution-1third",
          "v0 params, m=4 k=12, redistribution; adversary stake share 1/3",
          alpha=0.7, beta=0.3, m=4, k=12, tau_burn=0.5,

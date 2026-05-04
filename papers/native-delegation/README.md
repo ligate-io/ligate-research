@@ -4,7 +4,7 @@ Hot-key / master-key separation for attestation-native chains, with slashing inh
 
 ## Latest
 
-- **Working paper**: [`native-delegation.md`](native-delegation.md) (markdown source) — PDF to be generated when v0.2 has substantive content
+- **Working paper**: [`native-delegation.md`](native-delegation.md) (markdown source), PDF to be generated when v0.2 has substantive content
 - **Version**: v0.1
 - **Status**: **Outline.** Section headings with intent annotations; no formal content yet. Authoring begins when [#5](https://github.com/ligate-io/ligate-research/issues/5) gets pulled into a focused work cycle, alongside Iris MCP relayer engineering.
 - **Date**: 2026-05-03

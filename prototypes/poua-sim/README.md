@@ -36,11 +36,11 @@ src/poua_sim/
 
 Tracked in [issue #3](https://github.com/ligate-io/ligate-research/issues/3) with full sequencing in [the comment thread](https://github.com/ligate-io/ligate-research/issues/3#issuecomment-4362297744).
 
-- [x] **M1** — Skeleton: validator set, weighted-random proposer, χ²-validated empirical distribution
-- [x] **M2** — Reputation update (§4.3): convergence to `r_max` over `T_ramp` epochs of honest participation
-- [x] **M3** — Capital adversary (§5.3) + transition-state κ (§5.3.1): empirical κ matches analytical, realized κ trajectory validated across warmup / ramp / steady / post-slash
-- [x] **M4** — Compound adversary (§5.5): Layer 1 self-submitted exclusion, cartel-aware Lemma 1 validated within 10% across `m ∈ {1, 2, 3, 4}` in `k=12`, per-burn-destination bounds (pure burn / treasury / redistribution) checked
-- [x] **M5** — Statistical detection (§A.1, §A.2) + volume deterrent (§6.3): A2 KL-divergence detector + A3 bipartite-density detector with ER and Chung-Lu null hypotheses, realized A3 FPR under each null compared empirically; volume-deterrent ratio plot showing crossover with pure-stake bond baseline
+- [x] **M1**: Skeleton: validator set, weighted-random proposer, χ²-validated empirical distribution
+- [x] **M2**: Reputation update (§4.3): convergence to `r_max` over `T_ramp` epochs of honest participation
+- [x] **M3**: Capital adversary (§5.3) + transition-state κ (§5.3.1): empirical κ matches analytical, realized κ trajectory validated across warmup / ramp / steady / post-slash
+- [x] **M4**: Compound adversary (§5.5): Layer 1 self-submitted exclusion, cartel-aware Lemma 1 validated within 10% across `m ∈ {1, 2, 3, 4}` in `k=12`, per-burn-destination bounds (pure burn / treasury / redistribution) checked
+- [x] **M5**: Statistical detection (§A.1, §A.2) + volume deterrent (§6.3): A2 KL-divergence detector + A3 bipartite-density detector with ER and Chung-Lu null hypotheses, realized A3 FPR under each null compared empirically; volume-deterrent ratio plot showing crossover with pure-stake bond baseline
 
 Each milestone targets specific issues:
 
@@ -81,9 +81,9 @@ Each milestone targets specific issues:
 
 Generated artifacts (in `out/`, committed):
 
-- `cost_to_attack.png` — empirical Monte Carlo points sit on analytical κ ∈ {1, 4, 8} curves
-- `kappa_trajectory.png` — full lifecycle: warmup, ramp, steady, post-slash recovery
-- `capital_scan.json`, `capital_scan_summary.json`, `kappa_trajectory.json` — raw + aggregated data
+- `cost_to_attack.png`: empirical Monte Carlo points sit on analytical κ ∈ {1, 4, 8} curves
+- `kappa_trajectory.png`: full lifecycle: warmup, ramp, steady, post-slash recovery
+- `capital_scan.json`, `capital_scan_summary.json`, `kappa_trajectory.json`, raw + aggregated data
 
 These figures replace the all-analytical Figure 2 in v0.6 §5.3 and slot directly into v0.7's revision of §5.3.1, closing the empirical component of [#12](https://github.com/ligate-io/ligate-research/issues/12).
 
@@ -97,9 +97,9 @@ These figures replace the all-analytical Figure 2 in v0.6 §5.3 and slot directl
 - **Lemma 1 cartel (m ∈ {2, 3})** holds within 10% with `α_eff = α + (m-1)β/k`
 - **Burn destination weakening** verified: pure burn (Lemma 1 base), treasury at 10% recovery (Lemma 1 × 0.9), redistribution at Byzantine stake share (Lemma 1 × 2/3)
 - **Layer 1 zeroes self-submitted attestations** (proven by chain-level test)
-- `out/lemma1_burn_destinations.png` — empirical points sit exactly on analytical lines for all three burn destinations across `m ∈ {1, 2, 3, 4}`
+- `out/lemma1_burn_destinations.png`: empirical points sit exactly on analytical lines for all three burn destinations across `m ∈ {1, 2, 3, 4}`
 
-Note for v0.7 paper: the v0.6 Lemma 1 proof uses `α_eff = α + mβ/k` (assumes proposer also earns voter share on own block). The simulator follows §4.3 strictly (proposer excluded from own-block voter tally), giving `α_eff = α + (m-1)β/k`. Both forms agree at `m=1`; the cartel discount at `m=k/3` differs by `β/k`. The v0.7 reconciliation should update either the proof or §4.3 — see comments in `layers.py:alpha_eff`.
+Note for v0.7 paper: the v0.6 Lemma 1 proof uses `α_eff = α + mβ/k` (assumes proposer also earns voter share on own block). The simulator follows §4.3 strictly (proposer excluded from own-block voter tally), giving `α_eff = α + (m-1)β/k`. Both forms agree at `m=1`; the cartel discount at `m=k/3` differs by `β/k`. The v0.7 reconciliation should update either the proof or §4.3, see comments in `layers.py:alpha_eff`.
 
 ## M5 acceptance (closed)
 
@@ -109,8 +109,8 @@ Note for v0.7 paper: the v0.6 Lemma 1 proof uses `α_eff = α + mβ/k` (assumes 
 - **A3 FPR under ER null**: realized FPR matches `fpr_target` within 2σ across 1,000 trials at `p_base = 0.1`
 - **A3 FPR under Chung-Lu null at α ∈ {2.0, 2.5, 3.0}**: realized FPR diverges from analytical β_3 = 0.01 target by 1-3 orders of magnitude across `p_base ∈ {0.02, 0.05, 0.10, 0.15, 0.20}` (5,000 trials each, 30×30 graph). The detector is consistently *more conservative* than the analytical target predicts, meaning fewer false positives than nominal but a calibration mismatch nonetheless. Closes empirical component of [#16](https://github.com/ligate-io/ligate-research/issues/16).
 - **Volume-deterrent ratio**: closed-form `ρ_vol = 1 + R_f/R_b` plotted across `R_f/R_b ∈ [0.01, 5.0]` with named operating points (bootstrap, early, mature, high-volume) and crossover marker at the bond-multiplier threshold. Closes analytical component of [#15](https://github.com/ligate-io/ligate-research/issues/15).
-- `out/a3_fpr_comparison.png` — ER vs Chung-Lu FPR comparison
-- `out/volume_deterrent.png` — volume-deterrent ratio curve
+- `out/a3_fpr_comparison.png`: ER vs Chung-Lu FPR comparison
+- `out/volume_deterrent.png`: volume-deterrent ratio curve
 
 Run `pytest tests/ -v` to verify (113 tests). Run `python scripts/run_*.py` to regenerate figures.
 

@@ -8,9 +8,9 @@ matches ρ within 2σ binomial variance.
 
 Outputs:
 
-- ``out/capital_scan.json`` — raw data (one record per (κ, ρ, seed)).
-- ``out/cost_to_attack.png`` — quick-look PNG (matplotlib default).
-- ``out/cost_to_attack.pgf`` — LaTeX PGF for v0.7 paper inclusion.
+- ``out/capital_scan.json``, raw data (one record per (κ, ρ, seed)).
+- ``out/cost_to_attack.png``, quick-look PNG (matplotlib default).
+- ``out/cost_to_attack.pgf``, LaTeX PGF for v0.7 paper inclusion.
 
 This is the empirical companion to Figure 2 in v0.6 §5.3 of the paper.
 The PGF goes in v0.7's ``papers/poua/`` and replaces the all-analytical

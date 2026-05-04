@@ -311,10 +311,10 @@ Ligate Chain does not have general-purpose smart contracts. Runtime primitives a
 
 ---
 
-## Appendix A — Simulator Validation Plan
+## Appendix A: Simulator Validation Plan
 
 [**v0.2:** What `prototypes/native-delegation-sim/` will contain. Test harness for grant lifecycle, slashing-inheritance correctness, scope predicate enforcement, time-bound enforcement, replay-attack defense. Cross-language test vectors for the canonical grant encoding.]
 
-## Appendix B — Formal Definitions
+## Appendix B: Formal Definitions
 
 [**v0.2:** Restated definitions of master key, hot key, grant, scope predicate, time-bound, inheritance rule, in formal notation.]
