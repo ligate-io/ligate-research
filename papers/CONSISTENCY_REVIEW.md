@@ -149,14 +149,14 @@ cross-schema-composition §3 does not mention time-locked-attestations or per-sc
 
 ## 5. Recommended actions
 
-### 5.1 Inline fixes in this PR
+### 5.1 Inline fixes (applied)
 
-- [x] cross-schema-composition: rename graph $G \to \mathcal{G}$ (3 occurrences in §3.2, §3.4 placeholder). Mechanical.
+- [x] cross-schema-composition: rename graph $G \to \mathcal{G}$ (PR #63, 2 occurrences). Mechanical.
+- [x] native-da §3.2: rename $\Lambda(t) \to A(t)$ for aggregate throughput (PR #64, 7 occurrences). Avoids PoUA $\Lambda_i$ overload.
+- [x] native-delegation §5.5: rename risk-aversion $\rho \to \gamma$ (PR #64, 10 occurrences). Avoids PoUA $\rho$ stake-share overload.
 
 ### 5.2 v0.2 paper-cycle items (will land alongside reviewer feedback)
 
-- [ ] native-da §3.2: rename $\Lambda(t) \to A(t)$ for aggregate throughput (avoids PoUA $\Lambda_i$ overload)
-- [ ] native-delegation §5.5: rename risk-aversion $\rho \to \gamma$ (avoids PoUA $\rho$ stake-share overload)
 - [ ] per-schema-fees §4.3: anchor to native-delegation §4.1 `MsgDelegate` once that lands substantive
 - [ ] native-delegation §7: forward-reference per-schema-fees §4.3 paymaster pattern in Iris Integration
 - [ ] cross-schema-composition §6: add use cases referencing time-locked-attestations and per-schema-fees as graph edges

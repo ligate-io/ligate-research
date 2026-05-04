@@ -160,26 +160,26 @@ $$N_\sigma(t) \sim \text{Poisson}(\lambda_\sigma t)$$
 
 where $\lambda_\sigma$ is the per-schema arrival rate. Aggregate chain throughput is the sum over schemas:
 
-$$\Lambda(t) = \sum_\sigma \lambda_\sigma$$
+$$A(t) = \sum_\sigma \lambda_\sigma$$
 
-**Bursts vs sustained.** A characterizing property of attestation traffic, distinct from blob-rollup traffic, is that $\Lambda(t)$ is **sustained** rather than bursty. Rollup chains post a single multi-MB blob per block at a frequency determined by block time; the inter-blob arrival is bursty by construction. Attestation arrivals are continuous: each user action (a ChatGPT prompt, a wallet transfer, an agent action) generates an attestation independently. The arrival rate has diurnal and weekly cycles but is otherwise steady.
+**Bursts vs sustained.** A characterizing property of attestation traffic, distinct from blob-rollup traffic, is that $A(t)$ is **sustained** rather than bursty. Rollup chains post a single multi-MB blob per block at a frequency determined by block time; the inter-blob arrival is bursty by construction. Attestation arrivals are continuous: each user action (a ChatGPT prompt, a wallet transfer, an agent action) generates an attestation independently. The arrival rate has diurnal and weekly cycles but is otherwise steady.
 
 This is closer to a high-write-rate database than a blob-storage workload.
 
 **Calibration targets.**
 
-| Phase | Aggregate $\Lambda$ (atts/sec) | Driver | Block size implication |
+| Phase | Aggregate $A$ (atts/sec) | Driver | Block size implication |
 |---|---|---|---|
 | v0 devnet | 50-100 | Themisra design partners + early adopters | ~0.5 MB/block at 12-sec blocks (median size) |
 | v1 mainnet (year 1) | 200-500 | Themisra + Mneme + Kleidon launches | ~2 MB/block |
 | v2 mainnet (year 2-3) | 1000-5000 | Iris agent traffic dominates; 100s of agents per user | ~20 MB/block at sustained peak |
 | v3 mature | 10000+ | Full agent ecosystem; AI-action attestation per second per user | ~100 MB/block; native DA becomes binding |
 
-[**Measured at v0.2.5+:** these are calibration targets, not predictions. Devnet measurement at v0.2.5 will firm up the v0 row; subsequent revisions will track aggregate $\Lambda$ as adoption progresses.]
+[**Measured at v0.2.5+:** these are calibration targets, not predictions. Devnet measurement at v0.2.5 will firm up the v0 row; subsequent revisions will track aggregate $A$ as adoption progresses.]
 
-**Variance and tail behavior.** Under a Poisson process, the per-block attestation count $N_{\text{block}}$ has standard deviation $\sqrt{\lambda \cdot E}$ where $E$ is the block time. At $\Lambda = 1000$ atts/sec and $E = 12$ sec, expected block count is 12,000 with standard deviation $\approx 110$, a coefficient of variation $\approx 1\%$. This means block sizing can be tight (p99 block size $\approx 1.025 \cdot$ mean), a meaningful efficiency advantage over bursty workloads where p99/mean ratios of 5× to 10× are common.
+**Variance and tail behavior.** Under a Poisson process, the per-block attestation count $N_{\text{block}}$ has standard deviation $\sqrt{\lambda \cdot E}$ where $E$ is the block time. At $A = 1000$ atts/sec and $E = 12$ sec, expected block count is 12,000 with standard deviation $\approx 110$, a coefficient of variation $\approx 1\%$. This means block sizing can be tight (p99 block size $\approx 1.025 \cdot$ mean), a meaningful efficiency advantage over bursty workloads where p99/mean ratios of 5× to 10× are common.
 
-**Per-validator bandwidth.** A validator must serve sample requests for the rolling DA window plus per-block tally work. At v3 sustained peak ($\Lambda = 10000$, 100 MB/block), per-validator bandwidth is dominated by block ingestion rather than DA sampling overhead. The native DA design (§7) provides the bandwidth-per-validator analysis under the stated workload.
+**Per-validator bandwidth.** A validator must serve sample requests for the rolling DA window plus per-block tally work. At v3 sustained peak ($A = 10000$, 100 MB/block), per-validator bandwidth is dominated by block ingestion rather than DA sampling overhead. The native DA design (§7) provides the bandwidth-per-validator analysis under the stated workload.
 
 ### 3.3 Ordering Requirements
 
@@ -223,7 +223,7 @@ Warm tier supports historical inclusion checks: a regulator auditing a 6-month-o
 
 Cold tier supports attestor-history queries: "did $X$ sign in schema $\sigma$ at epoch $t$?" answered by per-epoch summary commitments. Minimal storage cost (one commitment per schema per epoch); supports indefinite retention.
 
-**Storage cost analysis.** Per-validator storage at v2 sustained peak ($\Lambda = 1000$, median size 400 B):
+**Storage cost analysis.** Per-validator storage at v2 sustained peak ($A = 1000$, median size 400 B):
 
 - Hot tier (30 days): $1000 \cdot 400 \cdot 86400 \cdot 30 \approx 1$ TB
 - Warm tier (1 year): per-schema-commitment is $\approx 32$ B per attestation; $1000 \cdot 32 \cdot 86400 \cdot 365 \approx 1$ TB
