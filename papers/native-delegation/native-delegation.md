@@ -222,17 +222,17 @@ We now show that under standard EV-maximizing adversary assumptions, the both-sl
 - $G_{\text{hot}}$: hot-key operator's per-grant utility (positive; covers operational fee revenue)
 - $p_c \in (0, 1)$: probability the hot key is compromised within the grant window
 - $\Lambda$: per-slash severity in PoUA reputation units
-- $\rho$: master's risk-aversion coefficient over reputation loss; $\rho > 1$ for typical risk-averse users
+- $\gamma$: master's risk-aversion coefficient over reputation loss; $\gamma > 1$ for typical risk-averse users
 
 **Properties to satisfy.**
 
 **(P1) Master accepts delegation under typical conditions.** Master's expected utility from delegation must be non-negative:
 
-$$\mathbb{E}[U_{\text{master}}] = G_{\text{delegate}} - \rho \cdot p_c \cdot w_m \cdot \Lambda \geq 0$$
+$$\mathbb{E}[U_{\text{master}}] = G_{\text{delegate}} - \gamma \cdot p_c \cdot w_m \cdot \Lambda \geq 0$$
 
 **(P2) Master incentivized to monitor.** Master's marginal disutility from a hot-key compromise must be strictly positive:
 
-$$\frac{\partial \mathbb{E}[U_{\text{master}}]}{\partial p_c} = -\rho \cdot w_m \cdot \Lambda < 0 \implies w_m > 0$$
+$$\frac{\partial \mathbb{E}[U_{\text{master}}]}{\partial p_c} = -\gamma \cdot w_m \cdot \Lambda < 0 \implies w_m > 0$$
 
 **(P3) Hot-key operator faces cost.** Hot-key operator's expected utility must internalize compromise probability:
 
@@ -248,15 +248,15 @@ This prevents adversaries from triggering one slash and damaging both parties by
 
 **Theorem 1 (Slashing-Inheritance Optimality).** Under (P1)-(P4), the both-slashed rule with weights $(w_m, w_h)$ satisfying
 
-$$w_m + w_h = 1, \quad 0 < w_h < w_m, \quad w_m \geq \frac{G_{\text{delegate}}}{\rho \cdot p_c \cdot \Lambda}$$
+$$w_m + w_h = 1, \quad 0 < w_h < w_m, \quad w_m \geq \frac{G_{\text{delegate}}}{\gamma \cdot p_c \cdot \Lambda}$$
 
-is feasible. Master-only ($w_m = 1, w_h = 0$) violates (P3); hot-only ($w_m = 0, w_h = 1$) violates (P2); equal-split ($w_m = w_h = 0.5$) violates (P1) at typical $\rho > 2$.
+is feasible. Master-only ($w_m = 1, w_h = 0$) violates (P3); hot-only ($w_m = 0, w_h = 1$) violates (P2); equal-split ($w_m = w_h = 0.5$) violates (P1) at typical $\gamma > 2$.
 
-**Proof.** Master-only sets $w_h = 0$, violating $w_h > 0$ in (P3). Hot-only sets $w_m = 0$, violating $w_m > 0$ in (P2). Equal-split with $w_m = w_h = 0.5$ requires $G_{\text{delegate}} \geq \rho \cdot p_c \cdot 0.5 \cdot \Lambda$ for (P1); at typical risk aversion $\rho \approx 3$ and modest compromise probability $p_c = 0.05$ over a 24-hour grant window, this requires $G_{\text{delegate}} \geq 0.075 \cdot \Lambda$, which is rare for low-utility delegations (e.g., a user delegating to an AI agent for a single task worth $\$0.50$ should not face a $\$50$ reputation-equivalent risk).
+**Proof.** Master-only sets $w_h = 0$, violating $w_h > 0$ in (P3). Hot-only sets $w_m = 0$, violating $w_m > 0$ in (P2). Equal-split with $w_m = w_h = 0.5$ requires $G_{\text{delegate}} \geq \gamma \cdot p_c \cdot 0.5 \cdot \Lambda$ for (P1); at typical risk aversion $\gamma \approx 3$ and modest compromise probability $p_c = 0.05$ over a 24-hour grant window, this requires $G_{\text{delegate}} \geq 0.075 \cdot \Lambda$, which is rare for low-utility delegations (e.g., a user delegating to an AI agent for a single task worth $\$0.50$ should not face a $\$50$ reputation-equivalent risk).
 
 The both-slashed family with $w_m + w_h = 1$ and $w_m > w_h$ provides:
 
-- (P1): satisfied at $w_m = 1 - w_h$ for $G_{\text{delegate}} \geq \rho \cdot p_c \cdot (1 - w_h) \cdot \Lambda$. Smaller $w_h$ relaxes the constraint.
+- (P1): satisfied at $w_m = 1 - w_h$ for $G_{\text{delegate}} \geq \gamma \cdot p_c \cdot (1 - w_h) \cdot \Lambda$. Smaller $w_h$ relaxes the constraint.
 - (P2): trivially $w_m > w_h > 0$ and so $w_m > 0$.
 - (P3): $w_h > 0$.
 - (P4): $w_m + w_h = 1$ exactly satisfies the constraint at the boundary.
@@ -284,7 +284,7 @@ This satisfies the theorem's requirements ($w_m + w_h = 1$, $0 < w_h < w_m$) whi
 
 **Comparison with PoS chains.** Cosmos chains using `x/authz` apply slashing to the granter (master-only equivalent). Ethereum's ERC-4337 has no native slashing. Solana's fee-payer pattern has no reputation surface. Our both-slashed rule is the first runtime-primitive specification of split-reputation slashing tied to an explicit theorem.
 
-**Empirical validation.** The simulator scaffold at `prototypes/native-delegation-sim/` (planned in v0.2) will exercise the theorem against rational-adversary strategy search across $(w_m, w_h)$ pairs, empirically confirming Theorem 1's predictions across a range of $\rho$ and $p_c$ values.
+**Empirical validation.** The simulator scaffold at `prototypes/native-delegation-sim/` (planned in v0.2) will exercise the theorem against rational-adversary strategy search across $(w_m, w_h)$ pairs, empirically confirming Theorem 1's predictions across a range of $\gamma$ and $p_c$ values.
 
 ---
 
