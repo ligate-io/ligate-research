@@ -96,45 +96,195 @@ The mechanism is positioned as a **v2 protocol feature**. v1 of Ligate Chain shi
 
 ## 3. System Model
 
+This section formalises the typed-attestation-graph model: schemas as nodes, dependency edges as typed arrows, attestations as witnesses, and the validity state machine that supports slashing-aware cascades.
+
 ### 3.1 Schemas as Typed Graphs
 
-[**v0.2:** Formal definition. A schema $\sigma$ is a tuple $(I_\sigma, O_\sigma, P_\sigma)$ where $I_\sigma$ is the input attestation-type set, $O_\sigma$ is the output payload type, $P_\sigma$ is the type predicate (runtime-checkable boolean function from inputs and payload to validity).]
+A **schema** $\sigma$ is a tuple
+
+$$\sigma = (I_\sigma, O_\sigma, P_\sigma, \mathcal{A}_\sigma, V_\sigma)$$
+
+where:
+
+- $I_\sigma$ is the **input-type set**: a finite list of $(\sigma', v')$ pairs identifying schemas $\sigma'$ at version constraints $v'$ that this schema may reference (§4.2)
+- $O_\sigma$ is the **output payload type**: a structural schema (e.g., JSON Schema, Protobuf-like definition) for the attestation's payload
+- $P_\sigma$ is the **type predicate**: a deterministic function $P_\sigma: I_\sigma^* \times O_\sigma \to \{\text{true}, \text{false}\}$ that evaluates input attestations and payload to a validity boolean (§4.3)
+- $\mathcal{A}_\sigma$ is the **attestor set** required to sign attestations of this schema (inherited from the protocol's existing schema primitive)
+- $V_\sigma$ is the **schema version**, a monotonic integer
+
+A schema with $I_\sigma = \emptyset$ is a **leaf schema**: it does not reference other schemas. v0.7 PoUA chains support only leaf schemas; this paper specifies the extension to non-leaf schemas via the input-type-set $I_\sigma$.
 
 ### 3.2 Dependency Graph
 
-[**v0.2:** $G = (\Sigma, E)$ where $\Sigma$ is the set of registered schemas and $E$ is the set of dependency edges. Edge $\sigma_a \to \sigma_b$ means attestations of type $\sigma_a$ may reference attestations of type $\sigma_b$. The graph is acyclic by default (cycles rejected at registration); Section 5.4 specifies the opt-in cyclic mode.]
+The collection of registered schemas and their dependency edges forms a **directed graph**:
+
+$$G = (\Sigma, E)$$
+
+where $\Sigma$ is the set of registered schemas and $E \subseteq \Sigma \times \Sigma$ is the set of dependency edges. An edge $\sigma_a \to \sigma_b$ exists iff $(\sigma_b, v) \in I_{\sigma_a}$ for some version constraint $v$ that admits $\sigma_b$'s current version $V_{\sigma_b}$.
+
+**Acyclicity by default.** Schema registration rejects edges that would close a cycle; cycle detection is computed at registration time via topological sort. This is the v0 default. §5.6 specifies an opt-in cyclic mode for advanced use cases.
+
+**Versioning expands the graph.** When a schema upgrades from $V_{\sigma_b} = 1$ to $V_{\sigma_b} = 2$, the edges into $\sigma_b$ are re-evaluated against the new version. Dependents that admit the new version (via subtyping, §4.5) keep their edges; dependents that require strict version match must be re-registered.
+
+**Graph properties.** At v0 scale (a few hundred schemas), $|\Sigma|$ and $|E|$ are small; cycle-check and topological-sort costs are negligible. At v1+ scale (thousands of schemas), incremental cycle detection on each new registration becomes the cost driver; v0.2 of this paper specifies the algorithm.
 
 ### 3.3 Attestation as Witness
 
-[**v0.2:** An attestation $a$ of type $\sigma$ has the structure $(\sigma, K^{\text{signer}}, \text{payload}_a, \text{refs}_a, t_a)$ where $\text{refs}_a$ is the list of input attestation-IDs satisfying $\sigma$'s input-type set $I_\sigma$.]
+An **attestation** $a$ of schema $\sigma$ is the tuple
+
+$$a = (\sigma, K^{\text{signer}}, \text{payload}_a, \text{refs}_a, t_a, s_a)$$
+
+where:
+
+- $\sigma$ is the schema-id (which fixes $I_\sigma, O_\sigma, P_\sigma, \mathcal{A}_\sigma, V_\sigma$)
+- $K^{\text{signer}}$ is the signing key (typically the threshold-signature aggregation of $\mathcal{A}_\sigma$)
+- $\text{payload}_a$ is the payload conforming to $O_\sigma$
+- $\text{refs}_a$ is the **reference list**: $(\text{att-id}_1, \text{att-id}_2, \ldots)$ indexing input attestations satisfying $I_\sigma$
+- $t_a$ is the inclusion height (block at which the attestation was finalized)
+- $s_a$ is the threshold signature
+
+**Witness semantics.** An attestation $a$ is a witness to "the predicate $P_\sigma$ held over the referenced inputs and the stated payload at height $t_a$." The chain stores the attestation; light clients can verify the predicate held by re-evaluating $P_\sigma$ at any future point.
+
+**Empty references.** Leaf schemas have $\text{refs}_a = ()$ (empty tuple). The runtime trivially passes the input-type check for leaf schemas; this is how PoUA v0.7's existing schema primitive composes with this paper's typed extension without requiring chain-state migration.
+
+**Reference-by-id, not by-content.** $\text{refs}_a$ uses canonical attestation-ids, not payload digests. The id binds to a specific on-chain attestation rather than any attestation with a matching payload, eliminating ambiguity when payloads collide across schemas.
 
 ### 3.4 Validity States
 
-[**v0.2:** Attestations live in a validity state machine: VALID → REVOKED, VALID → SLASHED, VALID → DEPENDENT-INVALID. Each transition has rules; cascades from REVOKED / SLASHED to dependents follow §5.]
+Attestations live in a **validity state machine** with four states:
+
+```
+VALID → REVOKED          (revocation by signer or attestor-set)
+VALID → SLASHED          (proposer-side or attestor-set slashing event)
+VALID → DEPENDENT-INVALID (cascade from a referenced attestation transitioning out of VALID)
+```
+
+**State transitions.**
+
+- **VALID** is the initial state on inclusion. The runtime type check (§4.4) must pass for the attestation to enter VALID.
+- **VALID → REVOKED** fires when the schema's attestor set issues a revocation transaction. Used for retraction (e.g., "this attestation was issued in error").
+- **VALID → SLASHED** fires when slashing rules per PoUA §4.5 detect misbehavior on the proposer or attestor set. Slashing applies the reputation penalty and transitions any included attestations to SLASHED.
+- **VALID → DEPENDENT-INVALID** fires when at least one of the attestation's $\text{refs}_a$ transitions out of VALID. The cascade rule (§5) determines whether the dependent attestation is auto-invalidated or whether application-layer logic decides.
+
+**Terminal states.** REVOKED, SLASHED, and DEPENDENT-INVALID are terminal: no further transitions are possible. This simplifies the chain's storage model (each attestation has a single state-bit set).
+
+**Cascade rules.** Whether DEPENDENT-INVALID fires automatically at each ref-transition is governed by the schema's declared cascade preference (§5.4). Strict cascade fires automatically; lazy cascade leaves the dependent VALID and exposes the ref-state via the read API for application-layer handling.
 
 ---
 
 ## 4. Type System
 
+This section specifies how schemas declare types, how the runtime checks types, and how versioning interacts with the typed-graph model.
+
 ### 4.1 Schema Declaration
 
-[**v0.2:** Schema registration syntax. Declares: name, version, payload schema, input-type set $I_\sigma$, predicate $P_\sigma$. Predicate is a deterministic function with bounded compute cost (specified gas limit).]
+Schema registration submits a **schema-declaration object**:
+
+```
+SchemaDeclaration = {
+  name: string,                    // canonical schema-id (e.g. "themisra.proof-of-prompt/v1")
+  version: int,                    // monotonic version counter
+  payload_schema: PayloadType,     // structural schema (JSON Schema or equivalent)
+  input_type_set: List<(SchemaId, VersionConstraint)>,
+  predicate: PredicateBytecode,    // deterministic boolean function
+  attestor_set_id: AttestorSetId,  // existing PoUA primitive
+  cascade_rule: enum {STRICT, LAZY},
+  predicate_gas_limit: int         // bounded compute cost (default 1000)
+}
+```
+
+**Validation at registration time.**
+
+1. `name` is unique in $\Sigma$ across all current versions.
+2. `version` strictly exceeds all prior versions of `name`.
+3. Each $(\sigma', v') \in$ `input_type_set` references an existing schema; cycle detection runs against $G$ extended with the proposed edges (§3.2).
+4. `predicate` is deterministic (verified by the runtime via dry-run on canonical inputs) and bounded by `predicate_gas_limit`.
+5. `attestor_set_id` exists.
+6. `cascade_rule` is one of the two enum values.
+
+Failure of any check rejects the registration; partial registration is not allowed. Registration fees in $LGT$ apply per PoUA §3.
 
 ### 4.2 Input Type Set
 
-[**v0.2:** $I_\sigma$ is a list of $(\text{schema-name}, \text{version-constraint})$ pairs. Version constraints support exact match, semver-style ranges, and optional "any" wildcards. Wildcards are discouraged but supported for cross-version-tolerant consumers.]
+The **input-type set** $I_\sigma$ enumerates which schemas an attestation of $\sigma$ may reference. Each entry is a (schema-id, version-constraint) pair:
+
+$$I_\sigma = \{(\sigma_1, v_1), (\sigma_2, v_2), \ldots, (\sigma_n, v_n)\}$$
+
+where each $v_i$ is one of:
+
+- **Exact match** ($v_i = k$): only attestations of $\sigma_i$ at version exactly $k$ are admissible
+- **Semver range** ($v_i = [k, k')$): versions $V \in [k, k')$ are admissible; supports forward-compatible consumers
+- **Open upper** ($v_i = [k, \infty)$): all versions $\geq k$
+- **Wildcard** ($v_i = *$): any registered version of $\sigma_i$. Discouraged; only use for cross-version-tolerant consumers (e.g., audit-log readers)
+
+**Why version constraints matter.** A consumer schema declaring "I reference attestations of `themisra.proof-of-prompt/*`" accepts any future version of Themisra without re-registration. Convenient but risky: a v3 of Themisra with structurally-different payload could break the consumer's predicate. Exact match prevents this at the cost of forcing re-registration on every input upgrade. Semver ranges balance the two.
+
+**Empty input-type set.** $I_\sigma = \emptyset$ marks $\sigma$ as a leaf schema (§3.1). Attestations of leaf schemas have $\text{refs}_a = ()$ and the type check trivially passes the input checks.
 
 ### 4.3 Type Predicate
 
-[**v0.2:** $P_\sigma$ is a deterministic function evaluated at attestation-time. Returns boolean. Compute cost bounded by a gas limit (configurable per schema; default 1000 gas-units). Predicate failure: attestation rejected at mempool admission.]
+The **type predicate** $P_\sigma$ is a deterministic boolean function:
+
+$$P_\sigma: I_\sigma^* \times \text{Payload}_\sigma \to \{\text{true}, \text{false}\}$$
+
+evaluated at attestation-time. Inputs to the predicate:
+
+- Each input attestation's schema, version, and payload (read-only)
+- The proposed attestation's own payload
+
+Predicate semantics:
+
+- **Deterministic**: evaluating the same inputs in two different chain states must produce the same result. The predicate cannot read mutable chain state beyond the explicit input attestations.
+- **Bounded compute**: the predicate's gas cost is bounded by `predicate_gas_limit` (default 1000 gas-units; configurable per schema with governance bounds in $[100, 10000]$).
+- **Total**: the predicate must terminate on all valid inputs. Non-termination is detected by the gas limit; predicates that exhaust gas are treated as returning `false` and the attestation is rejected at mempool admission.
+
+**Examples of useful predicates.**
+
+- "Each input attestation's `model_id` field equals my own `model_id` field" (Themisra: prove the attribution chain consistently identifies the same model)
+- "Each input attestation's `timestamp` is monotonically older than mine" (audit-trail attestations: ensure causal ordering)
+- "The sum of input `amount` fields equals my own `total` field" (financial attestations: conservation-of-value check)
+
+**Examples of disallowed predicates.**
+
+- "Look up the validator's current reputation and gate on it" (reads mutable state)
+- "Walk the attestation graph two hops deep" (unbounded recursion)
+- "Hash a 1MB payload via SHA-256" (gas-bounded but potentially out-of-bound for `predicate_gas_limit`)
 
 ### 4.4 Runtime Type Check
 
-[**v0.2:** When attestation $a$ of type $\sigma$ is submitted: (1) for each ref in $\text{refs}_a$, look up the referenced attestation's schema; (2) check the schema is in $I_\sigma$ with version-match; (3) check the referenced attestation is in VALID state; (4) evaluate $P_\sigma$ over inputs and payload. All four must pass.]
+When an attestation $a$ of schema $\sigma$ is submitted, the runtime performs the following checks at mempool admission (before block inclusion):
+
+1. **Schema lookup.** $\sigma$ exists in $\Sigma$ at the registered version $V_\sigma$. Failure: reject "unknown schema."
+2. **Reference resolution.** For each ref $r_i \in \text{refs}_a$, look up the referenced attestation $a_i$ and its schema $\sigma_i$, version $V_{\sigma_i}$. Failure: reject "dangling reference."
+3. **Input-type check.** For each $(r_i, a_i, \sigma_i)$, verify that $(\sigma_i, v) \in I_\sigma$ for some constraint $v$ admitting $V_{\sigma_i}$. Failure: reject "input type mismatch."
+4. **Validity check.** For each $a_i$, verify that $a_i$.state $=$ VALID. Failure: reject "stale reference" (the input is REVOKED, SLASHED, or DEPENDENT-INVALID).
+5. **Predicate evaluation.** Evaluate $P_\sigma(a_1, \ldots, a_n, \text{payload}_a)$. Failure: reject "predicate violated."
+6. **Existing PoUA checks.** Threshold signature verification per $\mathcal{A}_\sigma$, fee payment, etc.
+
+All six must pass. Mempool rejection is preferable to block rejection: it avoids consuming block space and gives the submitter a clear failure signal.
+
+**Cost analysis.** Steps 1-4 are $O(|\text{refs}_a|)$ state lookups; step 5 is bounded by `predicate_gas_limit`; step 6 is the existing PoUA cost. Per-attestation overhead vs leaf attestations is roughly 5-10% at typical reference counts ($|\text{refs}_a| \leq 5$).
+
+**Re-checking on cascade.** When a referenced attestation transitions out of VALID, dependents already in VALID must be re-evaluated. The cascade rule (§5.4) decides automatic vs lazy re-evaluation. The check itself is identical to the admission-time check, run against the new state.
 
 ### 4.5 Versioning Semantics
 
-[**v0.2:** Schema upgrades. v1 → v2: dependents may be re-referenced or migrated automatically (subtyping allowed if v2 is a structural superset of v1). Strict mode requires re-reference. Default: subtyping for backward-compatible upgrades; strict otherwise.]
+When a schema upgrades from $V = k$ to $V = k+1$, the chain must decide what happens to dependents that referenced $V = k$.
+
+**Strict mode.** Dependents must re-reference: existing attestations that referenced $V = k$ are unaffected (still valid), but new attestations cannot reference the old version through this schema's input-type set. This is the safest mode: the type contract is enforced at the exact-version level.
+
+**Subtyping mode.** If $V = k+1$'s payload schema is a structural superset of $V = k$'s (every field in $V = k$ exists with the same type in $V = k+1$), and the predicate $P_\sigma$ at $V = k+1$ is a "weakening" of $P_\sigma$ at $V = k$ (every input that satisfied the $V = k$ predicate also satisfies the $V = k+1$ predicate), then $V = k+1$ is a **subtype** of $V = k$. Existing dependents that referenced $V = k$ may continue to reference $V = k$ attestations, AND new attestations may reference $V = k+1$ attestations under the same input-type-set entry.
+
+**Default: subtyping for backward-compatible upgrades; strict otherwise.** A schema upgrade declares whether it is a subtype of its predecessor. The runtime verifies subtyping claims (structural superset checking is decidable; predicate weakening is detected by re-running $P^k$ against the canonical inputs that satisfied $P^{k+1}$; if any such input fails $P^k$, the upgrade is not a subtype).
+
+**Per-edge override.** A consumer schema's input-type set entry can override the default:
+
+- `(themisra.proof-of-prompt/v1, exact)`: strict, only $V = 1$
+- `(themisra.proof-of-prompt/v1, subtype)`: subtyping permitted (default for backward-compatible upgrades)
+
+**Migration.** When a schema upgrades and existing dependents are not subtype-compatible, the runtime does NOT auto-migrate or auto-invalidate dependents. Existing attestations remain valid. New attestations from those dependents fail the input-type check (§4.4 step 3) until the dependent re-registers with updated input-type-set entries.
+
+---
 
 ---
 

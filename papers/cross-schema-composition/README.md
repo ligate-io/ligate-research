@@ -4,10 +4,10 @@ Typed attestation references with slashing-aware proof propagation. Schemas decl
 
 ## Latest
 
-- **Working paper**: [`cross-schema-composition.md`](cross-schema-composition.md) (markdown source), PDF to be generated when v0.2 has substantive content
-- **Version**: v0.1
-- **Status**: **Outline.** Section headings with intent annotations; no formal content yet. Authoring is **deferred until use-case validation**: 2-3 concrete partner use cases must be in hand before v0.2 begins.
-- **Date**: 2026-05-03
+- **Working paper**: [`cross-schema-composition.md`](cross-schema-composition.md) (markdown source). PDF to be generated when v0.2 substantive content lands across §3 + §4 + §5 + §6.
+- **Version**: v0.1.1
+- **Status**: **Outline + system model and type system substantive.** §3 (system model: schemas as typed graphs, dependency graph, attestation as witness, validity states) and §4 (type system: schema declaration, input types, predicates, runtime check, versioning) are now substantive prose with formal definitions. §1, §2, §5+ remain v0.1 outline. v0.2 ships when 2-3 design-partner use cases validate the demand.
+- **Date**: 2026-05-04 (updated; original v0.1 scaffold 2026-05-03)
 
 ## Abstract (placeholder)
 
