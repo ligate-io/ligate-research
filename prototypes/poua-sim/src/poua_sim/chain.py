@@ -194,13 +194,15 @@ class Chain:
         """
         proposer = select_proposer(self.validators, rng)
         attestations = self.attestation_generator(rng, self.slot, proposer.address)
-        # M6 phase 1+2: dispatch on proposer's behavior policy.
+        # M6 phase 1+2+3: dispatch on proposer's behavior policy.
         attestations = apply_proposer_policy(
             proposer.behavior_policy,
             attestations,
             proposer_address=proposer.address,
             target_schema=proposer.target_schema_to_censor,
             grind_attestation_count=proposer.grind_attestation_count,
+            staged_submitter_addresses=proposer.staged_submitter_addresses,
+            staged_rotation_index=self.slot,
         )
         if proposer.behavior_policy == BehaviorPolicy.EQUIVOCATE:
             severity = equivocation_slash_severity(

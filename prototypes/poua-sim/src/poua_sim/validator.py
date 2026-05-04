@@ -54,10 +54,15 @@ class Validator:
         Used only when ``behavior_policy == CENSOR_BY_SCHEMA``. The
         schema-id of attestations the proposer refuses to include.
     grind_attestation_count : int
-        Used only when
-        ``behavior_policy == GRIND_VIA_SELF_ATTESTATION``. Number of
-        self-submitted attestations to inject per proposed block.
-        Default 5.
+        Used only when ``behavior_policy`` is
+        ``GRIND_VIA_SELF_ATTESTATION`` or
+        ``GRIND_VIA_STAGED_SUBMITTERS``. Number of injected attestations
+        per proposed block. Default 5.
+    staged_submitter_addresses : tuple of str
+        Used only when ``behavior_policy ==
+        GRIND_VIA_STAGED_SUBMITTERS``. Pool of controlled-but-distinct
+        submitter addresses the validator cycles through when staging
+        attestations. Empty tuple by default.
     """
 
     address: str
@@ -76,10 +81,11 @@ class Validator:
     # M6 adversarial-agent extension. HONEST by default; chain dispatch
     # reads this field to apply per-validator deviation policies.
     behavior_policy: BehaviorPolicy = BehaviorPolicy.HONEST
-    # M6 phase 2 auxiliary policy fields. Used only when behavior_policy
-    # is the corresponding deviation; ignored otherwise.
+    # M6 phase 2 + 3 auxiliary policy fields. Used only when
+    # behavior_policy is the corresponding deviation; ignored otherwise.
     target_schema_to_censor: str | None = None
     grind_attestation_count: int = 5
+    staged_submitter_addresses: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.stake <= 0:

@@ -31,6 +31,7 @@ from poua_sim.agent import (
     IMPLEMENTED_POLICIES,
     PHASE1_POLICIES,
     PHASE2_POLICIES,
+    PHASE3_POLICIES,
     apply_proposer_policy,
     equivocation_slash_severity,
 )
@@ -94,6 +95,7 @@ __all__ = [
     "Layer3Config",
     "PHASE1_POLICIES",
     "PHASE2_POLICIES",
+    "PHASE3_POLICIES",
     "RebaseConfig",
     "RebaseTelemetry",
     "ReputationParams",
