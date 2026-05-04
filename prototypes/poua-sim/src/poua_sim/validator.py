@@ -7,6 +7,9 @@ A validator carries:
   via the §4.3 update function
 - ``epoch_g_prop``, ``epoch_g_vote``, ``epoch_b``: per-epoch tallies that
   accumulate during the epoch and reset to 0 at the boundary, per §4.3
+- ``behavior_policy``: M6 adversarial-agent extension. HONEST by default
+  (matches pre-M6 behavior); chain dispatch reads this field to apply
+  per-validator deviation policies at proposer / vote time.
 
 The product ``stake * reputation`` is the validator's consensus weight, used
 by the proposer selection (§4.1) and the BFT vote tally (§4.2).
@@ -15,6 +18,8 @@ by the proposer selection (§4.1) and the BFT vote tally (§4.2).
 from __future__ import annotations
 
 from dataclasses import dataclass
+
+from poua_sim.agent import BehaviorPolicy
 
 
 @dataclass(slots=True)
@@ -40,6 +45,19 @@ class Validator:
     epoch_b : float
         Aggregate severity-weighted slash count for this validator in the
         current epoch. Resets to 0 at each epoch boundary.
+    behavior_policy : BehaviorPolicy
+        M6 adversarial-agent extension. ``HONEST`` by default (matches
+        pre-M6 behavior). The chain dispatch in ``Chain.advance_slot``
+        reads this field to apply per-validator deviation policies at
+        proposer / vote time.
+    target_schema_to_censor : str, optional
+        Used only when ``behavior_policy == CENSOR_BY_SCHEMA``. The
+        schema-id of attestations the proposer refuses to include.
+    grind_attestation_count : int
+        Used only when
+        ``behavior_policy == GRIND_VIA_SELF_ATTESTATION``. Number of
+        self-submitted attestations to inject per proposed block.
+        Default 5.
     """
 
     address: str
@@ -55,6 +73,13 @@ class Validator:
     # boundary; they are read by metrics code.
     epoch_g_prop_from_cartel: float = 0.0
     epoch_g_vote_from_cartel: float = 0.0
+    # M6 adversarial-agent extension. HONEST by default; chain dispatch
+    # reads this field to apply per-validator deviation policies.
+    behavior_policy: BehaviorPolicy = BehaviorPolicy.HONEST
+    # M6 phase 2 auxiliary policy fields. Used only when behavior_policy
+    # is the corresponding deviation; ignored otherwise.
+    target_schema_to_censor: str | None = None
+    grind_attestation_count: int = 5
 
     def __post_init__(self) -> None:
         if self.stake <= 0:

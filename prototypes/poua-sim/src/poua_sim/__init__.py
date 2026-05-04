@@ -13,6 +13,9 @@ Layout (M4):
                          Layer3Config, layer3_net_burn, alpha_eff(m, k)
     poua_sim.rebase      Adaptive η/λ/τ_burn rebase (v0.8 §4.4.3 spec
                          scaffold; mirrors v0.7 §4.4.2 for τ_burn)
+    poua_sim.agent       M6 phase 1: BehaviorPolicy enum + per-policy
+                         dispatch helpers (HONEST, EQUIVOCATE,
+                         FREE_RIDE_VIA_VOTE_ONLY)
     poua_sim.adversary   Capital adversary (M3) + compound adversary (M4)
 
 Future modules (M5, milestones tracked in
@@ -23,8 +26,16 @@ https://github.com/ligate-io/ligate-research/issues/3):
 """
 
 from poua_sim.adversary import CapitalAdversary, CompoundAdversary, cartel_attestations
+from poua_sim.agent import (
+    BehaviorPolicy,
+    IMPLEMENTED_POLICIES,
+    PHASE1_POLICIES,
+    PHASE2_POLICIES,
+    apply_proposer_policy,
+    equivocation_slash_severity,
+)
 from poua_sim.attestation import Attestation
-from poua_sim.chain import Block, Chain, constant_attestations
+from poua_sim.chain import Block, Chain, constant_attestations, multi_schema_attestations
 from poua_sim.detectors import (
     A3GraphSnapshot,
     A3Null,
@@ -73,12 +84,16 @@ __all__ = [
     "A3GraphSnapshot",
     "A3Null",
     "Attestation",
+    "BehaviorPolicy",
     "Block",
     "BurnDestination",
     "CapitalAdversary",
     "Chain",
     "CompoundAdversary",
+    "IMPLEMENTED_POLICIES",
     "Layer3Config",
+    "PHASE1_POLICIES",
+    "PHASE2_POLICIES",
     "RebaseConfig",
     "RebaseTelemetry",
     "ReputationParams",
@@ -91,6 +106,7 @@ __all__ = [
     "a3_threshold",
     "alpha_eff",
     "analytical_attack_stake",
+    "apply_proposer_policy",
     "apply_reputation_update",
     "cartel_attestations",
     "cartel_channel_gross_fees",
@@ -101,7 +117,9 @@ __all__ = [
     "compute_lambda_drift",
     "compute_t_ramp_obs",
     "constant_attestations",
+    "equivocation_slash_severity",
     "layer3_net_burn",
+    "multi_schema_attestations",
     "proposer_share",
     "realized_kappa",
     "realized_weight_share",
