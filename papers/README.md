@@ -2,18 +2,29 @@
 
 Working papers on Ligate's protocol-level research direction.
 
-## Active
+## Active: canonical protocol-primitive sequence
+
+The canonical sequence per the marketing-side umbrella tracker (ligate-marketing #48). Each paper specifies a runtime-level primitive of Ligate Chain in the order they ship.
 
 | Paper | Latest | Status | Topic |
 |---|---|---|---|
 | [PoUA, Proof of Useful Attestation](poua/) | v0.7.2 (2026-05-03) | Draft, external review (sending) | Consensus weighting primitive aligning validator influence with valid attestation work |
-| [Per-Schema Fee Markets](per-schema-fees/) | v0.1 (2026-05-02) | Outline | EIP-1559-style demand curves per attestation schema, with sponsored-gas integration |
-| [Native Delegation](native-delegation/) | v0.1 (2026-05-03) | Outline | Hot-key / master-key separation as a runtime primitive; foundation for the Iris MCP relayer |
-| [Native DA Layer](native-da/) | v0.1 (2026-05-03) | Outline | Attestation-optimized data availability (post-Celestia track); per-schema indexed commitments, attestor-history queries, fee-market integration with PoUA τ_burn |
-| [Cross-Schema Composition](cross-schema-composition/) | v0.1 (2026-05-03) | Outline (deferred) | Typed attestation references with slashing-aware proof propagation; v2 protocol territory pending design-partner validation |
-| [Time-Locked Attestations](time-locked-attestations/) | v0.1 (2026-05-03) | Outline (deferred) | Commit-reveal as a runtime primitive; sealed-bid auctions, embargoed announcements, regulatory time-locks; v1.5 territory pending design-partner validation |
+| [Per-Schema Fee Markets](per-schema-fees/) | v0.1.1 (2026-05-04) | Outline + §4 substantive | EIP-1559-style demand curves per attestation schema, with sponsored-gas integration |
+| [Cross-Schema Composition](cross-schema-composition/) | v0.1.1 (2026-05-04) | Outline + §3 + §4 substantive (deferred) | Typed attestation references with slashing-aware proof propagation; v2 protocol territory pending design-partner validation |
+| [Native Delegation](native-delegation/) | v0.1.1 (2026-05-04) | Outline + §5 substantive | Hot-key / master-key separation as a runtime primitive; foundation for the Iris MCP relayer |
+| [Time-Locked Attestations](time-locked-attestations/) | v0.1.1 (2026-05-04) | Outline + §4 substantive (deferred) | Commit-reveal as a runtime primitive; sealed-bid auctions, embargoed announcements, regulatory time-locks; v1.5 territory pending design-partner validation |
+| [Verifiable Content Provenance](verifiable-content-provenance/) | v0.0 (2026-05-05) | Planning | Detection, embedding, and watermarking for the Ligate Chain receipt layer; six-path detection model; depends on Atlas (ligate-marketing #96) |
+| [Themisra Licensing Schemas](themisra-licensing-schemas/) | v0.0 (2026-05-05) | Planning | Prompt licensing and content licensing as receipt-layer extensions under the Themisra umbrella |
 
 PoUA v0.7 is the empirical-validation milestone: every load-bearing claim has a published figure produced by the [reference simulator](../prototypes/poua-sim/), and cross-language test vectors at [`prototypes/poua-sim/test_vectors/`](../prototypes/poua-sim/test_vectors/) encode the analytical truths so the production implementation can re-validate the algebra in lockstep.
+
+## Other research tracks
+
+Papers outside the canonical protocol-primitive sequence.
+
+| Paper | Latest | Status | Topic |
+|---|---|---|---|
+| [Native DA Layer](native-da/) | v0.1.1 (2026-05-04) | Outline + §3 substantive | Attestation-optimized data availability (post-Celestia track); per-schema indexed commitments, attestor-history queries. Explicitly not advocacy for migration; documents the option. |
 
 ## Status definitions
 
