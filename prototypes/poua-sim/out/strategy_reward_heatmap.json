@@ -1,0 +1,254 @@
+{
+  "config": {
+    "n_validators": 10,
+    "n_trials_per_cell": 30,
+    "epoch_length": 20,
+    "n_epochs": 50,
+    "total_stake": 1000.0,
+    "stake_shares": {
+      "low": 0.1,
+      "medium": 0.2,
+      "high": 0.3
+    },
+    "grind_attestation_count": 10,
+    "staged_pool_size": 3
+  },
+  "results": {
+    "low": {
+      "honest": {
+        "mean_reputation": 1.9639700000000002,
+        "std_reputation": 0.07752626716152415,
+        "ci_95_low": 1.8274575000000002,
+        "ci_95_high": 2.0906000000000002,
+        "mean_proposer_count": 99.1
+      },
+      "equivocate": {
+        "mean_reputation": 1.0036,
+        "std_reputation": 0.005043808085167401,
+        "ci_95_low": 1.0,
+        "ci_95_high": 1.01365,
+        "mean_proposer_count": 70.63333333333334
+      },
+      "free_ride_via_vote_only": {
+        "mean_reputation": 1.276160000000002,
+        "std_reputation": 0.0028499824560863484,
+        "ci_95_low": 1.2710350000000021,
+        "ci_95_high": 1.2801475000000022,
+        "mean_proposer_count": 79.46666666666667
+      },
+      "censor_by_schema": {
+        "mean_reputation": 1.9639700000000002,
+        "std_reputation": 0.07752626716152415,
+        "ci_95_low": 1.8274575000000002,
+        "ci_95_high": 2.0906000000000002,
+        "mean_proposer_count": 99.1
+      },
+      "grind_via_self_attestation": {
+        "mean_reputation": 1.957716666666667,
+        "std_reputation": 0.0749299142903258,
+        "ci_95_low": 1.825615,
+        "ci_95_high": 2.0723425000000004,
+        "mean_proposer_count": 98.16666666666667
+      },
+      "grind_via_staged_submitters": {
+        "mean_reputation": 2.9586133333333327,
+        "std_reputation": 0.19903333511974555,
+        "ci_95_low": 2.6658899999999974,
+        "ci_95_high": 3.3115024999999982,
+        "mean_proposer_count": 121.06666666666666
+      }
+    },
+    "medium": {
+      "honest": {
+        "mean_reputation": 2.92274,
+        "std_reputation": 0.1094843690517814,
+        "ci_95_low": 2.7739999999999987,
+        "ci_95_high": 3.1413274999999996,
+        "mean_proposer_count": 242.2
+      },
+      "equivocate": {
+        "mean_reputation": 1.002,
+        "std_reputation": 0.00419523539268061,
+        "ci_95_low": 1.0,
+        "ci_95_high": 1.012,
+        "mean_proposer_count": 149.5
+      },
+      "free_ride_via_vote_only": {
+        "mean_reputation": 1.2502700000000007,
+        "std_reputation": 0.0032168462816866234,
+        "ci_95_low": 1.2442525000000002,
+        "ci_95_high": 1.2554125000000014,
+        "mean_proposer_count": 165.76666666666668
+      },
+      "censor_by_schema": {
+        "mean_reputation": 2.92274,
+        "std_reputation": 0.1094843690517814,
+        "ci_95_low": 2.7739999999999987,
+        "ci_95_high": 3.1413274999999996,
+        "mean_proposer_count": 242.2
+      },
+      "grind_via_self_attestation": {
+        "mean_reputation": 2.895716666666665,
+        "std_reputation": 0.10268112803994478,
+        "ci_95_low": 2.7721574999999983,
+        "ci_95_high": 3.106655,
+        "mean_proposer_count": 238.16666666666666
+      },
+      "grind_via_staged_submitters": {
+        "mean_reputation": 5.794056666666664,
+        "std_reputation": 0.3120771258127633,
+        "ci_95_low": 5.2760824999999985,
+        "ci_95_high": 6.414209999999996,
+        "mean_proposer_count": 328.03333333333336
+      }
+    },
+    "high": {
+      "honest": {
+        "mean_reputation": 4.05102,
+        "std_reputation": 0.14625451879058896,
+        "ci_95_low": 3.7503575,
+        "ci_95_high": 4.30897,
+        "mean_proposer_count": 410.6
+      },
+      "equivocate": {
+        "mean_reputation": 1.0,
+        "std_reputation": 0.0,
+        "ci_95_low": 1.0,
+        "ci_95_high": 1.0,
+        "mean_proposer_count": 233.73333333333332
+      },
+      "free_ride_via_vote_only": {
+        "mean_reputation": 1.22276,
+        "std_reputation": 0.0035299291777598023,
+        "ci_95_low": 1.2167349999999997,
+        "ci_95_high": 1.2296649999999998,
+        "mean_proposer_count": 257.46666666666664
+      },
+      "censor_by_schema": {
+        "mean_reputation": 4.05102,
+        "std_reputation": 0.14625451879058896,
+        "ci_95_low": 3.7503575,
+        "ci_95_high": 4.30897,
+        "mean_proposer_count": 410.6
+      },
+      "grind_via_self_attestation": {
+        "mean_reputation": 3.972406666666667,
+        "std_reputation": 0.1433626053830714,
+        "ci_95_low": 3.6852,
+        "ci_95_high": 4.238285,
+        "mean_proposer_count": 398.8666666666667
+      },
+      "grind_via_staged_submitters": {
+        "mean_reputation": 7.981246666666666,
+        "std_reputation": 0.056385853623838494,
+        "ci_95_low": 7.812559999999998,
+        "ci_95_high": 8.0,
+        "mean_proposer_count": 523.1
+      }
+    }
+  },
+  "honest_dominance_check": {
+    "claim_under_layer_1_only": "HONEST dominates each deviation under Layer-1-only enforcement (detection layers + Layer 2 not yet integrated with slashing)",
+    "verified": false,
+    "expected_failure": "GRIND_VIA_STAGED_SUBMITTERS",
+    "remediation_path": "(1) integrate \u00a7A.3 detector with chain slashing pipeline, (2) implement \u00a75.5 Layer 2 (address-graph distance) at chain level",
+    "per_cell": {
+      "low": {
+        "equivocate": {
+          "deviation_mean_reputation": 1.0036,
+          "honest_mean_reputation": 1.9639700000000002,
+          "honest_dominates": true,
+          "advantage_over_honest": -0.9603700000000002
+        },
+        "free_ride_via_vote_only": {
+          "deviation_mean_reputation": 1.276160000000002,
+          "honest_mean_reputation": 1.9639700000000002,
+          "honest_dominates": true,
+          "advantage_over_honest": -0.6878099999999983
+        },
+        "censor_by_schema": {
+          "deviation_mean_reputation": 1.9639700000000002,
+          "honest_mean_reputation": 1.9639700000000002,
+          "honest_dominates": true,
+          "advantage_over_honest": 0.0
+        },
+        "grind_via_self_attestation": {
+          "deviation_mean_reputation": 1.957716666666667,
+          "honest_mean_reputation": 1.9639700000000002,
+          "honest_dominates": true,
+          "advantage_over_honest": -0.006253333333333222
+        },
+        "grind_via_staged_submitters": {
+          "deviation_mean_reputation": 2.9586133333333327,
+          "honest_mean_reputation": 1.9639700000000002,
+          "honest_dominates": false,
+          "advantage_over_honest": 0.9946433333333324
+        }
+      },
+      "medium": {
+        "equivocate": {
+          "deviation_mean_reputation": 1.002,
+          "honest_mean_reputation": 2.92274,
+          "honest_dominates": true,
+          "advantage_over_honest": -1.9207400000000001
+        },
+        "free_ride_via_vote_only": {
+          "deviation_mean_reputation": 1.2502700000000007,
+          "honest_mean_reputation": 2.92274,
+          "honest_dominates": true,
+          "advantage_over_honest": -1.6724699999999995
+        },
+        "censor_by_schema": {
+          "deviation_mean_reputation": 2.92274,
+          "honest_mean_reputation": 2.92274,
+          "honest_dominates": true,
+          "advantage_over_honest": 0.0
+        },
+        "grind_via_self_attestation": {
+          "deviation_mean_reputation": 2.895716666666665,
+          "honest_mean_reputation": 2.92274,
+          "honest_dominates": true,
+          "advantage_over_honest": -0.027023333333334953
+        },
+        "grind_via_staged_submitters": {
+          "deviation_mean_reputation": 5.794056666666664,
+          "honest_mean_reputation": 2.92274,
+          "honest_dominates": false,
+          "advantage_over_honest": 2.8713166666666643
+        }
+      },
+      "high": {
+        "equivocate": {
+          "deviation_mean_reputation": 1.0,
+          "honest_mean_reputation": 4.05102,
+          "honest_dominates": true,
+          "advantage_over_honest": -3.0510200000000003
+        },
+        "free_ride_via_vote_only": {
+          "deviation_mean_reputation": 1.22276,
+          "honest_mean_reputation": 4.05102,
+          "honest_dominates": true,
+          "advantage_over_honest": -2.82826
+        },
+        "censor_by_schema": {
+          "deviation_mean_reputation": 4.05102,
+          "honest_mean_reputation": 4.05102,
+          "honest_dominates": true,
+          "advantage_over_honest": 0.0
+        },
+        "grind_via_self_attestation": {
+          "deviation_mean_reputation": 3.972406666666667,
+          "honest_mean_reputation": 4.05102,
+          "honest_dominates": true,
+          "advantage_over_honest": -0.0786133333333332
+        },
+        "grind_via_staged_submitters": {
+          "deviation_mean_reputation": 7.981246666666666,
+          "honest_mean_reputation": 4.05102,
+          "honest_dominates": false,
+          "advantage_over_honest": 3.930226666666666
+        }
+      }
+    }
+  }
+}
