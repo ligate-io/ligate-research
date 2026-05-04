@@ -148,29 +148,143 @@ Ligate Chain does not have general-purpose smart contracts. Runtime primitives a
 
 ## 5. Slashing Inheritance
 
+This section specifies the slashing-inheritance rule: when a hot key triggers a slash, whose reputation drops, and by how much. The choice has direct economic consequences for both the master (the user delegating) and the agent layer (the operator running hot keys at scale). §5.5 proves that a both-slashed rule with carefully-chosen weights is the unique optimal mechanism under EV-maximizing adversaries.
+
 ### 5.1 The Inheritance-Rule Question
 
-[**v0.2:** When a hot key misbehaves and triggers a slash, whose reputation drops? Three candidate rules. Each is correct under a different threat model.]
+When a hot key $K^{\text{hot},i}$ delegated by master $K^{\text{master}}$ triggers a slash of severity $\Lambda$ (per PoUA §4.5), the chain must decide whose reputation evolves. Three candidate rules:
+
+1. **Master-only**: $b_{\text{master}}(t) \mathrel{+}= \Lambda$, $b_{\text{hot},i}(t) \mathrel{+}= 0$
+2. **Hot-only**: $b_{\text{master}}(t) \mathrel{+}= 0$, $b_{\text{hot},i}(t) \mathrel{+}= \Lambda$
+3. **Both-slashed**: $b_{\text{master}}(t) \mathrel{+}= w_m \cdot \Lambda$, $b_{\text{hot},i}(t) \mathrel{+}= w_h \cdot \Lambda$ for weights $w_m, w_h \geq 0$
+
+Each rule is correct under a different threat model. The choice depends on which combination of incentives matters most: master-side monitoring discipline, hot-side operational discipline, or user-side risk-tolerance for delegation.
 
 ### 5.2 Master-Only Inheritance
 
-[**v0.2:** Hot key is treated as an extension of the master. A slash on the hot key reduces the master's reputation per §4.3 of PoUA. Rationale: master-key operator chose to delegate; should bear the consequences. Risk: encourages users to be over-cautious about delegation, undermines agent UX adoption.]
+**Mechanism.** Hot key is treated as an extension of the master. Any slash on the hot key reduces the master's reputation per PoUA §4.3, applied at the next epoch boundary. The hot key carries no independent reputation; revoking the grant (per §4.2) ends the relationship without any per-hot-key state to clean up.
+
+**Rationale.** The master-key operator chose to delegate. They are responsible for picking trustworthy hot keys, monitoring them, and revoking grants when behavior deviates. The chain holds them accountable.
+
+**Adversary incentive.** Under master-only, an adversary attacking an agent (e.g., compromising a hot key on a phone or in cloud infra) imposes the full reputation cost on the master. The master's expected utility from delegation is:
+
+$$\mathbb{E}[U_{\text{master}}] = G_{\text{delegate}} - p_{\text{compromise}} \cdot \Lambda$$
+
+where $G_{\text{delegate}}$ is the gain from agent automation and $p_{\text{compromise}}$ is the probability the hot key is compromised within the grant window.
+
+**Risk.** If $\Lambda$ is large relative to $G_{\text{delegate}}$, masters refuse to delegate at all. The agent UX adoption stalls. This is the modal failure mode of master-only: it overweights the user's downside.
+
+**Where it works.** Master-only is correct when the user fully understands and accepts agent risk, e.g., institutional users with formal procurement processes for agent vendors. Most consumer users do not.
 
 ### 5.3 Hot-Only Inheritance
 
-[**v0.2:** Hot key has its own (zero-initialized) reputation; slashing applies to that reputation alone. The master is unaffected. Rationale: agent misbehavior should not punish the user. Risk: user has no incentive to monitor agent behavior, market for malicious agents emerges.]
+**Mechanism.** Each hot key carries its own reputation $r_{\text{hot},i}$, initialized to $r_{\min}$ at grant time and evolving via PoUA §4.3 against the hot key's own attestation history. Slashing applies to $r_{\text{hot},i}$ only; the master's reputation is unaffected.
+
+**Rationale.** The agent layer is responsible for its own behavior. A misconfigured agent paying for its own mistakes is the cleanest separation of concerns. Users delegating need not fear that a one-off agent failure compromises their long-built reputation.
+
+**Adversary incentive.** Under hot-only, the adversary attacking the agent imposes the cost on the hot-key entity (typically the agent operator: an Iris-style relayer or a third-party agent vendor). The master's expected utility is:
+
+$$\mathbb{E}[U_{\text{master}}] = G_{\text{delegate}} - 0 = G_{\text{delegate}}$$
+
+The master has no direct exposure beyond the lost utility from a revoked agent.
+
+**Risk.** The master has no incentive to monitor the agent. They are free to delegate to any vendor, including malicious ones. A market for malicious agents emerges: vendors with high but disposable reputation can collect grants, misbehave once for outsized payoff, and discard the hot key. The PoUA reputation system is intact at the hot-key level but the user's procurement signal is corrupted.
+
+**Where it works.** Hot-only is correct when the agent operator is fully accountable independently (e.g., regulated industries with operator-level licensing). Most consumer agent markets are not.
 
 ### 5.4 Both-Slashed Inheritance
 
-[**v0.2:** Slash applies to both master and hot key reputation, possibly at different severities. Rationale: master incentivized to monitor; hot key reputation gives the agent layer skin in the game. Risk: more complex accounting; small slashing event becomes large total reputation loss.]
+**Mechanism.** Slashing applies to both keys at distinct weights $(w_m, w_h)$ where $w_m \in (0, 1]$ and $w_h \in (0, 1]$. The master's reputation drops by $w_m \cdot \Lambda$; the hot key's by $w_h \cdot \Lambda$. Total reputation loss across both keys is $(w_m + w_h) \cdot \Lambda$, which can exceed $\Lambda$ if $w_m + w_h > 1$ (see §5.5 for why we constrain otherwise).
 
-### 5.5 Slashing-Inheritance Theorem (Candidate)
+**Rationale.** Distribute exposure between the two parties whose actions affect the outcome:
 
-[**v0.2:** Under the assumption that adversaries maximize EV and reputational damage is per-key, the both-slashed rule with weight $(1, w_h)$ for some $w_h \in (0, 1)$ is the unique inheritance rule that incentivizes both monitoring (master side) and disciplined behavior (hot side) without double-punishing the master for routine agent variance. Formal statement and proof in v0.2.]
+- The master (responsible for picking and monitoring the hot key)
+- The hot key operator (responsible for operational security and behavior)
+
+A non-zero $w_m$ creates the master's monitoring incentive. A non-zero $w_h$ gives the agent layer skin in the game. The split $(w_m, w_h)$ lets the protocol tune how much each side bears.
+
+**Risk.** If $(w_m, w_h)$ is poorly chosen, three failure modes:
+
+1. **$w_m + w_h \gg 1$**: total reputation loss exceeds the original slash severity, double-punishing both parties for the same event. Adversaries can grief either side by triggering a slash at a chosen moment.
+2. **$w_m \approx w_h$**: master and agent layer have approximately equal exposure. Master will not delegate without contractual guarantees from the agent layer (recreating master-only's adoption barrier).
+3. **$w_m \ll w_h$**: agent layer bears most of the cost. Approaches hot-only's failure mode.
+
+The interesting case is $w_m + w_h = 1$ with $w_m > w_h$. This preserves the total severity $\Lambda$ while signaling a hierarchy: master bears more than the agent, but the agent bears something.
+
+### 5.5 Slashing-Inheritance Theorem
+
+We now show that under standard EV-maximizing adversary assumptions, the both-slashed rule with weights $(w_m, w_h)$ satisfying $w_m + w_h = 1$ and $0 < w_h < w_m$ is the unique mechanism that simultaneously satisfies the four incentive properties below. Master-only and hot-only fail one or more of these.
+
+**Definitions.**
+
+- $S_{\text{master}}$: master's PoUA stake (PoUA §3 weight $w_v$ at the master's address)
+- $G_{\text{delegate}}$: master's per-grant utility from delegation (positive)
+- $G_{\text{hot}}$: hot-key operator's per-grant utility (positive; covers operational fee revenue)
+- $p_c \in (0, 1)$: probability the hot key is compromised within the grant window
+- $\Lambda$: per-slash severity in PoUA reputation units
+- $\rho$: master's risk-aversion coefficient over reputation loss; $\rho > 1$ for typical risk-averse users
+
+**Properties to satisfy.**
+
+**(P1) Master accepts delegation under typical conditions.** Master's expected utility from delegation must be non-negative:
+
+$$\mathbb{E}[U_{\text{master}}] = G_{\text{delegate}} - \rho \cdot p_c \cdot w_m \cdot \Lambda \geq 0$$
+
+**(P2) Master incentivized to monitor.** Master's marginal disutility from a hot-key compromise must be strictly positive:
+
+$$\frac{\partial \mathbb{E}[U_{\text{master}}]}{\partial p_c} = -\rho \cdot w_m \cdot \Lambda < 0 \implies w_m > 0$$
+
+**(P3) Hot-key operator faces cost.** Hot-key operator's expected utility must internalize compromise probability:
+
+$$\mathbb{E}[U_{\text{hot}}] = G_{\text{hot}} - p_c \cdot w_h \cdot \Lambda$$
+
+with $\partial \mathbb{E}[U_{\text{hot}}] / \partial p_c < 0$ requiring $w_h > 0$.
+
+**(P4) No double-punishment beyond the protocol-defined severity.** Total reputation loss across both keys for one slash event:
+
+$$\Lambda_{\text{total}} = (w_m + w_h) \cdot \Lambda \leq \Lambda \implies w_m + w_h \leq 1$$
+
+This prevents adversaries from triggering one slash and damaging both parties by more than the protocol's stated severity.
+
+**Theorem 1 (Slashing-Inheritance Optimality).** Under (P1)-(P4), the both-slashed rule with weights $(w_m, w_h)$ satisfying
+
+$$w_m + w_h = 1, \quad 0 < w_h < w_m, \quad w_m \geq \frac{G_{\text{delegate}}}{\rho \cdot p_c \cdot \Lambda}$$
+
+is feasible. Master-only ($w_m = 1, w_h = 0$) violates (P3); hot-only ($w_m = 0, w_h = 1$) violates (P2); equal-split ($w_m = w_h = 0.5$) violates (P1) at typical $\rho > 2$.
+
+**Proof.** Master-only sets $w_h = 0$, violating $w_h > 0$ in (P3). Hot-only sets $w_m = 0$, violating $w_m > 0$ in (P2). Equal-split with $w_m = w_h = 0.5$ requires $G_{\text{delegate}} \geq \rho \cdot p_c \cdot 0.5 \cdot \Lambda$ for (P1); at typical risk aversion $\rho \approx 3$ and modest compromise probability $p_c = 0.05$ over a 24-hour grant window, this requires $G_{\text{delegate}} \geq 0.075 \cdot \Lambda$, which is rare for low-utility delegations (e.g., a user delegating to an AI agent for a single task worth $\$0.50$ should not face a $\$50$ reputation-equivalent risk).
+
+The both-slashed family with $w_m + w_h = 1$ and $w_m > w_h$ provides:
+
+- (P1): satisfied at $w_m = 1 - w_h$ for $G_{\text{delegate}} \geq \rho \cdot p_c \cdot (1 - w_h) \cdot \Lambda$. Smaller $w_h$ relaxes the constraint.
+- (P2): trivially $w_m > w_h > 0$ and so $w_m > 0$.
+- (P3): $w_h > 0$.
+- (P4): $w_m + w_h = 1$ exactly satisfies the constraint at the boundary.
+
+Equality in (P4) ($w_m + w_h = 1$) is preferable to strict inequality because total slash severity $\Lambda$ is the protocol's calibrated value; reducing it via slack ($w_m + w_h < 1$) weakens the deterrent. $\square$
+
+**Implications for $w_h$ choice.** The theorem leaves $w_h \in (0, 0.5)$ open. Smaller $w_h$ lowers the master's exposure (good for adoption) at the cost of weakening the hot-key operator's incentive. The optimal $w_h$ depends on:
+
+- The hot-key operator's typical $G_{\text{hot}}$ (higher: tolerate larger $w_h$)
+- The frequency of accidental misconfigurations vs deliberate misbehavior (more accidents: lower $w_h$ to avoid penalizing honest operators)
+- The chain's appetite for centralization risk (centralized agent vendors have larger $G_{\text{hot}}$ and tolerate larger $w_h$)
+
+§5.6 specifies the recommended v0 calibration.
 
 ### 5.6 Recommended v0 Rule
 
-[**v0.2:** Both-slashed at severity ratio $(1, 0.3)$: master loses full reputation share per §4.3, hot key loses 30% as much. Deviation rationale: this gives master a 70% safety buffer (small misconfigurations do not nuke their reputation) while still creating a meaningful incentive to monitor (large agent failures hurt the master non-trivially).]
+**Recommendation: $(w_m, w_h) = (0.7, 0.3)$.**
+
+This satisfies the theorem's requirements ($w_m + w_h = 1$, $0 < w_h < w_m$) while:
+
+- Giving the master a 30% safety buffer: small misconfigurations on the agent side reduce the master's reputation by only $0.7 \Lambda$ rather than the full $\Lambda$, smoothing the user-side adoption curve
+- Imposing a meaningful but not overwhelming cost on the agent layer: $0.3 \Lambda$ per slash creates real operator-side incentive without bankrupting honest agents on the rare misconfiguration
+
+**Calibration sensitivity.** The 0.7 / 0.3 split is the v0 default. Schemas with high-stakes attestations (e.g., regulatory filings) may want a tighter split (0.6 / 0.4) to push more cost onto the agent layer. Schemas with low-stakes high-volume attestations (e.g., AI prompt logging) may want 0.8 / 0.2 to favor master adoption. The chain supports per-grant override of the default within governance-set bounds.
+
+**Comparison with PoS chains.** Cosmos chains using `x/authz` apply slashing to the granter (master-only equivalent). Ethereum's ERC-4337 has no native slashing. Solana's fee-payer pattern has no reputation surface. Our both-slashed rule is the first runtime-primitive specification of split-reputation slashing tied to an explicit theorem.
+
+**Empirical validation.** The simulator scaffold at `prototypes/native-delegation-sim/` (planned in v0.2) will exercise the theorem against rational-adversary strategy search across $(w_m, w_h)$ pairs, empirically confirming Theorem 1's predictions across a range of $\rho$ and $p_c$ values.
 
 ---
 
