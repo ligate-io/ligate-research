@@ -6,7 +6,7 @@ This is for readers asking "what changed since [earlier version]?" Each entry is
 
 ---
 
-## v0.7.2 (2026-05-03) — pre-review tightening
+## v0.7.2 (2026-05-03): pre-review tightening
 
 Five fixable peripheral gaps closed before sending the paper to external technical reviewers. Stable for external review.
 
@@ -18,7 +18,7 @@ Five fixable peripheral gaps closed before sending the paper to external technic
 
 No load-bearing claim changed. Paper is suitable for citation as PoUA v0.7.2.
 
-## v0.7.1 (2026-05-02) — citation pass
+## v0.7.1 (2026-05-02): citation pass
 
 - Inline citation pass: every numerical claim resolves to a simulator generator, test, or test vector
 - `papers/README.md` roadmap updated with the four v0.X+ papers' v0.1 outline scaffolds
@@ -26,7 +26,7 @@ No load-bearing claim changed. Paper is suitable for citation as PoUA v0.7.2.
 
 No paper-text changes; this version is the citation-discipline lock-in.
 
-## v0.7 (2026-05-01) — empirical validation milestone
+## v0.7 (2026-05-01): empirical validation milestone
 
 The largest jump in the paper's evolution. Five new figures + cross-language test vectors + adaptive rebase.
 
@@ -40,7 +40,7 @@ The largest jump in the paper's evolution. Five new figures + cross-language tes
 
 This is the version cited in the cold-ask outreach.
 
-## v0.6.1 (2026-04-30) — Lemma 1 reconciliation
+## v0.6.1 (2026-04-30): Lemma 1 reconciliation
 
 Caught by the simulator: the v0.6 Lemma 1 proof used $\alpha_{\text{eff}} = \alpha + m\beta/k$, which credited the proposer with own-block voter-channel reputation. §4.3 of the paper excludes proposer from own-block voter share. Inconsistency.
 
@@ -50,7 +50,7 @@ Caught by the simulator: the v0.6 Lemma 1 proof used $\alpha_{\text{eff}} = \alp
 
 The paper-vs-simulator drift detection mechanism (CI parser shipped in v0.7.1) was motivated by this incident.
 
-## v0.6 (2026-04-28) — voter-cartel coverage
+## v0.6 (2026-04-28): voter-cartel coverage
 
 The pre-v0.6 paper used a single-proposer Lemma 1 bound and dismissed the voter channel as "negligible per attestation in any reasonably-sized validator set." Correct for individual marginal contribution; understates cumulative voter-channel injection when multiple cartel members vote on the same blocks.
 
@@ -58,19 +58,19 @@ The pre-v0.6 paper used a single-proposer Lemma 1 bound and dismissed the voter 
 - Single-proposer bound recovered as $m = 1$ specialization
 - Cartel-aware bound becomes the load-bearing security floor
 
-## v0.5 — internal review checkpoint
+## v0.5: internal review checkpoint
 
 Internal-review-only milestone. No external distribution. Captured the §3 system model + §4.3 reputation update as the spec for the simulator's M1-M2 milestones.
 
-## v0.4 — first reviewer-cited reference
+## v0.4: first reviewer-cited reference
 
 First version that could be cited externally as "PoUA v0.4." Single-proposer Lemma 1 bound; no $\alpha$-Pareto analysis; no rebase mechanism.
 
-## v0.3 — explicit α-dependent bound
+## v0.3: explicit α-dependent bound
 
 Lemma 1 made the proposer share $\alpha$ explicit in the cost-to-grind floor. v0.2 had elided this; v0.3 derives the dependence.
 
-## v0.2 — A3 layered defense + Lemma 1
+## v0.2: A3 layered defense + Lemma 1
 
 Major architectural addition. Replaced v0.1's reliance on heuristic detection alone with a formal economic floor.
 
@@ -81,7 +81,7 @@ Major architectural addition. Replaced v0.1's reliance on heuristic detection al
 
 This is the version where PoUA stopped being a reputation-weighted-stake protocol with vague security and became a mechanism with a formal floor.
 
-## v0.1 — initial draft
+## v0.1: initial draft
 
 The thesis: chain whose primary economic activity is attestation production should weight validators by reputation × stake, where reputation tracks attestation work. Sketch of the §4.3 reputation update and the §6.2 incentive compatibility argument. No Lemma 1; no formal economic floor; no statistical detectors.
 
