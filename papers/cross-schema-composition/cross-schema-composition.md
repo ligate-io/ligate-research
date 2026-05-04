@@ -118,7 +118,7 @@ A schema with $I_\sigma = \emptyset$ is a **leaf schema**: it does not reference
 
 The collection of registered schemas and their dependency edges forms a **directed graph**:
 
-$$G = (\Sigma, E)$$
+$$\mathcal{G} = (\Sigma, E)$$
 
 where $\Sigma$ is the set of registered schemas and $E \subseteq \Sigma \times \Sigma$ is the set of dependency edges. An edge $\sigma_a \to \sigma_b$ exists iff $(\sigma_b, v) \in I_{\sigma_a}$ for some version constraint $v$ that admits $\sigma_b$'s current version $V_{\sigma_b}$.
 
@@ -197,7 +197,7 @@ SchemaDeclaration = {
 
 1. `name` is unique in $\Sigma$ across all current versions.
 2. `version` strictly exceeds all prior versions of `name`.
-3. Each $(\sigma', v') \in$ `input_type_set` references an existing schema; cycle detection runs against $G$ extended with the proposed edges (§3.2).
+3. Each $(\sigma', v') \in$ `input_type_set` references an existing schema; cycle detection runs against $\mathcal{G}$ extended with the proposed edges (§3.2).
 4. `predicate` is deterministic (verified by the runtime via dry-run on canonical inputs) and bounded by `predicate_gas_limit`.
 5. `attestor_set_id` exists.
 6. `cascade_rule` is one of the two enum values.
