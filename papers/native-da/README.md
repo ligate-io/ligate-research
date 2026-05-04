@@ -4,10 +4,10 @@ A native data availability layer specialized for the attestation workload, with 
 
 ## Latest
 
-- **Working paper**: [`native-da.md`](native-da.md) (markdown source) — PDF to be generated when v0.2 has substantive content
-- **Version**: v0.1
-- **Status**: **Outline.** Section headings with intent annotations; no formal content yet. Authoring begins when [#36](https://github.com/ligate-io/ligate-research/issues/36) gets pulled into a focused work cycle.
-- **Date**: 2026-05-03
+- **Working paper**: [`native-da.md`](native-da.md) (markdown source) — PDF to be generated when v0.2 substantive content lands across §3 + §6 + §10
+- **Version**: v0.1.1
+- **Status**: **Outline + workload-model section substantive.** §3 (workload model) is now substantive prose with formal definitions and v0.2.5-targeted measurement placeholders. §1, §2, §4-§14 remain v0.1 outline.
+- **Date**: 2026-05-04 (updated; original v0.1 scaffold 2026-05-03)
 
 ## Abstract (placeholder)
 
@@ -18,14 +18,16 @@ General-purpose data availability layers (Celestia, EigenDA, Avail, Walrus, 0G) 
 The v0.2 milestone is the first substantive draft. Target deliverables:
 
 - Full §1 Introduction with thesis, problem statement, central question
-- §2 Workload model quantifying attestation traffic (size distribution per schema, rate, retention requirements)
-- §3 System model (validators, shares, sampling, light clients)
-- §4 Mechanism specification: per-schema indexed commitments, erasure coding scheme, share / chunk size tradeoffs
-- §5 Light-client protocol: inclusion proofs, attestor-history queries, epoch summaries
-- §6 Fee market: per-byte vs per-attestation pricing, burn-share interaction with PoUA τ_burn
-- §7 Security argument: DA security model, bandwidth assumptions, comparison to Celestia / EigenDA / Avail / Walrus / 0G under unified threat model
-- §8 Migration decision criteria: when, if ever, leaving Celestia is worth the cost
+- ✅ **§3 Workload model** (substantive in v0.1.1: §3.1 size dist, §3.2 throughput, §3.3 ordering, §3.4 retention, §3.5 query patterns)
+- §5 System model (validators, shares, sampling, light clients)
+- §6 Mechanism specification: per-schema indexed commitments, erasure coding scheme, share / chunk size tradeoffs
+- §8 Light-client protocol: inclusion proofs, attestor-history queries, epoch summaries
+- §9 Fee market: per-byte vs per-attestation pricing, burn-share interaction with PoUA τ_burn
+- §10 Security argument: DA security model, bandwidth assumptions, comparison to Celestia / EigenDA / Avail / Walrus / 0G under unified threat model
+- §12 Migration decision criteria: when, if ever, leaving Celestia is worth the cost
 - §A simulator scaffolding under `prototypes/native-da-sim/`
+
+**v0.1.1 (this iteration) status**: §3 is the only section with substantive prose. Numerical values in §3.1 (per-schema size distributions) and §3.2 (throughput calibration) are architectural targets pending devnet measurement at v0.2.5+. The rest of the paper remains v0.1 outline scaffold.
 
 ## Discipline
 

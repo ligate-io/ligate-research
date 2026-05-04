@@ -108,29 +108,160 @@ The paper is positioned as a long-horizon migration target, not a near-term repl
 
 ## 3. The Attestation Workload
 
+This section specifies the workload model that motivates a specialized DA layer. The model has five components: per-schema size distribution (§3.1), throughput profile (§3.2), ordering requirements (§3.3), retention requirements (§3.4), and dominant query patterns (§3.5). Each component is formally specified with expected calibration targets; numerical values are recommended starting points subject to refinement against devnet measurements at v0.2.5+.
+
+The workload model is the design baseline against which specialization decisions in §6 (data structure) and §10 (security analysis) are evaluated.
+
 ### 3.1 Size Distribution
 
-[**v0.2:** Empirical measurements from devnet. Themisra (proof of prompt) median 240 bytes. Mneme wallet attestations median 300 bytes. Iris agent attestations median 450 bytes. Kleidon SaaS attestations median 600 bytes. Tail captured by the 99th percentile, expected near 1.2 KB.]
+The attestation size distribution per schema is the primary input to the share-size and erasure-coding decisions in §6.
+
+**Formal model.** Let $\sigma$ index registered schemas. Each schema's attestation size $S_\sigma$ is treated as a heavy-tailed positive random variable. The simulator and v0 calibration use a log-normal parameterization:
+
+$$\log S_\sigma \sim \mathcal{N}(\mu_\sigma, \sigma_\sigma^2)$$
+
+with per-schema parameters $(\mu_\sigma, \sigma_\sigma)$ derived from the schema's payload structure. The schema registration declares an *expected median size* and a *p99 cap*; the runtime rejects attestations exceeding the cap, providing per-schema bandwidth predictability.
+
+**Component breakdown.** A typical attestation carries:
+
+- **Schema header** (~32 bytes): schema-id, version, attestor-set-id reference
+- **Payload digest** (~32-64 bytes): hash of off-chain content (the *what*)
+- **Submitter address** (~32 bytes): who submitted
+- **Attestor signature** (~64-256 bytes): threshold signature from the attestor set; size depends on signature scheme and threshold cardinality
+- **Optional metadata** (variable): timestamps, references to other attestations (cross-schema composition #6), reveal-at fields (time-locked attestations #7)
+
+The signature is the dominant size term. Ed25519 threshold signatures at threshold $k$ and group size $n$ are $\approx 64 + 32k$ bytes; BLS aggregations collapse this to 48 bytes regardless of $k$ (at the cost of pairing-friendly curve operations during verification). Native DA can take advantage of BLS aggregation (§6.3) to reduce per-attestation signature payload.
+
+**Expected values per flagship schema.**
+
+| Schema | Median (B) | p99 (B) | Driver of size |
+|---|---|---|---|
+| `themisra.proof-of-prompt/v1` | 240 | 480 | Hash + threshold signature; payload is a single prompt-digest |
+| `mneme.tx/v1` | 300 | 600 | Tx receipt: amount, recipient, signatures |
+| `iris.agent-action/v1` | 450 | 1100 | Action descriptor + provenance refs |
+| `kleidon.subscription-event/v1` | 250 | 500 | Subscription state-change |
+| `kleidon.asset-mint/v1` | 380 | 900 | Mint event: token-id, owner, metadata-uri-hash |
+| `kleidon.token-deploy/v1` | 600 | 1500 | Deployment: full token configuration digest |
+| `kleidon.marketplace-sale/v1` | 320 | 700 | Sale event: tokens, price, buyer, seller |
+
+[**Measured at v0.2.5+:** these are the v0.1 expected values from architectural analysis. v0.2.5 will replace them with measured devnet medians and p99s after the first quarter of devnet attestation traffic. The schema registration mechanism will lock in per-schema p99 caps based on measured 99.5th percentiles plus a 50% margin.]
+
+**Comparison with Celestia.** Celestia's share-size minimum is 4 KB (`SHARE_SIZE = 4096` in production parameters at the time of writing). All seven attestation schemas have median sizes below 700 B and p99 sizes below 1.5 KB. On Celestia, each share carries either one heavily-padded attestation (3-4× space waste) or multiple attestations packed without per-schema indexing (loses query-time schema-scoped sub-tree structure).
+
+A native DA layer with 512-byte or 1-KB share sizes (§6.2) eliminates the padding problem at the cost of more shares per block, which is a controllable parameter rather than a fundamental cost.
 
 ### 3.2 Throughput Profile
 
-[**v0.2:** Sustained-throughput regime. Mid-2026 devnet target: 50-100 attestations per second steady state, scaling to 1000+ at full mainnet. This is not blob-rollup-shaped traffic; it is closer to a high-write-rate database.]
+The throughput profile drives the consensus block size, share count per block, and validator bandwidth requirements in §5 and §10.
+
+**Formal model.** Per-schema attestation arrivals are modeled as independent Poisson processes:
+
+$$N_\sigma(t) \sim \text{Poisson}(\lambda_\sigma t)$$
+
+where $\lambda_\sigma$ is the per-schema arrival rate. Aggregate chain throughput is the sum over schemas:
+
+$$\Lambda(t) = \sum_\sigma \lambda_\sigma$$
+
+**Bursts vs sustained.** A characterizing property of attestation traffic, distinct from blob-rollup traffic, is that $\Lambda(t)$ is **sustained** rather than bursty. Rollup chains post a single multi-MB blob per block at a frequency determined by block time; the inter-blob arrival is bursty by construction. Attestation arrivals are continuous: each user action (a ChatGPT prompt, a wallet transfer, an agent action) generates an attestation independently. The arrival rate has diurnal and weekly cycles but is otherwise steady.
+
+This is closer to a high-write-rate database than a blob-storage workload.
+
+**Calibration targets.**
+
+| Phase | Aggregate $\Lambda$ (atts/sec) | Driver | Block size implication |
+|---|---|---|---|
+| v0 devnet | 50-100 | Themisra design partners + early adopters | ~0.5 MB/block at 12-sec blocks (median size) |
+| v1 mainnet (year 1) | 200-500 | Themisra + Mneme + Kleidon launches | ~2 MB/block |
+| v2 mainnet (year 2-3) | 1000-5000 | Iris agent traffic dominates; 100s of agents per user | ~20 MB/block at sustained peak |
+| v3 mature | 10000+ | Full agent ecosystem; AI-action attestation per second per user | ~100 MB/block; native DA becomes binding |
+
+[**Measured at v0.2.5+:** these are calibration targets, not predictions. Devnet measurement at v0.2.5 will firm up the v0 row; subsequent revisions will track aggregate $\Lambda$ as adoption progresses.]
+
+**Variance and tail behavior.** Under a Poisson process, the per-block attestation count $N_{\text{block}}$ has standard deviation $\sqrt{\lambda \cdot E}$ where $E$ is the block time. At $\Lambda = 1000$ atts/sec and $E = 12$ sec, expected block count is 12,000 with standard deviation $\approx 110$, a coefficient of variation $\approx 1\%$. This means block sizing can be tight (p99 block size $\approx 1.025 \cdot$ mean), a meaningful efficiency advantage over bursty workloads where p99/mean ratios of 5× to 10× are common.
+
+**Per-validator bandwidth.** A validator must serve sample requests for the rolling DA window plus per-block tally work. At v3 sustained peak ($\Lambda = 10000$, 100 MB/block), per-validator bandwidth is dominated by block ingestion rather than DA sampling overhead. The native DA design (§7) provides the bandwidth-per-validator analysis under the stated workload.
 
 ### 3.3 Ordering Requirements
 
-[**v0.2:** Per-schema strict ordering required (attestations of the same type from the same attestor must have well-defined order for slash-detection). Cross-schema eventual ordering is sufficient. This relaxation matters for the consensus design.]
+Ordering requirements interact with the consensus design (§7) and the slash-detection logic in PoUA's §A.1 / §A.2.
+
+**Per-schema strict ordering.** Within a single schema, the chain enforces a strict total order on attestations. This is required because:
+
+1. **Slash detection** (PoUA §A.1 KL-divergence detector): the detector reads a per-validator distribution over schema-IDs included in proposed blocks. Without per-schema ordering, the distribution becomes ambiguous and the FPR bound in §A.4 weakens.
+2. **Cross-attestation references** (cross-schema composition #6): a consumer schema referencing an input attestation needs the reference to resolve to a unique on-chain record. Strict per-schema ordering provides this.
+3. **Time-locked reveals** (time-locked attestations #7): commit-reveal pairs are ordered by commit-height; without per-schema ordering, the reveal-window check is ill-defined.
+
+**Cross-schema eventual ordering.** Across schemas, the chain provides only eventual ordering via block-height totality. Attestations of different schemas in the same block are partially ordered (any in-block tie-break suffices); attestations across blocks are ordered by block height.
+
+**Formal statement.** Let $\to_\sigma$ denote the per-schema ordering relation and $\to_h$ the block-height ordering. The chain provides:
+
+$$\forall \sigma: (a_1, a_2 \in \sigma, a_1 \to_\sigma a_2) \implies a_1 \neq a_2 \land (\text{height}(a_1), \text{seq}(a_1)) < (\text{height}(a_2), \text{seq}(a_2))$$
+
+where $\text{seq}(a)$ is the per-schema in-block sequence number, and:
+
+$$\forall a_1, a_2: (a_1 \to_h a_2) \iff \text{height}(a_1) < \text{height}(a_2)$$
+
+The relaxation from strict-total to per-schema-strict-plus-cross-schema-eventual matters because it permits the §6 commitment scheme to use per-schema sub-trees rather than a single global tree, reducing inclusion-proof size for schema-scoped queries.
+
+**Comparison with Celestia.** Celestia provides strict total ordering via block height + namespace + share index. This is stronger than necessary for attestation; the savings are at the indexing layer (§6.1), not at the consensus layer.
 
 ### 3.4 Retention Requirements
 
-[**v0.2:** Hot retention (full data, available for full DA sampling): 30 days minimum. Warm retention (commitments only, content available from validators on request): 1 year. Cold retention (attestor-history-queryable summaries only): forever. The tiered model is a departure from Celestia's "hot for all" approach.]
+Retention requirements drive the storage cost model and the tiered-pruning design.
+
+**Three-tier model.** The native DA retention is tiered by access pattern.
+
+| Tier | Duration | Stored content | Verification surface | Cost driver |
+|---|---|---|---|---|
+| **Hot** | 30 days minimum | Full attestation bytes + commitments | Full DA sampling | Bandwidth + storage |
+| **Warm** | 1 year | Per-schema commitment trees (no payload) | Inclusion proofs only | Storage |
+| **Cold** | Forever | Per-epoch summary commitments | Attestor-history queries only | Minimal storage |
+
+Hot tier supports recent-action verification: a user verifying their own ChatGPT prompt from yesterday, or a Mneme wallet showing recent transactions. Bandwidth-bound; needs full DA sampling.
+
+Warm tier supports historical inclusion checks: a regulator auditing a 6-month-old attestation, or a creator economy claim against an older Themisra attestation. Storage-bound; payloads can be served from warm-tier validators or external archive nodes.
+
+Cold tier supports attestor-history queries: "did $X$ sign in schema $\sigma$ at epoch $t$?" answered by per-epoch summary commitments. Minimal storage cost (one commitment per schema per epoch); supports indefinite retention.
+
+**Storage cost analysis.** Per-validator storage at v2 sustained peak ($\Lambda = 1000$, median size 400 B):
+
+- Hot tier (30 days): $1000 \cdot 400 \cdot 86400 \cdot 30 \approx 1$ TB
+- Warm tier (1 year): per-schema-commitment is $\approx 32$ B per attestation; $1000 \cdot 32 \cdot 86400 \cdot 365 \approx 1$ TB
+- Cold tier (forever): per-epoch summary is $\approx 32$ B per schema per epoch; at 7 schemas, $86400 / 14400 \approx 6$ epochs/day × 32 B × 365 days × 7 schemas $\approx 0.5$ MB/year. Negligible.
+
+Total per-validator storage at v2: $\approx 2$ TB hot+warm + cumulative cold tier. Comparable to a single SSD; tractable.
+
+**Comparison with Celestia.** Celestia provides full retention of all submitted blobs (subject to its own pruning policy at chain level). For attestation, this is over-retention: the warm and cold tiers do not need full payload retention, only commitment retention. Native DA's tiered model captures this savings.
+
+**Pruning interaction with PoUA reputation.** Reputation scoring depends on per-validator attestation history. The cold tier (per-epoch summaries) preserves what's needed for reputation reconstruction without full payload retention. Validators not in the active set can re-derive their reputation from cold-tier summaries plus the chain history at any future point.
 
 ### 3.5 Query Patterns
 
-[**v0.2:** Three dominant queries from the light-client side:
-1. "Show me attestations of type $\sigma$ between heights $H_1$ and $H_2$" (epoch summary).
-2. "Did attestor $X$ sign in schema $\sigma$ at epoch $t$" (attestor-history).
-3. "Prove inclusion of attestation $A$" (canonical inclusion proof).
-Query (2) is the one general-purpose DA does poorly.]
+The query patterns drive the light-client protocol design (§8).
+
+Three dominant queries account for the bulk of light-client load:
+
+**Q1: Inclusion proof.** "Prove that attestation $a$ is included in the canonical chain."
+
+- Frequency: high (every attestation read triggers one)
+- Verification cost: should be $O(\log N)$ in chain size or $O(\log d)$ in per-schema commitment depth
+- Comparison: Celestia provides namespace Merkle proofs; native DA can provide tighter per-schema commitment proofs at $O(\log d)$ where $d$ is schema-tree depth (typically much smaller than full chain depth)
+
+**Q2: Attestor-history query.** "Did attestor $X$ sign in schema $\sigma$ between epochs $t_1$ and $t_2$?"
+
+- Frequency: medium (reputation verification, audit trails, slashing-related queries)
+- Verification cost: should be $O(t_2 - t_1)$ summary commitments plus per-epoch attestor-index lookups
+- Comparison: Celestia does not natively index by attestor; native DA's per-schema commitment trees with attestor-id sub-indexing answer in a few hundred bytes per query
+
+**Q3: Range query.** "All attestations of type $\sigma$ between heights $H_1$ and $H_2$."
+
+- Frequency: low-to-medium (analytics, monitoring, compliance reporting)
+- Verification cost: $O(H_2 - H_1)$ inclusion proofs plus the per-schema sub-tree commitments
+- Comparison: Celestia answers via full namespace scan, $O((H_2 - H_1) \cdot \text{shares-per-block})$ in proof size; native DA reduces this by the per-schema indexing factor
+
+**Q1 dominates volume; Q2 dominates query-cost-savings benefit.** Q1 is the high-volume, low-individual-cost query. Q2 is the query that motivates per-schema indexing: at any reasonable attestation rate, Q2 on a non-indexed DA layer becomes computationally expensive enough to push the lookup off-chain (creating a centralization vector). Native DA's per-schema indexing keeps Q2 verifiable on-chain.
+
+**Privacy considerations.** Attestor-history queries reveal which validator signed which attestations. This is necessary for reputation scoring and slash detection but creates a per-validator visibility surface. PoUA accepts this trade-off (the §A detectors require this visibility); a privacy-preserving variant is future work.
 
 ---
 
