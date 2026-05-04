@@ -4,10 +4,10 @@ A two-phase attestation primitive: commit phase publishes a binding commitment t
 
 ## Latest
 
-- **Working paper**: [`time-locked-attestations.md`](time-locked-attestations.md) (markdown source), PDF to be generated when v0.2 has substantive content
-- **Version**: v0.1
-- **Status**: **Outline.** Section headings with intent annotations; no formal content yet. Authoring is **deferred until use-case validation**: at least one design partner per category (auction, embargo, regulatory) submits a concrete use case before v0.2 begins.
-- **Date**: 2026-05-03
+- **Working paper**: [`time-locked-attestations.md`](time-locked-attestations.md) (markdown source). PDF to be generated when v0.2 substantive content lands across §3 + §4 + §5 + §6.
+- **Version**: v0.1.1
+- **Status**: **Outline + mechanism substantive.** §4 (mechanism: commit / reveal / cleanup tx schemas, deposit-on-commit, front-running defense via batched-reveal sequencing) is now substantive prose with formal definitions. §1, §2, §3, §5+ remain v0.1 outline. v0.2 ships when at least one design-partner use case per category (auction, embargo, regulatory) is in hand.
+- **Date**: 2026-05-04 (updated; original v0.1 scaffold 2026-05-03)
 
 ## Abstract (placeholder)
 
