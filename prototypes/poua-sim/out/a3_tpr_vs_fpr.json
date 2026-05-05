@@ -1,0 +1,56 @@
+{
+  "config": {
+    "n_validators": 10,
+    "n_trials": 30,
+    "n_blocks_per_trial": 30,
+    "small_pool_size": 3,
+    "large_pool_size": 50,
+    "p_base": 0.05,
+    "fpr_targets": [
+      0.001,
+      0.005,
+      0.01,
+      0.02,
+      0.05,
+      0.1
+    ]
+  },
+  "sweep": [
+    {
+      "fpr_target": 0.001,
+      "tpr_small_pool": 1.0,
+      "tpr_large_pool": 1.0,
+      "empirical_fpr_honest": 0.0
+    },
+    {
+      "fpr_target": 0.005,
+      "tpr_small_pool": 1.0,
+      "tpr_large_pool": 1.0,
+      "empirical_fpr_honest": 0.0
+    },
+    {
+      "fpr_target": 0.01,
+      "tpr_small_pool": 1.0,
+      "tpr_large_pool": 1.0,
+      "empirical_fpr_honest": 0.0
+    },
+    {
+      "fpr_target": 0.02,
+      "tpr_small_pool": 1.0,
+      "tpr_large_pool": 1.0,
+      "empirical_fpr_honest": 0.0
+    },
+    {
+      "fpr_target": 0.05,
+      "tpr_small_pool": 1.0,
+      "tpr_large_pool": 1.0,
+      "empirical_fpr_honest": 0.0
+    },
+    {
+      "fpr_target": 0.1,
+      "tpr_small_pool": 1.0,
+      "tpr_large_pool": 1.0,
+      "empirical_fpr_honest": 0.0
+    }
+  ]
+}

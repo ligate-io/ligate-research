@@ -25,6 +25,11 @@ https://github.com/ligate-io/ligate-research/issues/3):
     poua_sim.plotting     PGF export for paper figures
 """
 
+from poua_sim.a3_slash import (
+    A3SlashConfig,
+    build_proposer_a3_snapshot,
+    maybe_apply_a3_slash,
+)
 from poua_sim.adversary import CapitalAdversary, CompoundAdversary, cartel_attestations
 from poua_sim.agent import (
     BehaviorPolicy,
@@ -84,6 +89,7 @@ __version__ = "0.4.0"
 __all__ = [
     "A3GraphSnapshot",
     "A3Null",
+    "A3SlashConfig",
     "Attestation",
     "BehaviorPolicy",
     "Block",
@@ -110,6 +116,7 @@ __all__ = [
     "analytical_attack_stake",
     "apply_proposer_policy",
     "apply_reputation_update",
+    "build_proposer_a3_snapshot",
     "cartel_attestations",
     "cartel_channel_gross_fees",
     "cartel_channel_predicted_dr",
@@ -121,6 +128,7 @@ __all__ = [
     "constant_attestations",
     "equivocation_slash_severity",
     "layer3_net_burn",
+    "maybe_apply_a3_slash",
     "multi_schema_attestations",
     "proposer_share",
     "realized_kappa",
