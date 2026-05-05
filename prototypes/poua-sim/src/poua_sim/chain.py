@@ -10,6 +10,16 @@ proposer time. ``advance_slot`` consults the proposer's
 ``behavior_policy`` and applies the policy-specific transformation
 (empty attestations for FREE_RIDE_VIA_VOTE_ONLY; equivocation slash for
 EQUIVOCATE) before tallying the block.
+
+M6 follow-up #53: §A.3 detector slashing integration (Part A) +
+§5.5 Layer 2 controlled-addresses chain rejection (Part B). Both
+opt-in via ``a3_slash_config`` / ``enable_layer_2``.
+
+M7 phase 1: optional ``network_scheduler`` field. When set,
+``advance_slot`` consults the scheduler at vote-construction time and
+excludes validators whose delivery slot exceeds the block's creation
+slot from the voter set. Default ``None`` preserves M1-M6 + #53
+synchronous behavior.
 """
 
 from __future__ import annotations
@@ -26,6 +36,7 @@ from poua_sim.agent import (
     equivocation_slash_severity,
 )
 from poua_sim.attestation import Attestation
+from poua_sim.network import NetworkScheduler
 from poua_sim.proposer import select_proposer
 from poua_sim.reputation import (
     ReputationParams,
@@ -170,6 +181,17 @@ class Chain:
     # chains derive `controlled_addresses` from on-chain history; the
     # simulator pre-populates it per-test.
     enable_layer_2: bool = False
+    # M7 phase 1: network conditions scheduler. When None (default),
+    # the chain is fully synchronous (every validator votes on every
+    # block); preserves M1-M6 + #53 baseline behavior.
+    #
+    # When set, ``advance_slot`` consults the scheduler at
+    # vote-construction time. Validators whose delivery slot strictly
+    # exceeds the block's creation slot are excluded from that block's
+    # voter set. See ``poua_sim.network`` for the protocol and the
+    # ``UniformLatencyScheduler`` / ``AdversarialLatencyScheduler``
+    # implementations shipped in phase 1.
+    network_scheduler: NetworkScheduler | None = None
 
     def __post_init__(self) -> None:
         if not self.validators:
@@ -226,9 +248,27 @@ class Chain:
                 self.params.r_max - self.params.r_min
             )
             self.slash(proposer.address, severity)
-        voters = (
-            [v.address for v in self.validators] if self.all_validators_vote else [proposer.address]
+        # M7 phase 1: voter pool is the full validator set when
+        # ``all_validators_vote`` is True (M2 default), otherwise only
+        # the proposer. The network scheduler (when set) further
+        # restricts the pool by excluding validators whose delivery slot
+        # exceeds the block's creation slot.
+        voters_pool = (
+            self.validators if self.all_validators_vote else [proposer]
         )
+        if self.network_scheduler is None:
+            voters = [v.address for v in voters_pool]
+        else:
+            delivery = self.network_scheduler.deliver(
+                block_slot=self.slot,
+                proposer_address=proposer.address,
+                recipients=voters_pool,
+            )
+            voters = [
+                v.address
+                for v in voters_pool
+                if v.address in delivery and delivery[v.address] <= self.slot
+            ]
         block = Block(
             slot=self.slot,
             proposer=proposer.address,

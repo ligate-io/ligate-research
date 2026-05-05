@@ -17,6 +17,9 @@ Layout (M4):
                          dispatch helpers (HONEST, EQUIVOCATE,
                          FREE_RIDE_VIA_VOTE_ONLY)
     poua_sim.adversary   Capital adversary (M3) + compound adversary (M4)
+    poua_sim.network     M7 phase 1: NetworkScheduler protocol +
+                         UniformLatencyScheduler +
+                         AdversarialLatencyScheduler
 
 Future modules (M5, milestones tracked in
 https://github.com/ligate-io/ligate-research/issues/3):
@@ -65,6 +68,11 @@ from poua_sim.metrics import (
     realized_weight_share,
     stake_weighted_mean_reputation,
 )
+from poua_sim.network import (
+    AdversarialLatencyScheduler,
+    NetworkScheduler,
+    UniformLatencyScheduler,
+)
 from poua_sim.proposer import select_proposer
 from poua_sim.rebase import (
     RebaseConfig,
@@ -90,6 +98,7 @@ __all__ = [
     "A3GraphSnapshot",
     "A3Null",
     "A3SlashConfig",
+    "AdversarialLatencyScheduler",
     "Attestation",
     "BehaviorPolicy",
     "Block",
@@ -99,12 +108,14 @@ __all__ = [
     "CompoundAdversary",
     "IMPLEMENTED_POLICIES",
     "Layer3Config",
+    "NetworkScheduler",
     "PHASE1_POLICIES",
     "PHASE2_POLICIES",
     "PHASE3_POLICIES",
     "RebaseConfig",
     "RebaseTelemetry",
     "ReputationParams",
+    "UniformLatencyScheduler",
     "Validator",
     "a2_empirical_distribution",
     "a2_flag",
