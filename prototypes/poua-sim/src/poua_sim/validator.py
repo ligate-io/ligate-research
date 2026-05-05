@@ -63,6 +63,19 @@ class Validator:
         GRIND_VIA_STAGED_SUBMITTERS``. Pool of controlled-but-distinct
         submitter addresses the validator cycles through when staging
         attestations. Empty tuple by default.
+    controlled_addresses : tuple of str
+        M6 follow-up Part B (#53): chain-known set of addresses
+        controlled by this validator beyond their own validator address.
+        When ``Chain.enable_layer_2 == True``, the §5.5 Layer 2 check
+        in ``_tally_block`` rejects attestations whose submitter is in
+        this set, simulating chain-level address-graph distance
+        enforcement. Empty tuple by default (no Layer 2 effect).
+
+        In a production chain, this set would be derived from on-chain
+        transaction history (graph distance metric). The simulator
+        models the rejection mechanism directly; populating the set
+        per-test simulates "the chain has discovered the controlled
+        relationship."
     """
 
     address: str
@@ -86,6 +99,11 @@ class Validator:
     target_schema_to_censor: str | None = None
     grind_attestation_count: int = 5
     staged_submitter_addresses: tuple[str, ...] = ()
+    # M6 follow-up Part B (#53): chain-known controlled-addresses set.
+    # When Chain.enable_layer_2 is True, _tally_block rejects
+    # attestations whose submitter is in this set. Empty by default
+    # (Layer 2 is no-op for this validator).
+    controlled_addresses: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.stake <= 0:

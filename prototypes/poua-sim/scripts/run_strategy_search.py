@@ -112,14 +112,19 @@ def _build_chain(
     deviator_stake_share: float,
     seed: int,
     enable_a3_slash: bool = False,
+    enable_layer_2: bool = False,
 ) -> tuple[Chain, np.random.Generator, str]:
     """Construct a chain with one deviator + N-1 honest validators.
 
     Returns ``(chain, rng, deviator_address)``.
 
-    If ``enable_a3_slash=True``, the chain runs with §A.3 detector
-    slashing integration enabled (M6 follow-up Part A, issue #53).
-    Default ``False`` matches the M6 phase 4 baseline (Layer-1 only).
+    Defense modes:
+    - ``enable_a3_slash=False, enable_layer_2=False``: M6 phase 4
+      baseline (Layer 1 only)
+    - ``enable_a3_slash=True``: M6 follow-up Part A (#53 Part A)
+    - ``enable_layer_2=True``: M6 follow-up Part B (#53 Part B);
+      controlled-addresses chain rejection
+    - Both: full layered defense
     """
     deviator_stake = TOTAL_STAKE * deviator_stake_share
     honest_stake = (TOTAL_STAKE - deviator_stake) / (N_VALIDATORS - 1)
@@ -138,6 +143,10 @@ def _build_chain(
         deviator.grind_attestation_count = GRIND_ATTESTATION_COUNT
     if deviator_policy == BehaviorPolicy.GRIND_VIA_STAGED_SUBMITTERS:
         deviator.staged_submitter_addresses = STAGED_POOL
+        # M6 follow-up Part B: chain has discovered the staged-address
+        # relationship (in production, derived from on-chain history).
+        # Populate `controlled_addresses` to match for testing.
+        deviator.controlled_addresses = STAGED_POOL
 
     validators = [deviator] + [
         Validator(address=f"honest_{i}", stake=honest_stake)
@@ -157,6 +166,7 @@ def _build_chain(
         params=ReputationParams(epoch_length=EPOCH_LENGTH),
         attestation_generator=constant_attestations(n_per_block=10, fee=1.0),
         a3_slash_config=a3_config,
+        enable_layer_2=enable_layer_2,
     )
     return chain, rng, "deviator"
 
@@ -166,6 +176,7 @@ def _run_one_trial(
     deviator_stake_share: float,
     seed: int,
     enable_a3_slash: bool = False,
+    enable_layer_2: bool = False,
 ) -> dict[str, float]:
     """Run one chain to ``N_EPOCHS * EPOCH_LENGTH`` slots.
 
@@ -177,7 +188,11 @@ def _run_one_trial(
         - ``proposer_count``: number of blocks proposed by deviator
     """
     chain, rng, deviator_addr = _build_chain(
-        deviator_policy, deviator_stake_share, seed, enable_a3_slash=enable_a3_slash
+        deviator_policy,
+        deviator_stake_share,
+        seed,
+        enable_a3_slash=enable_a3_slash,
+        enable_layer_2=enable_layer_2,
     )
 
     n_slots = EPOCH_LENGTH * N_EPOCHS
@@ -197,6 +212,7 @@ def _run_trials_for_cell(
     deviator_policy: BehaviorPolicy,
     deviator_stake_share: float,
     enable_a3_slash: bool = False,
+    enable_layer_2: bool = False,
 ) -> dict[str, float]:
     """Run N_TRIALS Monte Carlo trials for one (policy, stake-share) cell.
 
@@ -210,6 +226,7 @@ def _run_trials_for_cell(
             deviator_stake_share=deviator_stake_share,
             seed=trial,  # deterministic per trial
             enable_a3_slash=enable_a3_slash,
+            enable_layer_2=enable_layer_2,
         )
         rep_values.append(result["final_reputation"])
         proposer_counts.append(result["proposer_count"])
@@ -227,7 +244,7 @@ def _run_trials_for_cell(
 # --- Main scan ------------------------------------------------------
 
 
-def run_scan(enable_a3_slash: bool = False) -> dict:
+def run_scan(enable_a3_slash: bool = False, enable_layer_2: bool = False) -> dict:
     """Sweep all (strategy, stake-share) cells and return results dict."""
     results: dict[str, dict[str, dict[str, float]]] = {}
 
@@ -238,6 +255,7 @@ def run_scan(enable_a3_slash: bool = False) -> dict:
                 deviator_policy=policy,
                 deviator_stake_share=share_value,
                 enable_a3_slash=enable_a3_slash,
+                enable_layer_2=enable_layer_2,
             )
             results[share_name][policy.value] = cell
             print(
@@ -348,6 +366,104 @@ def make_heatmap(results: dict) -> None:
     out_png = OUT / "strategy_reward_heatmap.png"
     fig.savefig(out_png, dpi=140, bbox_inches="tight")
     print(f"Heatmap saved to {out_png}")
+    plt.close(fig)
+
+
+def make_3panel_heatmap(
+    results_layer1: dict,
+    results_with_a3: dict,
+    results_with_layer_2: dict,
+) -> None:
+    """Render the 3-panel comparison heatmap (full layered defense).
+
+    Panel A: Layer 1 only (M6 phase 4 baseline)
+    Panel B: Layer 1 + §A.3 slash (M6 follow-up Part A)
+    Panel C: Layer 1 + §A.3 slash + Layer 2 (M6 follow-up Part B)
+
+    Expected: GRIND-STAGED dominates HONEST in panel A; HONEST
+    dominates in panel B at small pools but NOT at large diluted
+    pools; HONEST dominates in panel C across all pool sizes.
+    """
+    share_order = ["low", "medium", "high"]
+    strategy_order = STRATEGIES
+
+    def matrix(results):
+        m = np.zeros((len(strategy_order), len(share_order)))
+        for i, policy in enumerate(strategy_order):
+            for j, share_name in enumerate(share_order):
+                m[i, j] = results[share_name][policy.value]["mean_reputation"]
+        return m
+
+    m1 = matrix(results_layer1)
+    m2 = matrix(results_with_a3)
+    m3 = matrix(results_with_layer_2)
+
+    vmin = max(min(m1.min(), m2.min(), m3.min()), 0.5)
+    vmax = max(m1.max(), m2.max(), m3.max())
+    honest_mean_l1 = m1[0].mean()
+
+    fig, axes = plt.subplots(1, 3, figsize=(18, 5.5), sharey=True)
+
+    for ax, m, title in zip(
+        axes,
+        [m1, m2, m3],
+        [
+            "Panel A: Layer 1 only",
+            "Panel B: Layer 1 + §A.3 slash",
+            "Panel C: Layer 1 + §A.3 slash + Layer 2",
+        ],
+    ):
+        ax.imshow(m, cmap="RdYlGn", vmin=vmin, vmax=vmax, aspect="auto")
+        for i in range(len(strategy_order)):
+            for j in range(len(share_order)):
+                txt_color = "white" if m[i, j] < honest_mean_l1 * 0.6 else "black"
+                ax.text(
+                    j,
+                    i,
+                    f"{m[i, j]:.2f}",
+                    ha="center",
+                    va="center",
+                    color=txt_color,
+                    fontsize=10,
+                    fontweight="bold",
+                )
+        ax.set_xticks(range(len(share_order)))
+        ax.set_xticklabels(
+            [
+                f"{name.capitalize()}\n({STAKE_SHARES[name]:.0%})"
+                for name in share_order
+            ]
+        )
+        ax.set_xlabel("Adversary stake share")
+        ax.set_title(title, fontsize=11)
+        ax.axhline(0.5, color="black", linewidth=2)
+
+    axes[0].set_yticks(range(len(strategy_order)))
+    axes[0].set_yticklabels([STRATEGY_LABELS[p] for p in strategy_order])
+
+    fig.suptitle(
+        f"Strategy reward heatmap, full layered-defense comparison\n"
+        f"({N_TRIALS} Monte Carlo trials × {N_EPOCHS} epochs × "
+        f"{N_VALIDATORS} validators per cell)"
+    )
+
+    fig.text(
+        0.5,
+        -0.02,
+        "Panel A: M6 phase 4 baseline. Panel B: §A.3 slash catches small-pool grinders "
+        "(detection-driven). Panel C: Layer 2 chain rejection\nis deterministic regardless "
+        "of pool size; closes the diluted-pool gap left by §A.3 alone. Full layered defense "
+        "produces HONEST > all deviations across all stake shares.",
+        ha="center",
+        fontsize=8,
+        style="italic",
+        color="dimgray",
+    )
+
+    plt.tight_layout()
+    out_png = OUT / "strategy_reward_heatmap_3panel.png"
+    fig.savefig(out_png, dpi=140, bbox_inches="tight")
+    print(f"3-panel heatmap saved to {out_png}")
     plt.close(fig)
 
 
@@ -525,7 +641,52 @@ def main() -> None:
         help="Run a 2-panel comparison: Layer-1-only baseline + §A.3 slash on. "
         "Closes the M6 phase 4 gap (#53 Part A).",
     )
+    parser.add_argument(
+        "--enable-layer-2",
+        action="store_true",
+        help="Run a 3-panel comparison: Layer-1-only + §A.3 slash + Layer 2 "
+        "(M6 follow-up Part B, #53). Implies --enable-a3-slash.",
+    )
     args = parser.parse_args()
+
+    if args.enable_layer_2:
+        print("3-panel scan: Layer 1 only / + §A.3 slash / + Layer 2")
+        print(
+            f"  {N_VALIDATORS} validators, {N_TRIALS} trials per cell, "
+            f"{N_EPOCHS} epochs each ({EPOCH_LENGTH} slots/epoch)"
+        )
+        print(f"  Strategies: {[s.value for s in STRATEGIES]}")
+        print(f"  Stake shares: {STAKE_SHARES}")
+        print()
+        print("--- Panel A: Layer 1 only ---")
+        results_layer1 = run_scan(enable_a3_slash=False, enable_layer_2=False)
+        print("--- Panel B: Layer 1 + §A.3 slash ---")
+        results_with_a3 = run_scan(enable_a3_slash=True, enable_layer_2=False)
+        print("--- Panel C: Layer 1 + §A.3 slash + Layer 2 ---")
+        results_with_layer_2 = run_scan(enable_a3_slash=True, enable_layer_2=True)
+        make_3panel_heatmap(results_layer1, results_with_a3, results_with_layer_2)
+
+        out_json = OUT / "strategy_reward_heatmap_3panel.json"
+        out_json.write_text(
+            json.dumps(
+                {
+                    "config": {
+                        "n_validators": N_VALIDATORS,
+                        "n_trials_per_cell": N_TRIALS,
+                        "epoch_length": EPOCH_LENGTH,
+                        "n_epochs": N_EPOCHS,
+                        "stake_shares": STAKE_SHARES,
+                    },
+                    "panel_a_layer_1_only": results_layer1,
+                    "panel_b_with_a3_slash": results_with_a3,
+                    "panel_c_full_defense": results_with_layer_2,
+                },
+                indent=2,
+            )
+        )
+        print(f"3-panel summary saved to {out_json}")
+        print("Done.")
+        return
 
     if args.enable_a3_slash:
         print("2-panel scan: Layer 1 only + Layer 1 + §A.3 slash integration")

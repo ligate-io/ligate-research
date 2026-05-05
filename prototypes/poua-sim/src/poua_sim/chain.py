@@ -159,6 +159,17 @@ class Chain:
     # backward compatibility. Opt in by passing
     # `A3SlashConfig(enabled=True, ...)` at construction.
     a3_slash_config: A3SlashConfig = field(default_factory=A3SlashConfig)
+    # M6 follow-up Part B (#53): §5.5 Layer 2 controlled-addresses
+    # chain rejection. When True, _tally_block rejects attestations
+    # whose submitter is in the proposer's `controlled_addresses` set
+    # (in addition to the existing Layer 1 proposer-address-equality
+    # check). Default False preserves M1-M6 + Part A backward compat.
+    #
+    # Models §5.5.2 Layer 2 (address-graph distance) functionally
+    # without the full transaction-graph distance metric. Production
+    # chains derive `controlled_addresses` from on-chain history; the
+    # simulator pre-populates it per-test.
+    enable_layer_2: bool = False
 
     def __post_init__(self) -> None:
         if not self.validators:
@@ -287,6 +298,14 @@ class Chain:
         ``α.submitter == v.address``. Applied to both proposer and voter
         sides.
 
+        §5.5 Layer 2 (M6 follow-up Part B, #53): when
+        ``self.enable_layer_2 == True``, an attestation ``α`` also
+        contributes 0 to ``g_v(t)`` if ``α.submitter`` is in
+        ``v.controlled_addresses``. The simulator models the
+        controlled-address relationship directly; production chains
+        derive it from on-chain transaction graph distance per §5.5.2
+        of the paper.
+
         ``cartel_marker`` attestations additionally accumulate into the
         ``epoch_g_*_from_cartel`` buckets used by the empirical Lemma 1
         validation in M4. This is instrumentation, not a protocol rule.
@@ -296,9 +315,13 @@ class Chain:
 
         proposer_addr = block.proposer
         proposer = self._validators_by_address[proposer_addr]
+        proposer_controlled = (
+            set(proposer.controlled_addresses) if self.enable_layer_2 else set()
+        )
 
         # Proposer side: sum fees of valid attestations whose submitter is
-        # not the proposer (Layer 1).
+        # not the proposer (Layer 1) and not in proposer's controlled
+        # addresses set (Layer 2).
         proposer_eligible_total = 0.0
         proposer_eligible_cartel = 0.0
         for a in block.attestations:
@@ -306,6 +329,8 @@ class Chain:
                 continue
             if a.submitter == proposer_addr:
                 continue  # Layer 1
+            if a.submitter in proposer_controlled:
+                continue  # Layer 2 (M6 follow-up Part B)
             proposer_eligible_total += a.fee
             if a.cartel_marker:
                 proposer_eligible_cartel += a.fee
@@ -319,6 +344,10 @@ class Chain:
         for voter_addr in block.voters:
             if voter_addr == proposer_addr:
                 continue  # §4.3: proposer earns through G_prop, not G_vote, on own block
+            voter = self._validators_by_address[voter_addr]
+            voter_controlled = (
+                set(voter.controlled_addresses) if self.enable_layer_2 else set()
+            )
             voter_eligible = 0.0
             voter_eligible_cartel = 0.0
             for a in block.attestations:
@@ -326,10 +355,11 @@ class Chain:
                     continue
                 if a.submitter == voter_addr:
                     continue  # Layer 1 on the voter side
+                if a.submitter in voter_controlled:
+                    continue  # Layer 2 on the voter side
                 voter_eligible += a.fee
                 if a.cartel_marker:
                     voter_eligible_cartel += a.fee
-            voter = self._validators_by_address[voter_addr]
             voter.epoch_g_vote += voter_eligible / n_voters
             voter.epoch_g_vote_from_cartel += voter_eligible_cartel / n_voters
 
