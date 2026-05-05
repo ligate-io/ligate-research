@@ -61,6 +61,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
 from poua_sim import (  # noqa: E402
+    A3SlashConfig,
     BehaviorPolicy,
     Chain,
     ReputationParams,
@@ -110,10 +111,15 @@ def _build_chain(
     deviator_policy: BehaviorPolicy,
     deviator_stake_share: float,
     seed: int,
+    enable_a3_slash: bool = False,
 ) -> tuple[Chain, np.random.Generator, str]:
     """Construct a chain with one deviator + N-1 honest validators.
 
     Returns ``(chain, rng, deviator_address)``.
+
+    If ``enable_a3_slash=True``, the chain runs with §A.3 detector
+    slashing integration enabled (M6 follow-up Part A, issue #53).
+    Default ``False`` matches the M6 phase 4 baseline (Layer-1 only).
     """
     deviator_stake = TOTAL_STAKE * deviator_stake_share
     honest_stake = (TOTAL_STAKE - deviator_stake) / (N_VALIDATORS - 1)
@@ -138,11 +144,19 @@ def _build_chain(
         for i in range(N_VALIDATORS - 1)
     ]
 
+    a3_config = A3SlashConfig(
+        enabled=enable_a3_slash,
+        window_blocks=20,
+        p_base=0.05,
+        fpr_target=0.01,
+    )
+
     rng = np.random.default_rng(seed=seed)
     chain = Chain(
         validators=validators,
         params=ReputationParams(epoch_length=EPOCH_LENGTH),
         attestation_generator=constant_attestations(n_per_block=10, fee=1.0),
+        a3_slash_config=a3_config,
     )
     return chain, rng, "deviator"
 
@@ -151,6 +165,7 @@ def _run_one_trial(
     deviator_policy: BehaviorPolicy,
     deviator_stake_share: float,
     seed: int,
+    enable_a3_slash: bool = False,
 ) -> dict[str, float]:
     """Run one chain to ``N_EPOCHS * EPOCH_LENGTH`` slots.
 
@@ -162,7 +177,7 @@ def _run_one_trial(
         - ``proposer_count``: number of blocks proposed by deviator
     """
     chain, rng, deviator_addr = _build_chain(
-        deviator_policy, deviator_stake_share, seed
+        deviator_policy, deviator_stake_share, seed, enable_a3_slash=enable_a3_slash
     )
 
     n_slots = EPOCH_LENGTH * N_EPOCHS
@@ -181,6 +196,7 @@ def _run_one_trial(
 def _run_trials_for_cell(
     deviator_policy: BehaviorPolicy,
     deviator_stake_share: float,
+    enable_a3_slash: bool = False,
 ) -> dict[str, float]:
     """Run N_TRIALS Monte Carlo trials for one (policy, stake-share) cell.
 
@@ -193,6 +209,7 @@ def _run_trials_for_cell(
             deviator_policy=deviator_policy,
             deviator_stake_share=deviator_stake_share,
             seed=trial,  # deterministic per trial
+            enable_a3_slash=enable_a3_slash,
         )
         rep_values.append(result["final_reputation"])
         proposer_counts.append(result["proposer_count"])
@@ -210,7 +227,7 @@ def _run_trials_for_cell(
 # --- Main scan ------------------------------------------------------
 
 
-def run_scan() -> dict:
+def run_scan(enable_a3_slash: bool = False) -> dict:
     """Sweep all (strategy, stake-share) cells and return results dict."""
     results: dict[str, dict[str, dict[str, float]]] = {}
 
@@ -220,6 +237,7 @@ def run_scan() -> dict:
             cell = _run_trials_for_cell(
                 deviator_policy=policy,
                 deviator_stake_share=share_value,
+                enable_a3_slash=enable_a3_slash,
             )
             results[share_name][policy.value] = cell
             print(
@@ -235,6 +253,16 @@ def run_scan() -> dict:
 # --- Plot -----------------------------------------------------------
 
 
+STRATEGY_LABELS = {
+    BehaviorPolicy.HONEST: "HONEST (baseline)",
+    BehaviorPolicy.EQUIVOCATE: "EQUIVOCATE",
+    BehaviorPolicy.FREE_RIDE_VIA_VOTE_ONLY: "FREE-RIDE",
+    BehaviorPolicy.CENSOR_BY_SCHEMA: "CENSOR (schema)",
+    BehaviorPolicy.GRIND_VIA_SELF_ATTESTATION: "GRIND-SELF",
+    BehaviorPolicy.GRIND_VIA_STAGED_SUBMITTERS: "GRIND-STAGED",
+}
+
+
 def make_heatmap(results: dict) -> None:
     """Render the strategy × stake-share heatmap.
 
@@ -244,14 +272,7 @@ def make_heatmap(results: dict) -> None:
 
     A horizontal divider after HONEST emphasizes the dominance comparison.
     """
-    strategy_labels = {
-        BehaviorPolicy.HONEST: "HONEST (baseline)",
-        BehaviorPolicy.EQUIVOCATE: "EQUIVOCATE",
-        BehaviorPolicy.FREE_RIDE_VIA_VOTE_ONLY: "FREE-RIDE",
-        BehaviorPolicy.CENSOR_BY_SCHEMA: "CENSOR (schema)",
-        BehaviorPolicy.GRIND_VIA_SELF_ATTESTATION: "GRIND-SELF",
-        BehaviorPolicy.GRIND_VIA_STAGED_SUBMITTERS: "GRIND-STAGED",
-    }
+    strategy_labels = STRATEGY_LABELS
 
     share_order = ["low", "medium", "high"]
     strategy_order = STRATEGIES
@@ -330,6 +351,94 @@ def make_heatmap(results: dict) -> None:
     plt.close(fig)
 
 
+def make_2panel_heatmap(results_layer1: dict, results_with_a3: dict) -> None:
+    """Render the 2-panel comparison heatmap (M6 follow-up Part A).
+
+    Panel A: Layer 1 only (existing M6 phase 4 finding)
+    Panel B: Layer 1 + §A.3 slash integration (M6 follow-up Part A)
+
+    Expected: GRIND-STAGED dominates HONEST in panel A; HONEST
+    dominates GRIND-STAGED in panel B (small-pool case).
+    """
+    share_order = ["low", "medium", "high"]
+    strategy_order = STRATEGIES
+
+    def matrix(results):
+        m = np.zeros((len(strategy_order), len(share_order)))
+        for i, policy in enumerate(strategy_order):
+            for j, share_name in enumerate(share_order):
+                m[i, j] = results[share_name][policy.value]["mean_reputation"]
+        return m
+
+    m1 = matrix(results_layer1)
+    m2 = matrix(results_with_a3)
+
+    # Common color scale across both panels for direct comparison.
+    vmin = max(min(m1.min(), m2.min()), 0.5)
+    vmax = max(m1.max(), m2.max())
+    honest_mean_l1 = m1[0].mean()
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5.5), sharey=True)
+
+    for ax, m, title in zip(
+        axes,
+        [m1, m2],
+        ["Panel A: Layer 1 only", "Panel B: Layer 1 + §A.3 slash"],
+    ):
+        ax.imshow(m, cmap="RdYlGn", vmin=vmin, vmax=vmax, aspect="auto")
+        for i in range(len(strategy_order)):
+            for j in range(len(share_order)):
+                txt_color = "white" if m[i, j] < honest_mean_l1 * 0.6 else "black"
+                ax.text(
+                    j,
+                    i,
+                    f"{m[i, j]:.2f}",
+                    ha="center",
+                    va="center",
+                    color=txt_color,
+                    fontsize=10,
+                    fontweight="bold",
+                )
+        ax.set_xticks(range(len(share_order)))
+        ax.set_xticklabels(
+            [
+                f"{name.capitalize()}\n({STAKE_SHARES[name]:.0%})"
+                for name in share_order
+            ]
+        )
+        ax.set_xlabel("Adversary stake share")
+        ax.set_title(title)
+        ax.axhline(0.5, color="black", linewidth=2)
+
+    axes[0].set_yticks(range(len(strategy_order)))
+    axes[0].set_yticklabels([STRATEGY_LABELS[p] for p in strategy_order])
+
+    fig.suptitle(
+        f"Strategy reward heatmap, before vs after §A.3 detector slashing\n"
+        f"({N_TRIALS} Monte Carlo trials × {N_EPOCHS} epochs × "
+        f"{N_VALIDATORS} validators per cell)"
+    )
+
+    fig.text(
+        0.5,
+        -0.02,
+        "Panel A: M6 phase 4 baseline. Layer 1 alone leaves GRIND-STAGED dominant. "
+        "Panel B: with §A.3 detector wired into slashing,\nHONEST dominates "
+        "GRIND-STAGED at small pool. Large diluted pools still evade A3; closing "
+        "that gap is Layer 2 (Part B, #53).",
+        ha="center",
+        fontsize=8,
+        style="italic",
+        color="dimgray",
+    )
+
+    plt.tight_layout()
+    out_png = OUT / "strategy_reward_heatmap_2panel.png"
+    fig.savefig(out_png, dpi=140, bbox_inches="tight")
+    print(f"2-panel heatmap saved to {out_png}")
+    plt.close(fig)
+
+
 def write_summary(results: dict) -> None:
     """Write JSON summary for paper citation."""
     summary = {
@@ -405,6 +514,57 @@ def _check_honest_dominance(results: dict) -> dict:
 
 
 def main() -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Strategy-search Monte Carlo scan"
+    )
+    parser.add_argument(
+        "--enable-a3-slash",
+        action="store_true",
+        help="Run a 2-panel comparison: Layer-1-only baseline + §A.3 slash on. "
+        "Closes the M6 phase 4 gap (#53 Part A).",
+    )
+    args = parser.parse_args()
+
+    if args.enable_a3_slash:
+        print("2-panel scan: Layer 1 only + Layer 1 + §A.3 slash integration")
+        print(
+            f"  {N_VALIDATORS} validators, {N_TRIALS} trials per cell, "
+            f"{N_EPOCHS} epochs each ({EPOCH_LENGTH} slots/epoch)"
+        )
+        print(f"  Strategies: {[s.value for s in STRATEGIES]}")
+        print(f"  Stake shares: {STAKE_SHARES}")
+        print()
+        print("--- Panel A: Layer 1 only ---")
+        results_layer1 = run_scan(enable_a3_slash=False)
+        print("--- Panel B: Layer 1 + §A.3 slash ---")
+        results_with_a3 = run_scan(enable_a3_slash=True)
+        make_2panel_heatmap(results_layer1, results_with_a3)
+
+        # Save both summaries.
+        out_json = OUT / "strategy_reward_heatmap_2panel.json"
+        out_json.write_text(
+            json.dumps(
+                {
+                    "config": {
+                        "n_validators": N_VALIDATORS,
+                        "n_trials_per_cell": N_TRIALS,
+                        "epoch_length": EPOCH_LENGTH,
+                        "n_epochs": N_EPOCHS,
+                        "stake_shares": STAKE_SHARES,
+                    },
+                    "panel_a_layer_1_only": results_layer1,
+                    "panel_b_with_a3_slash": results_with_a3,
+                    "panel_a_dominance": _check_honest_dominance(results_layer1),
+                },
+                indent=2,
+            )
+        )
+        print(f"2-panel summary saved to {out_json}")
+        print("Done.")
+        return
+
     print("Strategy-search Monte Carlo scan")
     print(
         f"  {N_VALIDATORS} validators, {N_TRIALS} trials per cell, "

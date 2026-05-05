@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from poua_sim.a3_slash import A3SlashConfig, maybe_apply_a3_slash
 from poua_sim.agent import (
     BehaviorPolicy,
     apply_proposer_policy,
@@ -153,6 +154,11 @@ class Chain:
     all_validators_vote: bool = True
     blocks: list[Block] = field(default_factory=list)
     slot: int = 0
+    # M6 follow-up Part A (#53): §A.3 detector slashing integration.
+    # Default is the no-op config (`enabled=False`); preserves M1-M6
+    # backward compatibility. Opt in by passing
+    # `A3SlashConfig(enabled=True, ...)` at construction.
+    a3_slash_config: A3SlashConfig = field(default_factory=A3SlashConfig)
 
     def __post_init__(self) -> None:
         if not self.validators:
@@ -220,6 +226,10 @@ class Chain:
         )
         self.blocks.append(block)
         self._tally_block(block)
+        # M6 follow-up Part A (#53): if §A.3 slashing is enabled, run
+        # the detector against the proposer's rolling-window snapshot
+        # and slash if fired. No-op when disabled (default).
+        maybe_apply_a3_slash(self, proposer.address, self.a3_slash_config)
         self.slot += 1
         if self.slot % self.params.epoch_length == 0:
             self._apply_epoch_reputation_update()
