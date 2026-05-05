@@ -98,9 +98,14 @@ Per the [v0.8 work tracker (#37)](https://github.com/ligate-io/ligate-research/i
 - §11 Q6 "Why not just use Celestia raw?"
 - §11 Q7 "Will Ligate Chain ever support general-purpose smart contracts?"
 - §4.4.3 adaptive η/λ rebase (working spec at `specs/eta-lambda-rebase.md`; PR #35)
-- §6.2 strategy reward heatmap (M6 phase 4; PR #54)
-- §A.4 A3 TPR figure (depends on §A.3 slash integration; #53 Part A)
+- §6.2 strategy reward heatmap update to 3-panel mode (M6 phase 4 baseline + Part A §A.3 + Part B Layer 2; PR #54, #72, #73)
+- §A.4 A3 TPR figure note: synthetic-attestor model causes density saturation (TPR=1.0 across β_3 sweep); diluted-pool gap captured separately by §5.5 Layer 2 closure (PR #72)
+- §5.5.2 Layer 2 cost-to-evade tightening: simplified-membership chain implementation now lives at `Validator.controlled_addresses` + `Chain.enable_layer_2` (PR #73). Paper-side wording reconciliation pending.
+- §8 RepuCoin row correction (Yu reviewer; #71)
+- §11 Q4 RepuCoin contrast expansion (Yu reviewer; #71)
 - Reviewer-driven revisions from the May 4-8 cold-ask batch
+
+Sim-layer dependencies for §A.3 slash integration (#53 Part A) and §5.5 Layer 2 (#53 Part B) are **done as of 2026-05-05**. Issue #53 closed. Paper-side integration lands in v0.8.
 
 v0.8 opens after substantive reviewer feedback consolidates.
 
