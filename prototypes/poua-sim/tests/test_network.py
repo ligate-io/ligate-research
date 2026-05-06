@@ -31,6 +31,7 @@ from poua_sim.chain import Chain, constant_attestations
 from poua_sim.network import (
     AdversarialLatencyScheduler,
     NetworkScheduler,
+    PartitionScheduler,
     UniformLatencyScheduler,
 )
 from poua_sim.reputation import ReputationParams
@@ -540,3 +541,298 @@ def test_phase2a_pending_deliveries_drain_in_order_across_slots() -> None:
     assert len(block_0.voters) == 3
     # Block 1 still missing late voters.
     assert len(block_1.voters) < 3
+
+
+# ---------------------------------------------------------------------------
+# Phase 2b: PartitionScheduler unit tests
+# ---------------------------------------------------------------------------
+
+
+def test_partition_scheduler_satisfies_protocol() -> None:
+    scheduler = PartitionScheduler()
+    assert isinstance(scheduler, NetworkScheduler)
+
+
+def test_partition_scheduler_negative_window_raises() -> None:
+    with pytest.raises(ValueError, match=">= partition_start_slot"):
+        PartitionScheduler(partition_start_slot=10, partition_end_slot=5)
+
+
+def test_partition_scheduler_drops_isolated_during_window() -> None:
+    """Isolated validators are absent from the delivery mapping during
+    the partition window."""
+    validators = [Validator(f"v{i}", stake=100.0) for i in range(5)]
+    scheduler = PartitionScheduler(
+        isolated_group=frozenset({"v0", "v1"}),
+        partition_start_slot=10,
+        partition_end_slot=20,
+    )
+    delivery = scheduler.deliver(
+        block_slot=15,  # inside window
+        proposer_address="v2",
+        recipients=validators,
+    )
+    # Isolated validators are dropped (not in mapping).
+    assert "v0" not in delivery
+    assert "v1" not in delivery
+    # Non-isolated get immediate delivery.
+    assert delivery["v2"] == 15
+    assert delivery["v3"] == 15
+    assert delivery["v4"] == 15
+
+
+def test_partition_scheduler_no_drops_before_window() -> None:
+    """Before partition_start_slot, no drops; everyone delivers."""
+    validators = [Validator(f"v{i}", stake=100.0) for i in range(3)]
+    scheduler = PartitionScheduler(
+        isolated_group=frozenset({"v0"}),
+        partition_start_slot=10,
+        partition_end_slot=20,
+    )
+    delivery = scheduler.deliver(
+        block_slot=5,  # before window
+        proposer_address="v1",
+        recipients=validators,
+    )
+    assert set(delivery.keys()) == {"v0", "v1", "v2"}
+
+
+def test_partition_scheduler_no_drops_at_or_after_end_slot() -> None:
+    """At and after partition_end_slot (exclusive end), no drops."""
+    validators = [Validator(f"v{i}", stake=100.0) for i in range(3)]
+    scheduler = PartitionScheduler(
+        isolated_group=frozenset({"v0"}),
+        partition_start_slot=10,
+        partition_end_slot=20,
+    )
+    # Slot 20 is exactly the end (exclusive); should NOT drop.
+    delivery_at_end = scheduler.deliver(
+        block_slot=20, proposer_address="v1", recipients=validators
+    )
+    assert set(delivery_at_end.keys()) == {"v0", "v1", "v2"}
+    # Slot 21 is after the end; should NOT drop.
+    delivery_after = scheduler.deliver(
+        block_slot=21, proposer_address="v1", recipients=validators
+    )
+    assert set(delivery_after.keys()) == {"v0", "v1", "v2"}
+
+
+def test_partition_scheduler_empty_isolated_group_is_noop() -> None:
+    """Empty ``isolated_group`` produces full delivery regardless of window."""
+    validators = [Validator(f"v{i}", stake=100.0) for i in range(3)]
+    scheduler = PartitionScheduler(
+        isolated_group=frozenset(),
+        partition_start_slot=0,
+        partition_end_slot=100,
+    )
+    delivery = scheduler.deliver(
+        block_slot=50, proposer_address="v0", recipients=validators
+    )
+    assert set(delivery.keys()) == {"v0", "v1", "v2"}
+
+
+def test_partition_scheduler_equal_start_and_end_is_noop() -> None:
+    """Zero-length window: ``partition_start_slot == partition_end_slot``
+    means no slot is in the window (start <= s < end is empty)."""
+    validators = [Validator(f"v{i}", stake=100.0) for i in range(3)]
+    scheduler = PartitionScheduler(
+        isolated_group=frozenset({"v0", "v1"}),
+        partition_start_slot=10,
+        partition_end_slot=10,
+    )
+    delivery = scheduler.deliver(
+        block_slot=10, proposer_address="v2", recipients=validators
+    )
+    # No slot is "in" the window; everyone delivers.
+    assert set(delivery.keys()) == {"v0", "v1", "v2"}
+
+
+# ---------------------------------------------------------------------------
+# Phase 2b: PartitionScheduler chain-integration tests
+# ---------------------------------------------------------------------------
+
+
+def test_partition_chain_isolated_no_g_vote_during_window() -> None:
+    """During the partition window, isolated validators do not accumulate
+    g_vote on blocks proposed by non-isolated validators (drops mean they
+    are absent from eventual_voter_count and from the per-block delivery).
+    """
+    # 5 validators; v0 + v1 isolated. Force v2 to be the proposer by
+    # stake-stacking so the test is deterministic.
+    validators = [
+        Validator("v0", stake=1.0),
+        Validator("v1", stake=1.0),
+        Validator("v2", stake=10000.0),  # heavy proposer
+        Validator("v3", stake=1.0),
+        Validator("v4", stake=1.0),
+    ]
+    chain = Chain(
+        validators=validators,
+        attestation_generator=constant_attestations(n_per_block=5),
+        network_scheduler=PartitionScheduler(
+            isolated_group=frozenset({"v0", "v1"}),
+            partition_start_slot=0,
+            partition_end_slot=10,
+        ),
+    )
+    rng = np.random.default_rng(0)
+    for _ in range(10):
+        chain.advance_slot(rng)
+    # Inside the window, v0 and v1 receive nothing; their g_vote stays 0.
+    v0 = chain._validators_by_address["v0"]
+    v1 = chain._validators_by_address["v1"]
+    assert v0.epoch_g_vote == 0.0
+    assert v1.epoch_g_vote == 0.0
+    # Non-isolated voters DO accumulate g_vote.
+    v3 = chain._validators_by_address["v3"]
+    assert v3.epoch_g_vote > 0.0
+
+
+def test_partition_chain_eventual_voter_count_reflects_drops() -> None:
+    """The block's ``eventual_voter_count`` excludes dropped validators,
+    making the per-vote share larger for surviving voters."""
+    validators = [
+        Validator("v0", stake=1.0),
+        Validator("v1", stake=1.0),
+        Validator("v2", stake=10000.0),  # heavy proposer
+        Validator("v3", stake=1.0),
+        Validator("v4", stake=1.0),
+    ]
+    chain = Chain(
+        validators=validators,
+        attestation_generator=constant_attestations(n_per_block=5, fee=1.0),
+        network_scheduler=PartitionScheduler(
+            isolated_group=frozenset({"v0", "v1"}),
+            partition_start_slot=0,
+            partition_end_slot=5,
+        ),
+    )
+    rng = np.random.default_rng(0)
+    block = chain.advance_slot(rng)
+    # 3 of 5 validators in eventual voter set (v2, v3, v4).
+    assert block.eventual_voter_count == 3
+    # Per-vote share = 5.0 fee / 3 voters = ~1.667 (was 5.0/5 = 1.0
+    # without partition).
+    v3 = chain._validators_by_address["v3"]
+    assert v3.epoch_g_vote == 5.0 / 3
+
+
+def test_partition_chain_heals_after_window() -> None:
+    """After the partition window ends, isolated validators resume
+    normal delivery for new blocks."""
+    validators = [
+        Validator("v0", stake=1.0),
+        Validator("v1", stake=1.0),
+        Validator("v2", stake=10000.0),  # heavy proposer
+        Validator("v3", stake=1.0),
+        Validator("v4", stake=1.0),
+    ]
+    chain = Chain(
+        validators=validators,
+        attestation_generator=constant_attestations(n_per_block=5),
+        network_scheduler=PartitionScheduler(
+            isolated_group=frozenset({"v0", "v1"}),
+            partition_start_slot=0,
+            partition_end_slot=5,
+        ),
+    )
+    rng = np.random.default_rng(0)
+    # Slots 0-4: window active; v0/v1 dropped.
+    for _ in range(5):
+        chain.advance_slot(rng)
+    # Slot 5: window ended; produce a block. v0 and v1 should now
+    # deliver immediately (no drops).
+    block_after_heal = chain.advance_slot(rng)
+    # Heaviest proposer is v2; v0 and v1 should be in voter set.
+    assert "v0" in block_after_heal.voters
+    assert "v1" in block_after_heal.voters
+    assert block_after_heal.eventual_voter_count == 5
+
+
+def test_partition_chain_liveness_during_window() -> None:
+    """The chain continues to advance during the partition window;
+    block production does not halt because some validators are isolated.
+    """
+    validators = [
+        Validator("v0", stake=1.0),
+        Validator("v1", stake=1.0),
+        Validator("v2", stake=10000.0),
+        Validator("v3", stake=1.0),
+        Validator("v4", stake=1.0),
+    ]
+    chain = Chain(
+        validators=validators,
+        attestation_generator=constant_attestations(n_per_block=5),
+        network_scheduler=PartitionScheduler(
+            isolated_group=frozenset({"v0", "v1"}),
+            partition_start_slot=0,
+            partition_end_slot=20,
+        ),
+    )
+    rng = np.random.default_rng(0)
+    for _ in range(20):
+        chain.advance_slot(rng)
+    # Chain produced 20 blocks; slot advanced to 20.
+    assert chain.slot == 20
+    assert len(chain.blocks) == 20
+
+
+def test_partition_chain_isolated_proposer_self_fix() -> None:
+    """If an isolated-group validator happens to be the proposer during
+    the partition window, the proposer-self-fix puts them in their own
+    block's voter set (a proposer always sees their own just-produced
+    block). This is the canonical-chain perspective only; modeling the
+    cartel's separate fork is out of scope."""
+    # Stake-stack v0 (in isolated group) so it is the proposer.
+    validators = [
+        Validator("v0", stake=10000.0),  # isolated proposer
+        Validator("v1", stake=1.0),
+        Validator("v2", stake=1.0),
+        Validator("v3", stake=1.0),
+    ]
+    chain = Chain(
+        validators=validators,
+        attestation_generator=constant_attestations(n_per_block=5),
+        network_scheduler=PartitionScheduler(
+            isolated_group=frozenset({"v0"}),
+            partition_start_slot=0,
+            partition_end_slot=5,
+        ),
+    )
+    rng = np.random.default_rng(0)
+    block = chain.advance_slot(rng)
+    assert block.proposer == "v0"
+    # Proposer-self-fix: v0 IS in the voter set despite being isolated.
+    assert "v0" in block.voters
+    # Other validators (non-isolated) ALSO deliver during partition
+    # because they're not in isolated_group. So they appear in voters too.
+    assert "v1" in block.voters
+    # eventual_voter_count = 4 (all four; v0 via self-fix override).
+    assert block.eventual_voter_count == 4
+
+
+def test_partition_chain_isolated_no_pending_deliveries_scheduled() -> None:
+    """Drops do not create pending-delivery queue entries. Isolated
+    validators have no record of in-window blocks."""
+    validators = [
+        Validator("v0", stake=1.0),
+        Validator("v1", stake=1.0),
+        Validator("v2", stake=10000.0),
+        Validator("v3", stake=1.0),
+    ]
+    chain = Chain(
+        validators=validators,
+        attestation_generator=constant_attestations(n_per_block=5),
+        network_scheduler=PartitionScheduler(
+            isolated_group=frozenset({"v0", "v1"}),
+            partition_start_slot=0,
+            partition_end_slot=10,
+        ),
+    )
+    rng = np.random.default_rng(0)
+    for _ in range(10):
+        chain.advance_slot(rng)
+    # Isolated validators should never have entries in the queue
+    # (drops don't enqueue).
+    assert "v0" not in chain._pending_deliveries
+    assert "v1" not in chain._pending_deliveries

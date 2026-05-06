@@ -3,25 +3,22 @@
 A ``NetworkScheduler`` decides which validators receive which blocks at
 which slot offsets. The chain consults the scheduler at vote-construction
 time: validators whose delivery slot exceeds the block's creation slot
-are excluded from that block's voter set.
+are excluded from that block's voter set; validators absent from the
+returned mapping are treated as never-delivered (drops).
 
-This is M7 phase 1 (latency only). Per the M7 design doc at
-``prototypes/poua-sim/docs/m7-design.md``:
+Per the M7 design doc at ``prototypes/poua-sim/docs/m7-design.md``:
 
-- Phase 1 (this module): ``UniformLatencyScheduler`` +
-  ``AdversarialLatencyScheduler``. Validates the architecture without
-  per-validator local-clock complexity.
-- Phase 2: adds ``PartitionScheduler`` and per-validator local clock so
-  delayed blocks can still be voted on at later slots.
+- **Phase 1**: ``UniformLatencyScheduler`` + ``AdversarialLatencyScheduler``.
+  Validates the architecture without per-validator local-clock complexity.
+- **Phase 2a**: per-validator delivery queue in ``Chain`` so delayed
+  blocks can be voted on at later slots; the ``g_vote`` denominator
+  is fixed at block creation to preserve §4.3 voter-share semantics.
+- **Phase 2b** (this module's latest addition): ``PartitionScheduler``
+  with drop semantics. Validators in the isolated group do not receive
+  blocks during the partition window.
 - Phase 3: adds ``EclipseScheduler`` (target-validator view restricted
   to cartel-proposed blocks).
 - Phase 4: scale benchmarks.
-
-Phase 1 model is intentionally coarse: a validator whose delivery slot
-exceeds the block's creation slot is simply excluded from that block's
-voter set in the same slot. There is no buffering of "pending votes"
-across slots; that is phase 2 territory once per-validator local clocks
-are introduced.
 
 Default behavior preserved: when ``Chain.network_scheduler is None``,
 the chain is fully synchronous (M1-M6 + #53 baseline). Setting a
@@ -173,3 +170,94 @@ class AdversarialLatencyScheduler:
             )
             for v in recipients
         }
+
+
+@dataclass(slots=True, frozen=True)
+class PartitionScheduler:
+    """Drop cross-group delivery during a finite partition window.
+
+    During ``[partition_start_slot, partition_end_slot)``, validators in
+    ``isolated_group`` do not receive blocks (their address is absent
+    from the returned delivery mapping, which the chain treats as
+    never-delivered). Outside the window, all validators receive blocks
+    immediately.
+
+    This models a network adversary that isolates a group of validators
+    from the chain's canonical view for a finite duration. After the
+    window ends, isolated validators resume normal delivery for new
+    blocks; they do NOT receive the blocks they missed during the window
+    (replay / catch-up is out of scope for phase 2b — modeling fork
+    reconciliation requires multi-chain bookkeeping that this simulator
+    does not provide).
+
+    Phase 2b interpretation: the chain models ONE perspective (the
+    canonical chain seen by non-isolated validators). Cartel-proposed
+    blocks during the window still happen and are visible to the
+    cartel members; isolated validators just don't see them. Reputation
+    accounting during the window uses the reduced ``eventual_voter_count``
+    (drops shrink the denominator), so the smaller voting group's per-vote
+    share is correspondingly larger. This is the §4.3 semantic carried
+    through honestly: validators who actually delivered a block earn
+    proportionally more on that block than they would in a healthy
+    quorum.
+
+    The proposer-self-fix in ``Chain.advance_slot`` ensures the proposer
+    always sees their own block at creation, even if the proposer is
+    in ``isolated_group`` and the partition window is active. This
+    matches reality: a proposer cannot be "partitioned" from their own
+    just-produced block.
+
+    Parameters
+    ----------
+    isolated_group : frozenset[str]
+        Addresses of validators isolated during the partition window.
+        Empty set is allowed (degenerates to a no-op scheduler).
+    partition_start_slot : int
+        First slot of the partition window (inclusive).
+    partition_end_slot : int
+        First slot AFTER the partition window (exclusive). Must be
+        ``>= partition_start_slot``. Equality means an empty (zero-length)
+        window, which is a no-op.
+
+    Raises
+    ------
+    ValueError
+        If ``partition_end_slot < partition_start_slot``.
+
+    Notes
+    -----
+    For testing partition liveness, set
+    ``isolated_group=frozenset({"v0", "v1"})``,
+    ``partition_start_slot=10``, ``partition_end_slot=20``. Validators
+    v0 and v1 do not receive blocks during slots 10-19 and resume
+    normal delivery at slot 20.
+    """
+
+    isolated_group: frozenset[str] = field(default_factory=frozenset)
+    partition_start_slot: int = 0
+    partition_end_slot: int = 0
+
+    def __post_init__(self) -> None:
+        if self.partition_end_slot < self.partition_start_slot:
+            raise ValueError(
+                f"partition_end_slot ({self.partition_end_slot}) must be "
+                f">= partition_start_slot ({self.partition_start_slot})"
+            )
+
+    def deliver(
+        self,
+        block_slot: int,
+        proposer_address: str,
+        recipients: list[Validator],
+    ) -> dict[str, int]:
+        in_partition = (
+            self.partition_start_slot <= block_slot < self.partition_end_slot
+        )
+        result: dict[str, int] = {}
+        for v in recipients:
+            if in_partition and v.address in self.isolated_group:
+                # Drop: omit from mapping. Chain treats absence as
+                # never-delivered.
+                continue
+            result[v.address] = block_slot
+        return result
