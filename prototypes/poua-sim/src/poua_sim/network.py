@@ -13,11 +13,13 @@ Per the M7 design doc at ``prototypes/poua-sim/docs/m7-design.md``:
 - **Phase 2a**: per-validator delivery queue in ``Chain`` so delayed
   blocks can be voted on at later slots; the ``g_vote`` denominator
   is fixed at block creation to preserve §4.3 voter-share semantics.
-- **Phase 2b** (this module's latest addition): ``PartitionScheduler``
-  with drop semantics. Validators in the isolated group do not receive
-  blocks during the partition window.
-- Phase 3: adds ``EclipseScheduler`` (target-validator view restricted
-  to cartel-proposed blocks).
+- **Phase 2b**: ``PartitionScheduler`` with drop semantics. Validators
+  in the isolated group do not receive blocks during the partition
+  window.
+- **Phase 3** (this module's latest addition): ``EclipseScheduler``.
+  A single eclipsed-target validator sees only cartel-proposed blocks
+  during the eclipse window; honest-proposed blocks are dropped to
+  that target.
 - Phase 4: scale benchmarks.
 
 Default behavior preserved: when ``Chain.network_scheduler is None``,
@@ -258,6 +260,105 @@ class PartitionScheduler:
             if in_partition and v.address in self.isolated_group:
                 # Drop: omit from mapping. Chain treats absence as
                 # never-delivered.
+                continue
+            result[v.address] = block_slot
+        return result
+
+
+@dataclass(slots=True, frozen=True)
+class EclipseScheduler:
+    """Eclipse a single target validator: their view is restricted to
+    cartel-proposed blocks during the eclipse window.
+
+    During ``[eclipse_start_slot, eclipse_end_slot)``, the
+    ``eclipsed_target`` only receives blocks whose proposer is in
+    ``cartel_addresses``. Honest-proposed blocks are dropped to that
+    target. All other validators receive blocks normally.
+
+    This models a network adversary that selectively isolates one
+    high-value validator while leaving the rest of the network healthy.
+    The classical eclipse attack: the adversary surrounds the target
+    with cartel-controlled peers and feeds them only cartel-curated
+    information.
+
+    Phase 3 interpretation, mirroring phase 2b:
+
+    - The chain models ONE perspective (canonical chain seen by
+      non-eclipsed validators). The eclipsed target's view of the
+      cartel sub-chain is unmodeled; we just record that the target
+      missed the honest blocks.
+    - No replay at eclipse end. Missed honest blocks stay missed.
+    - The target's reputation behavior under eclipse:
+      - Constant if neither work nor slashes accrue (the §4.3 update is
+        identity in that regime).
+      - Behind the honest baseline as honest validators continue to
+        accumulate ``g_vote`` work the target cannot share.
+    - Recovery dynamics post-eclipse: the target resumes normal
+      delivery for new blocks; relative reputation gap closes only as
+      the target accumulates work going forward.
+    - Empty ``cartel_addresses`` means the target sees no blocks at all
+      during the window (every proposer is non-cartel; everything
+      drops to the target).
+
+    Proposer-self-fix interaction: if the eclipsed target is the
+    proposer of a block, the chain's phase 2a self-fix puts them in
+    their own block's voter set. A target cannot be eclipsed from a
+    block they just proposed.
+
+    Parameters
+    ----------
+    eclipsed_target : str
+        Address of the validator being eclipsed.
+    cartel_addresses : frozenset[str]
+        Addresses of validators whose proposed blocks DO reach the
+        eclipsed target during the window. Empty set is allowed (target
+        sees no blocks at all during the window).
+    eclipse_start_slot : int
+        First slot of the eclipse window (inclusive).
+    eclipse_end_slot : int
+        First slot AFTER the eclipse window (exclusive). Must be
+        ``>= eclipse_start_slot``. Equality means an empty window
+        (no-op).
+
+    Raises
+    ------
+    ValueError
+        If ``eclipse_end_slot < eclipse_start_slot``.
+    """
+
+    eclipsed_target: str = ""
+    cartel_addresses: frozenset[str] = field(default_factory=frozenset)
+    eclipse_start_slot: int = 0
+    eclipse_end_slot: int = 0
+
+    def __post_init__(self) -> None:
+        if self.eclipse_end_slot < self.eclipse_start_slot:
+            raise ValueError(
+                f"eclipse_end_slot ({self.eclipse_end_slot}) must be "
+                f">= eclipse_start_slot ({self.eclipse_start_slot})"
+            )
+
+    def deliver(
+        self,
+        block_slot: int,
+        proposer_address: str,
+        recipients: list[Validator],
+    ) -> dict[str, int]:
+        in_eclipse = (
+            self.eclipse_start_slot <= block_slot < self.eclipse_end_slot
+        )
+        target_drops_this_block = (
+            in_eclipse
+            and proposer_address not in self.cartel_addresses
+        )
+        result: dict[str, int] = {}
+        for v in recipients:
+            if (
+                target_drops_this_block
+                and v.address == self.eclipsed_target
+            ):
+                # Drop: eclipsed target only sees cartel-proposed
+                # blocks during the window. Omit from mapping.
                 continue
             result[v.address] = block_slot
         return result
