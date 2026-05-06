@@ -1,0 +1,56 @@
+{
+  "config": {
+    "n_validators": 20,
+    "n_cartel": 4,
+    "epoch_length": 50,
+    "n_per_block": 50,
+    "n_epochs": 50,
+    "eta": 0.05,
+    "g_max": 10.0,
+    "seed": 42
+  },
+  "results": [
+    {
+      "max_delay": 0,
+      "kappa_honest": 8.0,
+      "honest_mean_reputation": 8.0,
+      "cartel_mean_reputation": 8.0
+    },
+    {
+      "max_delay": 1,
+      "kappa_honest": 8.0,
+      "honest_mean_reputation": 8.0,
+      "cartel_mean_reputation": 8.0
+    },
+    {
+      "max_delay": 2,
+      "kappa_honest": 8.0,
+      "honest_mean_reputation": 8.0,
+      "cartel_mean_reputation": 8.0
+    },
+    {
+      "max_delay": 5,
+      "kappa_honest": 8.0,
+      "honest_mean_reputation": 8.0,
+      "cartel_mean_reputation": 8.0
+    },
+    {
+      "max_delay": 10,
+      "kappa_honest": 8.0,
+      "honest_mean_reputation": 8.0,
+      "cartel_mean_reputation": 8.0
+    },
+    {
+      "max_delay": 25,
+      "kappa_honest": 8.0,
+      "honest_mean_reputation": 8.0,
+      "cartel_mean_reputation": 8.0
+    },
+    {
+      "max_delay": 50,
+      "kappa_honest": 8.0,
+      "honest_mean_reputation": 8.0,
+      "cartel_mean_reputation": 8.0
+    }
+  ]
+}
