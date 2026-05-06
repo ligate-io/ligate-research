@@ -30,6 +30,7 @@ import pytest
 from poua_sim.chain import Chain, constant_attestations
 from poua_sim.network import (
     AdversarialLatencyScheduler,
+    EclipseScheduler,
     NetworkScheduler,
     PartitionScheduler,
     UniformLatencyScheduler,
@@ -836,3 +837,289 @@ def test_partition_chain_isolated_no_pending_deliveries_scheduled() -> None:
     # (drops don't enqueue).
     assert "v0" not in chain._pending_deliveries
     assert "v1" not in chain._pending_deliveries
+
+
+# ---------------------------------------------------------------------------
+# Phase 3: EclipseScheduler unit tests
+# ---------------------------------------------------------------------------
+
+
+def test_eclipse_scheduler_satisfies_protocol() -> None:
+    scheduler = EclipseScheduler()
+    assert isinstance(scheduler, NetworkScheduler)
+
+
+def test_eclipse_scheduler_negative_window_raises() -> None:
+    with pytest.raises(ValueError, match=">= eclipse_start_slot"):
+        EclipseScheduler(eclipse_start_slot=20, eclipse_end_slot=10)
+
+
+def test_eclipse_drops_honest_proposed_blocks_for_target() -> None:
+    """During the eclipse window, the target is dropped from blocks
+    proposed by validators outside the cartel."""
+    validators = [Validator(f"v{i}", stake=100.0) for i in range(5)]
+    scheduler = EclipseScheduler(
+        eclipsed_target="v0",
+        cartel_addresses=frozenset({"v3"}),
+        eclipse_start_slot=0,
+        eclipse_end_slot=10,
+    )
+    # v1 proposes (honest, not in cartel) at slot 5 (in window).
+    delivery = scheduler.deliver(
+        block_slot=5,
+        proposer_address="v1",
+        recipients=validators,
+    )
+    # Eclipsed target (v0) is dropped; everyone else sees the block.
+    assert "v0" not in delivery
+    for addr in ("v1", "v2", "v3", "v4"):
+        assert delivery[addr] == 5
+
+
+def test_eclipse_allows_cartel_proposed_blocks_for_target() -> None:
+    """During the eclipse window, the target receives blocks proposed
+    by cartel members."""
+    validators = [Validator(f"v{i}", stake=100.0) for i in range(5)]
+    scheduler = EclipseScheduler(
+        eclipsed_target="v0",
+        cartel_addresses=frozenset({"v3", "v4"}),
+        eclipse_start_slot=0,
+        eclipse_end_slot=10,
+    )
+    # Cartel member v3 proposes during window.
+    delivery = scheduler.deliver(
+        block_slot=5,
+        proposer_address="v3",
+        recipients=validators,
+    )
+    # Target v0 DOES receive cartel-proposed blocks.
+    assert delivery["v0"] == 5
+    # Everyone else also receives.
+    assert set(delivery.keys()) == {"v0", "v1", "v2", "v3", "v4"}
+
+
+def test_eclipse_no_drops_outside_window() -> None:
+    """Outside the eclipse window, target receives all blocks regardless
+    of proposer."""
+    validators = [Validator(f"v{i}", stake=100.0) for i in range(3)]
+    scheduler = EclipseScheduler(
+        eclipsed_target="v0",
+        cartel_addresses=frozenset({"v2"}),
+        eclipse_start_slot=10,
+        eclipse_end_slot=20,
+    )
+    # Slot 5: before window. Honest proposer; target should receive.
+    delivery_before = scheduler.deliver(
+        block_slot=5, proposer_address="v1", recipients=validators
+    )
+    assert delivery_before["v0"] == 5
+    # Slot 20: at window end (exclusive). Target should receive.
+    delivery_at_end = scheduler.deliver(
+        block_slot=20, proposer_address="v1", recipients=validators
+    )
+    assert delivery_at_end["v0"] == 20
+
+
+def test_eclipse_empty_cartel_drops_all_blocks_for_target() -> None:
+    """With empty ``cartel_addresses``, every block during the window
+    has a non-cartel proposer and the target sees nothing."""
+    validators = [Validator(f"v{i}", stake=100.0) for i in range(3)]
+    scheduler = EclipseScheduler(
+        eclipsed_target="v0",
+        cartel_addresses=frozenset(),
+        eclipse_start_slot=0,
+        eclipse_end_slot=10,
+    )
+    # Any proposer during window: target dropped (no proposer is in
+    # the empty cartel set).
+    delivery = scheduler.deliver(
+        block_slot=5, proposer_address="v1", recipients=validators
+    )
+    assert "v0" not in delivery
+    # Other validators still receive normally.
+    assert delivery["v1"] == 5
+    assert delivery["v2"] == 5
+
+
+def test_eclipse_other_validators_unaffected() -> None:
+    """Eclipse only affects the target; other validators (cartel and
+    non-cartel alike) receive every block."""
+    validators = [Validator(f"v{i}", stake=100.0) for i in range(5)]
+    scheduler = EclipseScheduler(
+        eclipsed_target="v0",
+        cartel_addresses=frozenset({"v3"}),
+        eclipse_start_slot=0,
+        eclipse_end_slot=10,
+    )
+    delivery = scheduler.deliver(
+        block_slot=5, proposer_address="v1", recipients=validators
+    )
+    # v0 dropped (eclipsed); v1, v2, v3, v4 all delivered.
+    assert "v0" not in delivery
+    for addr in ("v1", "v2", "v3", "v4"):
+        assert delivery[addr] == 5
+
+
+# ---------------------------------------------------------------------------
+# Phase 3: EclipseScheduler chain-integration tests
+# ---------------------------------------------------------------------------
+
+
+def test_eclipse_chain_target_sees_no_honest_blocks_during_window() -> None:
+    """During the eclipse window, the target's voter membership only
+    appears on cartel-proposed blocks."""
+    # v0 = eclipsed honest target. Make v2 the dominant proposer
+    # (heavy stake) so blocks are usually honest.
+    validators = [
+        Validator("v0", stake=100.0),  # target
+        Validator("v1", stake=1.0),    # cartel
+        Validator("v2", stake=10000.0),  # dominant honest proposer
+    ]
+    chain = Chain(
+        validators=validators,
+        attestation_generator=constant_attestations(n_per_block=5),
+        network_scheduler=EclipseScheduler(
+            eclipsed_target="v0",
+            cartel_addresses=frozenset({"v1"}),
+            eclipse_start_slot=0,
+            eclipse_end_slot=20,
+        ),
+    )
+    rng = np.random.default_rng(0)
+    for _ in range(20):
+        chain.advance_slot(rng)
+    # Inspect each block: target v0 should appear in voters ONLY for
+    # cartel-proposed blocks.
+    for block in chain.blocks:
+        if block.proposer == "v1":
+            # Cartel-proposed: target receives, votes.
+            assert "v0" in block.voters
+        elif block.proposer == "v0":
+            # Target is the proposer (proposer-self-fix).
+            assert "v0" in block.voters
+        else:
+            # Honest non-target proposer: target dropped.
+            assert "v0" not in block.voters
+
+
+def test_eclipse_chain_target_g_vote_only_from_cartel_blocks() -> None:
+    """The eclipsed target only accumulates ``g_vote`` on cartel-
+    proposed blocks during the window. Reputation work from honest
+    blocks is missed entirely."""
+    validators = [
+        Validator("v0", stake=100.0),  # target
+        Validator("v1", stake=1.0),    # cartel
+        Validator("v2", stake=10000.0),  # dominant honest proposer
+    ]
+    chain = Chain(
+        validators=validators,
+        attestation_generator=constant_attestations(n_per_block=5, fee=1.0),
+        network_scheduler=EclipseScheduler(
+            eclipsed_target="v0",
+            cartel_addresses=frozenset({"v1"}),
+            eclipse_start_slot=0,
+            eclipse_end_slot=20,
+        ),
+    )
+    rng = np.random.default_rng(0)
+    for _ in range(20):
+        chain.advance_slot(rng)
+    # Count cartel-proposed blocks during window.
+    cartel_blocks = sum(1 for b in chain.blocks if b.proposer == "v1")
+    target = chain._validators_by_address["v0"]
+    # Target's g_vote = (cartel_blocks * 5.0 fee) / eventual_voter_count
+    # eventual_voter_count for cartel blocks is len(non-dropped) which
+    # is len(validators) = 3 (cartel proposer doesn't drop the target,
+    # so all 3 see the block).
+    expected_g_vote = cartel_blocks * (5.0 / 3)
+    assert target.epoch_g_vote == expected_g_vote
+
+
+def test_eclipse_chain_recovery_after_window() -> None:
+    """After the eclipse window ends, the target resumes normal
+    delivery for new blocks."""
+    validators = [
+        Validator("v0", stake=100.0),  # target
+        Validator("v1", stake=1.0),    # cartel
+        Validator("v2", stake=10000.0),  # honest proposer
+    ]
+    chain = Chain(
+        validators=validators,
+        attestation_generator=constant_attestations(n_per_block=5),
+        network_scheduler=EclipseScheduler(
+            eclipsed_target="v0",
+            cartel_addresses=frozenset({"v1"}),
+            eclipse_start_slot=0,
+            eclipse_end_slot=5,
+        ),
+    )
+    rng = np.random.default_rng(0)
+    # Slots 0-4: window active.
+    for _ in range(5):
+        chain.advance_slot(rng)
+    # Slot 5: window over; produce a (likely honest) block.
+    block_after = chain.advance_slot(rng)
+    if block_after.proposer == "v2":
+        # Honest proposer; target should now be in voter set.
+        assert "v0" in block_after.voters
+        assert block_after.eventual_voter_count == 3
+
+
+def test_eclipse_chain_target_proposer_self_fix() -> None:
+    """If the eclipsed target is the proposer of a block, the
+    proposer-self-fix puts them in their own voter set, even though
+    the eclipse would otherwise drop them."""
+    # Stake-stack v0 (the target) so it's the proposer.
+    validators = [
+        Validator("v0", stake=10000.0),  # target AND heavy proposer
+        Validator("v1", stake=1.0),
+        Validator("v2", stake=1.0),
+    ]
+    chain = Chain(
+        validators=validators,
+        attestation_generator=constant_attestations(n_per_block=5),
+        network_scheduler=EclipseScheduler(
+            eclipsed_target="v0",
+            cartel_addresses=frozenset({"v1"}),
+            eclipse_start_slot=0,
+            eclipse_end_slot=5,
+        ),
+    )
+    rng = np.random.default_rng(0)
+    block = chain.advance_slot(rng)
+    assert block.proposer == "v0"
+    # Self-fix: v0 in voters even though they're the eclipse target.
+    assert "v0" in block.voters
+    # Other validators also receive (target is the proposer, so the
+    # eclipse "drop" rule doesn't apply: proposer IS the target).
+    # In our scheduler, the drop is keyed on (target == eclipsed AND
+    # proposer NOT in cartel). When target IS the proposer, the
+    # condition is False (target's own block is "from non-cartel", but
+    # the target sees their own block via self-fix). So all three
+    # validators are in voters.
+    assert block.eventual_voter_count == 3
+
+
+def test_eclipse_chain_no_pending_for_target_on_dropped_blocks() -> None:
+    """Drops do not enqueue pending deliveries for the target."""
+    validators = [
+        Validator("v0", stake=100.0),  # target
+        Validator("v1", stake=1.0),    # cartel
+        Validator("v2", stake=10000.0),  # honest proposer
+    ]
+    chain = Chain(
+        validators=validators,
+        attestation_generator=constant_attestations(n_per_block=5),
+        network_scheduler=EclipseScheduler(
+            eclipsed_target="v0",
+            cartel_addresses=frozenset({"v1"}),
+            eclipse_start_slot=0,
+            eclipse_end_slot=10,
+        ),
+    )
+    rng = np.random.default_rng(0)
+    for _ in range(10):
+        chain.advance_slot(rng)
+    # Target should never have entries in the queue (drops don't
+    # enqueue, and cartel-proposed deliveries are immediate, not late).
+    assert "v0" not in chain._pending_deliveries
