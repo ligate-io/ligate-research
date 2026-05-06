@@ -1,0 +1,57 @@
+[
+  {
+    "n_validators": 50,
+    "kappa": 8.0,
+    "mean_reputation": 8.0,
+    "wall_clock_seconds": 1.5338366669602692,
+    "slots_per_second": 6519.59899994947,
+    "total_slots": 10000,
+    "n_epochs_run": 50,
+    "epoch_length": 200,
+    "n_per_block": 50
+  },
+  {
+    "n_validators": 100,
+    "kappa": 8.0,
+    "mean_reputation": 8.0,
+    "wall_clock_seconds": 2.5242555416189134,
+    "slots_per_second": 3961.56404734941,
+    "total_slots": 10000,
+    "n_epochs_run": 50,
+    "epoch_length": 200,
+    "n_per_block": 50
+  },
+  {
+    "n_validators": 250,
+    "kappa": 8.0,
+    "mean_reputation": 8.0,
+    "wall_clock_seconds": 5.968740957789123,
+    "slots_per_second": 1675.3952082557948,
+    "total_slots": 10000,
+    "n_epochs_run": 50,
+    "epoch_length": 200,
+    "n_per_block": 50
+  },
+  {
+    "n_validators": 500,
+    "kappa": 8.0,
+    "mean_reputation": 8.0,
+    "wall_clock_seconds": 12.594205957837403,
+    "slots_per_second": 794.0159175955811,
+    "total_slots": 10000,
+    "n_epochs_run": 50,
+    "epoch_length": 200,
+    "n_per_block": 50
+  },
+  {
+    "n_validators": 1000,
+    "kappa": 8.0,
+    "mean_reputation": 8.0,
+    "wall_clock_seconds": 23.98373037483543,
+    "slots_per_second": 416.9493170458733,
+    "total_slots": 10000,
+    "n_epochs_run": 50,
+    "epoch_length": 200,
+    "n_per_block": 50
+  }
+]
