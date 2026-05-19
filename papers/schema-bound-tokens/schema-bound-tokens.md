@@ -8,8 +8,6 @@
 
 **Contact:** hello@ligate.io
 
-**Version history:** v0.1 (initial draft, 2026-05-19). Tracks [ligate-research#84](https://github.com/ligate-io/ligate-research/issues/84) and [ligate-chain#286](https://github.com/ligate-io/ligate-chain/issues/286).
-
 \newpage
 
 ## Abstract
