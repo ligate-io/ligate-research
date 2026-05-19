@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "native-delegation-sim"
-version = "0.1.0"
+version = "0.2.0"
 description = "Reference simulator for Native Delegation, the runtime primitive on Ligate Chain that supports hot-key / master-key separation with slashing-inheritance"
 readme = "README.md"
 requires-python = ">=3.11"

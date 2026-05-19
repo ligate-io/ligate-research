@@ -1,9 +1,11 @@
-"""Smoke test: package importable, version present, public API matches §5 scope.
+"""Smoke test: package importable, version present, public API matches the
+current milestone scope.
 
-v0.1 (2026-05-19) bumps version to 0.1.0 and exposes the M1 surface:
-Grant + InheritanceRule + Validator + SlashOutcome + apply_slash plus
-the §5.5 four-property predicates. The real correctness coverage lives
-in ``test_slashing_inheritance.py``.
+v0.2 (2026-05-20) bumps version to 0.2.0 and adds the M2 surface:
+lifecycle (paper §4.4) + strategy search (Monte Carlo over §5.5 with
+stochastic compromise probability). The real correctness coverage
+lives in ``test_slashing_inheritance.py`` (M1), ``test_lifecycle.py``
+(M2), and ``test_strategy_search.py`` (M2).
 """
 
 from __future__ import annotations
@@ -12,18 +14,15 @@ from __future__ import annotations
 def test_package_imports():
     import native_delegation_sim
 
-    assert native_delegation_sim.__version__ == "0.1.0"
+    assert native_delegation_sim.__version__ == "0.2.0"
 
 
-def test_public_api_matches_m1_scope():
-    """v0.1 (M1) ships the slashing-inheritance dispatch + property checks.
-
-    Strategy-search, scope, lifecycle, and the §5.5 Theorem 1 figure-
-    generating harness land in later milestones (per README).
-    """
+def test_public_api_matches_m2_scope():
+    """v0.2 (M2) extends the M1 surface with lifecycle + strategy search."""
     import native_delegation_sim
 
     expected = {
+        # M1
         "Grant",
         "InheritanceRule",
         "Validator",
@@ -36,5 +35,12 @@ def test_public_api_matches_m1_scope():
         "satisfies_p3",
         "satisfies_p4",
         "satisfies_all_properties",
+        # M2
+        "GrantLifecycle",
+        "GrantState",
+        "CellResult",
+        "SearchResults",
+        "StochasticAdversary",
+        "run_strategy_search",
     }
     assert set(native_delegation_sim.__all__) == expected

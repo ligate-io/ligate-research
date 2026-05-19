@@ -2,9 +2,9 @@
 
 Reference simulator for **Native Delegation**, the runtime primitive specified in [`papers/native-delegation`](../../papers/native-delegation/).
 
-**Latest**: v0.1.0 (2026-05-19). M1 closed: §5 inheritance-rule dispatch + §5.5 four-property empirical check + Theorem 1 grid-sweep validation (27 tests passing).
+**Latest**: v0.2.0 (2026-05-20). M2 closed: lifecycle state machine (paper §4.4) + Monte Carlo strategy search (§5.5) + Theorem 1 validation figure. 56 tests passing.
 
-**Status**: substantive code, ahead of v0.2 paper authoring. M2 (strategy-search runner + Theorem 1 figure generation) lands alongside the v0.2 paper cycle.
+**Status**: M1 + M2 substantive. M3 (cross-language test vectors + adversarial-strategy extension) is post-v0.2-paper-ship work.
 
 ## What this simulator validates
 
@@ -17,22 +17,26 @@ v0.1 of this simulator gives the in-code statement of the mechanism and the empi
 - `src/native_delegation_sim/validator.py`: `Validator` dataclass mirroring PoUA's, with `apply_reputation_loss` for the §4.3 slashing arm
 - `src/native_delegation_sim/grant.py`: `Grant` dataclass binding master + hot under one of three `InheritanceRule` values (MASTER_ONLY, HOT_ONLY, BOTH_SLASHED), with weight-normalization invariants
 - `src/native_delegation_sim/slashing.py`: `apply_slash()` dispatcher for the three rules; closed-form `expected_master_utility` / `expected_hot_utility` from §5.5; predicate checks `satisfies_p1`/`p2`/`p3`/`p4`/`all_properties`
-- `tests/test_slashing_inheritance.py`: 25 tests organized into four classes:
-  - `TestApplySlash`: per-rule dispatch correctness, weight-normalization invariants, error cases
-  - `TestFourProperties`: P1-P4 individually with sign-flips for each violation case
-  - `TestTheoremEmpirical`: **headline test**. 441-point grid sweep over `(w_m, w_h) ∈ [0, 1]²` at 0.05 resolution, asserts empirical satisfying region matches the §5.5 theorem prediction exactly. Plus extremal-corner checks (master-only fails P3; hot-only fails P2; double-punishment fails P4) and the design-discipline check that recommended calibrations preserve `w_h < w_m`
-  - `TestExpectedUtility`: sanity checks on the §5.5 utility formulas (monotonicity in `p_c`, gamma-amplification of master disutility)
-- `tests/test_scaffold.py`: smoke checks on the package public API matching the M1 scope
+- `tests/test_slashing_inheritance.py`: 25 tests covering the per-rule dispatch, the four-property predicates, the 441-point grid sweep validating §5.5 theorem agreement, and sanity checks on the utility formulas
 
-Headline empirical result: across 441 `(w_m, w_h)` grid points under typical-consumer parameters (`G_delegate = 1`, `G_hot = 0.5`, `p_c = 0.05`, `Λ = 1`, `γ = 2`), the empirical satisfying region matches the §5.5 theorem prediction with zero mismatches. The §5.5 theorem holds.
+Headline M1 result: 441-point `(w_m, w_h)` grid sweep at deterministic `p_c = 0.05` matches the §5.5 theorem prediction at every point.
 
-## What M2 will add (planned, gated on v0.2 paper cycle)
+## What v0.2 adds (M2, 2026-05-20)
 
-- `src/native_delegation_sim/strategy_search.py`: Monte Carlo runner for the §5.5 strategy-search figure. Sweeps `(w_m, w_h)` × adversary strategies × `(γ, p_c)` to show the satisfying region empirically across a wider parameter space than the closed-form predicate.
-- `src/native_delegation_sim/lifecycle.py`: PROPOSED → ACTIVE → REVOKED / EXPIRED state machine per paper §4.2
-- `scripts/run_theorem_1_validation.py`: produces `out/theorem_1_validation.png` for the v0.2 paper
-- Cross-language test vectors at `test_vectors/` for `ligate-chain`-side parity
-- Optional: dependency on `prototypes/poua-sim/` for cross-validation of the reputation update under delegation
+- `src/native_delegation_sim/lifecycle.py`: paper §4.4 state machine. `GrantLifecycle` wraps an immutable `Grant` with `state_at(height)`, `is_active_at(height)`, `revoke(at_height, grace_period)`. Implements PROPOSED → ACTIVE → REVOKED / EXPIRED transitions with the EXPIRED-overrides-REVOKED §4.4 invariant.
+- `src/native_delegation_sim/strategy_search.py`: Monte Carlo strategy search over `(w_m, w_h)` × stochastic compromise probability `p_c ~ Normal(mean, std)` clipped to `[0, 1]`. `StochasticAdversary` parameterizes the noise; `run_strategy_search()` returns `SearchResults` with per-cell mean / P10 / P90 master + hot expected utilities and satisfying-fraction across N seeds.
+- `scripts/run_theorem_1_validation.py`: produces `out/theorem_1_validation.png` (two-panel heatmap: satisfying-fraction + master EU mean) for paper §5.5. Runs 88,200 simulations (21×21 grid × 200 seeds) in well under a second.
+- `tests/test_lifecycle.py`: 17 tests covering state transitions, revocation semantics, double-revoke rejection, and the §4.4 EXPIRED-overrides-REVOKED invariant.
+- `tests/test_strategy_search.py`: 12 tests covering the stochastic adversary (clipping, mean approximation), Monte Carlo runner (M1 bridge with std=0, P10 master EU at recommended calibration, transition zones at high std, heatmap shape, determinism under seeded RNG).
+
+Headline M2 result: at the recommended $(w_m, w_h) = (0.7, 0.3)$ calibration with $p_c \sim \mathcal{N}(0.05, 0.03)$, master expected utility has mean 0.93, P10 tail 0.87 (far above the $\geq 0$ threshold of P1), satisfying-fraction 1.0 across all 200 seeds. The §5.5 theorem holds under stochastic compromise probability as well as the M1 deterministic sweep.
+
+## What M3 will add (post-v0.2-paper-ship)
+
+- Strategic-adversary extension: instead of the stochastic-noise adversary in M2, an EV-maximizing adversary picks `p_c` to maximize their own gain given `(w_m, w_h)`. The §5.5 theorem statement implies the satisfying region is robust to this, but the Monte Carlo would document it explicitly.
+- Cross-language test vectors at `test_vectors/` for `ligate-chain`-side parity (matches the PoUA test_vectors pattern).
+- Optional dependency on `prototypes/poua-sim/` for cross-validation under the reputation update.
+- Lifecycle integration with the `Validator` slashing arm, so a full grant-lifetime simulation can be run end-to-end.
 
 ## Running the tests
 
