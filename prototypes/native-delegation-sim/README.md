@@ -2,67 +2,67 @@
 
 Reference simulator for **Native Delegation**, the runtime primitive specified in [`papers/native-delegation`](../../papers/native-delegation/).
 
-Status: **scaffold only** at v0.1.1. Core grant lifecycle, slashing-inheritance dispatch, and the Theorem 1 strategy-search harness are pending the v0.2 paper authoring cycle (gated on Iris MCP relayer engineering reaching design-doc phase per [#5](https://github.com/ligate-io/ligate-research/issues/5)).
+**Latest**: v0.1.0 (2026-05-19). M1 closed: §5 inheritance-rule dispatch + §5.5 four-property empirical check + Theorem 1 grid-sweep validation (27 tests passing).
 
-## Why this exists
+**Status**: substantive code, ahead of v0.2 paper authoring. M2 (strategy-search runner + Theorem 1 figure generation) lands alongside the v0.2 paper cycle.
 
-The native-delegation paper §5 specifies a slashing-inheritance theorem (Theorem 1) with a recommended $(w_m, w_h) = (0.7, 0.3)$ calibration. The theorem holds under EV-maximizing adversaries with master risk-aversion $\gamma > 1$. This simulator validates the theorem empirically across:
+## What this simulator validates
 
-- Strategy-search by adversaries against $(w_m, w_h)$ pairs
-- Sensitivity to $\gamma$ (risk-aversion) and $p_c$ (compromise probability) parameters
-- Cross-validation with the PoUA reputation update (this sim depends on `poua-sim`)
-- Test vectors for the canonical grant encoding (cross-language consumption by `ligate-chain`)
+The native-delegation paper §5 specifies a slashing-inheritance rule with three candidate dispatches (master-only, hot-only, both-slashed) and proves in §5.5 that the both-slashed rule with weights `(w_m, w_h)` satisfying `w_m + w_h ≤ 1` and `0 < w_h < w_m` is the unique mechanism that simultaneously satisfies four incentive properties (P1 master accepts delegation, P2 master incentivized to monitor, P3 hot operator faces cost, P4 no double-punishment).
 
-## What's planned
+v0.1 of this simulator gives the in-code statement of the mechanism and the empirical check that the §5.5 theorem holds across the full `(w_m, w_h)` parameter region.
 
-- `src/native_delegation_sim/grant.py`: grant object with master / hot key separation, scope, time-bounds
-- `src/native_delegation_sim/lifecycle.py`: PROPOSED → ACTIVE → REVOKED / EXPIRED state machine
-- `src/native_delegation_sim/slashing.py`: inheritance dispatch (master-only / hot-only / both-slashed) per §5.1-§5.4
-- `src/native_delegation_sim/strategy_search.py`: Monte Carlo runner for Theorem 1 validation per §5.5
-- `tests/`: unit + integration tests (pytest)
-- `scripts/run_theorem_1_validation.py`: produces the Figure for v0.2 paper
+## What v0.1 ships (M1)
 
-## What's in the scaffold today
+- `src/native_delegation_sim/validator.py`: `Validator` dataclass mirroring PoUA's, with `apply_reputation_loss` for the §4.3 slashing arm
+- `src/native_delegation_sim/grant.py`: `Grant` dataclass binding master + hot under one of three `InheritanceRule` values (MASTER_ONLY, HOT_ONLY, BOTH_SLASHED), with weight-normalization invariants
+- `src/native_delegation_sim/slashing.py`: `apply_slash()` dispatcher for the three rules; closed-form `expected_master_utility` / `expected_hot_utility` from §5.5; predicate checks `satisfies_p1`/`p2`/`p3`/`p4`/`all_properties`
+- `tests/test_slashing_inheritance.py`: 25 tests organized into four classes:
+  - `TestApplySlash`: per-rule dispatch correctness, weight-normalization invariants, error cases
+  - `TestFourProperties`: P1-P4 individually with sign-flips for each violation case
+  - `TestTheoremEmpirical`: **headline test**. 441-point grid sweep over `(w_m, w_h) ∈ [0, 1]²` at 0.05 resolution, asserts empirical satisfying region matches the §5.5 theorem prediction exactly. Plus extremal-corner checks (master-only fails P3; hot-only fails P2; double-punishment fails P4) and the design-discipline check that recommended calibrations preserve `w_h < w_m`
+  - `TestExpectedUtility`: sanity checks on the §5.5 utility formulas (monotonicity in `p_c`, gamma-amplification of master disutility)
+- `tests/test_scaffold.py`: smoke checks on the package public API matching the M1 scope
 
-Just enough structure to start v0.2 authoring:
+Headline empirical result: across 441 `(w_m, w_h)` grid points under typical-consumer parameters (`G_delegate = 1`, `G_hot = 0.5`, `p_c = 0.05`, `Λ = 1`, `γ = 2`), the empirical satisfying region matches the §5.5 theorem prediction with zero mismatches. The §5.5 theorem holds.
 
-```
-prototypes/native-delegation-sim/
-├── README.md                         this file
-├── pyproject.toml                    package metadata + deps
-├── src/native_delegation_sim/
-│   └── __init__.py                   placeholder __version__
-├── tests/
-│   └── __init__.py                   placeholder
-└── scripts/
-    └── __init__.py                   placeholder
-```
+## What M2 will add (planned, gated on v0.2 paper cycle)
 
-The directory reserves the namespace and matches the conventions established by `prototypes/poua-sim/`. All meaningful code lands in v0.2.
+- `src/native_delegation_sim/strategy_search.py`: Monte Carlo runner for the §5.5 strategy-search figure. Sweeps `(w_m, w_h)` × adversary strategies × `(γ, p_c)` to show the satisfying region empirically across a wider parameter space than the closed-form predicate.
+- `src/native_delegation_sim/lifecycle.py`: PROPOSED → ACTIVE → REVOKED / EXPIRED state machine per paper §4.2
+- `scripts/run_theorem_1_validation.py`: produces `out/theorem_1_validation.png` for the v0.2 paper
+- Cross-language test vectors at `test_vectors/` for `ligate-chain`-side parity
+- Optional: dependency on `prototypes/poua-sim/` for cross-validation of the reputation update under delegation
 
-## Running the (placeholder) tests
+## Running the tests
+
+Requires Python 3.11+. From this directory:
 
 ```bash
-cd prototypes/native-delegation-sim
-python -m pytest
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+python -m pytest tests/ -v
 ```
 
-The placeholder test suite passes vacuously (no test files yet). When v0.2 lands, the test suite will follow the poua-sim pattern: ~30+ tests covering grant lifecycle, slashing inheritance, and Theorem 1 strategy dominance.
+All 27 tests should pass in well under a second on a modern laptop.
 
 ## Discipline
 
 This simulator adopts the v0.7-PoUA discipline from day 1:
 
-- Every numerical claim in the paper resolves to a simulator test or test vector
-- Cross-language test vectors at `prototypes/native-delegation-sim/test_vectors/` (added when v0.2 lands)
-- Empirical figures referenced from `prototypes/native-delegation-sim/out/` (added when v0.2 lands)
-
-CI parser at `scripts/check_citations.py` validates that any paper-side citation to a simulator path resolves; this scaffold does not yet add any cited paths.
+- Every numerical claim in the paper resolves to a simulator test or test vector (M1 covers the §5 + §5.5 claims; M2 adds figure-anchored claims).
+- Cross-language test vectors at `test_vectors/` land in M2 alongside the v0.2 paper.
+- The CI parser at `scripts/check_citations.py` (in the repo root) validates that any paper-side citation to a simulator path resolves.
 
 ## Related
 
 - [`papers/native-delegation/native-delegation.md`](../../papers/native-delegation/native-delegation.md): the paper this simulator validates
-- [`papers/native-delegation/README.md`](../../papers/native-delegation/README.md): paper status and v0.2 milestone
+- [`papers/native-delegation/README.md`](../../papers/native-delegation/README.md): paper status and milestones
 - [#5](https://github.com/ligate-io/ligate-research/issues/5): umbrella research issue
-- [#41](https://github.com/ligate-io/ligate-research/issues/41): v0.2 milestone tracker
+- [#41](https://github.com/ligate-io/ligate-research/issues/41): v0.2 paper milestone tracker
 - [`prototypes/poua-sim/`](../poua-sim/): the canonical PoUA simulator that this one will eventually depend on
+
+## License
+
+Apache-2.0 OR MIT, matching the parent repository.
