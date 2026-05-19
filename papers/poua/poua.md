@@ -6,8 +6,6 @@
 
 **Date:** 2026-05-19
 
-**Status:** Reviewer-feedback consolidation + simulator-spec integration of v0.7.2. Stable working paper; arXiv submission pending endorser confirmation.
-
 **Contact:** hello@ligate.io
 
 \newpage
