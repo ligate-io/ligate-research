@@ -4,10 +4,10 @@ Hot-key / master-key separation for attestation-native chains, with slashing inh
 
 ## Latest
 
-- **Working paper**: [`native-delegation.md`](native-delegation.md) (markdown source). PDF to be generated when v0.2 substantive content lands across §3 + §4 + §5 + §6.
-- **Version**: v0.1.1
-- **Status**: **Outline + slashing-inheritance theorem substantive.** §5 (slashing inheritance) is now substantive prose with formal definitions, an optimality theorem, and a calibrated v0 recommendation $(w_m, w_h) = (0.7, 0.3)$. §1, §2, §3, §4, §6+ remain v0.1 outline.
-- **Date**: 2026-05-04 (updated; original v0.1 scaffold 2026-05-03)
+- **Working paper**: [`native-delegation.md`](native-delegation.md) (source) + [`native-delegation.pdf`](native-delegation.pdf) (17 pages, ~110 KB).
+- **Version**: v0.2 (Block 1 of v0.2 cycle landed)
+- **Status**: **§3 + §4 + §5 substantive.** v0.2 expanded §3 System Model (validators, master/hot keys, grant object, scope predicate, time-bounds) and §4 Mechanism (MsgDelegate, MsgRevokeDelegate, authorization check, lifecycle state machine, recursive delegation deferred to v0.3). §5 slashing-inheritance theorem now cites the M1 reference simulator's empirical validation (`prototypes/native-delegation-sim/`, 27 tests, 441-point grid sweep matches §5.5 theorem). §6, §7, §8, §9, §10, §11 remain v0.1 outline; Block 3 of the v0.2 cycle covers them.
+- **Date**: 2026-05-20
 
 ## Abstract (placeholder)
 

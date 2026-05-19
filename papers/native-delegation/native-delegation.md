@@ -1,16 +1,14 @@
 ---
 title: "Native Delegation as a Runtime Primitive"
 author: "Ligate Labs"
-date: "2026-05-03"
+date: "2026-05-20"
 ---
 
 ## Native Delegation as a Runtime Primitive: Hot-Key / Master-Key Separation for Attestation-Native Chains
 
-**Ligate Labs Research, Working Paper v0.1 (outline)**
+**Ligate Labs Research, Working Paper v0.2**
 
-**Date:** 2026-05-03
-
-**Status:** **Outline only.** Section headings with intent annotations; no formal content yet. Authoring begins when [#5](https://github.com/ligate-io/ligate-research/issues/5) gets pulled into a focused work cycle, alongside Iris MCP relayer engineering. See [`README.md`](README.md) for the v0.2 milestone scope.
+**Date:** 2026-05-20
 
 **Contact:** hello@ligate.io
 
@@ -100,49 +98,169 @@ Ligate Chain does not have general-purpose smart contracts. Runtime primitives a
 
 ### 3.1 Validators, Master Keys, Hot Keys
 
-[**v0.2:** Formal definitions. Validator $v$ with master key $K_v^{\text{master}}$. Hot key $K_v^{\text{hot},i}$ derived or registered at delegation time. Each hot key has a stake share (zero by default, inheritable) and a reputation share (zero by default, derives from the master at slash time per the inheritance rule).]
+Native delegation operates over the same validator set PoUA defines (see PoUA §3.3). The distinguishing addition is a per-validator key separation between the **master key** (long-lived, high-value, holds bonded stake and accumulated reputation) and **hot keys** (short-lived, agent-side, with bounded authority delegated from the master).
+
+Formally, a validator $v$ holds:
+
+- A master key $K_v^{\text{master}}$, a registered chain address (`Validator.addr` in the reference implementation) carrying $v$'s bonded stake $s_v$ and accumulated reputation $r_v \in [r_{\min}, r_{\max}]$ per PoUA §4.3.
+- Zero or more hot keys $\{K_v^{\text{hot},1}, K_v^{\text{hot},2}, \ldots\}$. Each hot key is a chain address in its own right, but its on-chain authority derives from an active grant issued by $K_v^{\text{master}}$. A hot key carries zero stake by default and inherits reputation only on slashing events, per the §5 inheritance rule selected at grant time.
+
+The distinction is not nominal. Master and hot keys differ in three protocol-visible ways. First, stake: bonded tokens live at the master key's address. Hot keys cannot post stake independently. Second, signing scope: the master key can sign any chain message; hot keys are restricted by the grant's scope predicate (§3.3). Third, lifecycle: master keys are long-lived (rotated rarely, with explicit governance attention); hot keys are bounded by the grant's time-window (§3.4) and revocable at any moment.
+
+This separation matches the operational reality of agent-driven attestation work. Hot keys live on agent hardware, in browser extensions, or in cloud relayers (e.g., Iris, §7). They are exposed to the operational risks of those environments. Master keys live in cold storage, hardware modules, or guarded multi-party setups. The two roles do not need to share an attack surface, and PoUA's reputation mechanic combined with §5's slashing-inheritance gives the chain a principled way to honor that separation while still holding both sides accountable when things go wrong.
+
+The [reference implementation](https://github.com/ligate-io/ligate-research/blob/main/prototypes/native-delegation-sim/src/native_delegation_sim/validator.py) models both roles with the same `Validator` dataclass, distinguished only by their role in a `Grant` object (§3.2). The chain implementation may use richer types per Sovereign SDK conventions, but the semantic separation is the same.
 
 ### 3.2 Delegation Grant
 
-[**v0.2:** A grant object $G = (K_v^{\text{master}}, K^{\text{hot}}, S, T_{\text{start}}, T_{\text{end}}, I)$ where:
-- $K_v^{\text{master}}$: master key issuing the grant
-- $K^{\text{hot}}$: hot key receiving the grant
-- $S$: scope predicate (schema set, action set)
-- $T_{\text{start}}, T_{\text{end}}$: time-bounds (block heights or epochs)
-- $I$: slash-inheritance rule (master-only, hot-only, both)
-]
+A delegation grant binds one master key to one hot key under one slashing-inheritance rule, with explicit scope and time-bounds. Formally, a grant object is the tuple
+
+$$G = (K_v^{\text{master}},\, K^{\text{hot}},\, S,\, T_{\text{start}},\, T_{\text{end}},\, I)$$
+
+where:
+
+- $K_v^{\text{master}}$ is the master key issuing the grant (the principal who consents to delegation).
+- $K^{\text{hot}}$ is the hot key receiving the grant (the agent who will sign under the master's authority).
+- $S$ is the **scope predicate** (§3.3) specifying which schemas and actions $K^{\text{hot}}$ may sign for.
+- $T_{\text{start}}, T_{\text{end}}$ are block-height bounds (§3.4) within which the grant is active.
+- $I$ is the slashing-inheritance rule (§5.1), one of `MASTER_ONLY`, `HOT_ONLY`, or `BOTH_SLASHED(w_m, w_h)` with weights $(w_m, w_h)$.
+
+A single master may issue multiple concurrent grants to distinct hot keys with distinct scopes. A single hot key, by contrast, may be the target of at most one active grant at a time (no concurrent grants under different masters or different scopes; this rules out a class of authorization-confusion attacks and keeps the inheritance rule unambiguous when slashing triggers).
+
+Grants are immutable after issuance. To change scope or inheritance, the master revokes the existing grant (§4.2) and issues a new one. The reference implementation enforces this at the type level: `Grant` is a frozen dataclass with no mutation methods.
 
 ### 3.3 Scope Predicate
 
-[**v0.2:** Formal definition. Scope is a tuple (schema set, action set) where schema set is a subset of registered schemas and action set is a subset of action types defined per schema (attest, claim-fee, vote, etc.). Default-deny: actions not in the set are not authorized.]
+The scope predicate $S$ is a pair $(\Sigma_G, A_G)$ where:
+
+- $\Sigma_G \subseteq \Sigma$ is a finite subset of registered schemas the hot key may sign attestations against. The empty set means no attestation authority; the full set $\Sigma$ means unrestricted (but the grant still carries the inheritance rule and time-bounds, so even an unrestricted grant has scope semantics).
+- $A_G \subseteq A$ is a finite subset of action types the hot key may execute. Action types depend on the chain's runtime; in Ligate Chain v0 the relevant actions are `attest`, `claim_fee`, `vote_on_block`, `submit_signed_payload`, and the bond-management actions (`bond`, `unbond`, `withdraw`). The hot key is restricted to actions in $A_G$.
+
+Authorization is **default-deny**. A transaction signed by $K^{\text{hot}}$ is authorized only if its action is in $A_G$ and (where applicable) its target schema is in $\Sigma_G$. The runtime check happens at transaction admission time (§4.3) so unauthorized transactions are rejected before they reach the consensus layer's state-machine input. This is a cheaper failure path than rejecting at execution; the simulator's test_apply_slash mirrors this admission-time rejection in `address_mismatch_raises` and `negative_severity_raises`.
+
+The scope predicate is not the same as PoUA's per-schema attestor-set predicate. Attestor-set membership controls *who is allowed to attest under a schema*. Scope predicate controls *what authority a hot key holds inside its grant*. A hot key whose master is in an attestor set can sign attestations for that attestor set's schemas; a hot key whose master is not in the attestor set cannot, regardless of how permissive the scope predicate is. Scope is necessary, not sufficient.
 
 ### 3.4 Time-Bounds and Block Heights
 
-[**v0.2:** Time-bounds expressed as block heights (or epoch boundaries) for unambiguous on-chain enforcement. Wall-clock semantics deferred to the application layer; protocol enforces only height comparisons.]
+Grants are bounded by chain block heights, not wall-clock timestamps. The runtime enforces $T_{\text{start}} \leq h_{\text{current}} \leq T_{\text{end}}$ at transaction admission time, where $h_{\text{current}}$ is the block height of the proposed-but-not-yet-finalized block carrying the signed transaction.
+
+Block-height semantics are deliberate. Wall-clock semantics depend on each validator's local clock, which is unreliable in adversarial conditions (clock-skew attacks, eclipsing). Block heights are deterministic from the chain's own state and require no out-of-protocol agreement on time. Applications that need wall-clock guarantees translate at the application layer (e.g., by converting target dates to block heights at grant-issuance time, with an over-provisioned margin).
+
+Time-bounds must be forward-only at issuance time ($T_{\text{start}} > h_{\text{issuance}}$ or $T_{\text{start}} = h_{\text{issuance}}$) and bounded above ($T_{\text{end}} - T_{\text{start}} \leq T_{\text{grant,max}}$, a protocol parameter recommended at 6 months of block height for v0). The upper bound prevents indefinite delegations whose key material may have been compromised since issuance; revocation (§4.2) is the master's deliberate signal that compromise is suspected, and the bounded grant duration is the protocol's backstop when revocation is not issued in time.
 
 ---
 
 ## 4. Mechanism: Native Delegation
 
+Native delegation is exposed as two new transaction types in the chain's runtime: `MsgDelegate` (§4.1) issues a grant, and `MsgRevokeDelegate` (§4.2) terminates one. Authorization (§4.3) happens at transaction admission time. The grant lifecycle (§4.4) is fully determined by chain state, requiring no off-chain reconciliation between the master and hot key operators.
+
+The [reference `Grant` implementation](https://github.com/ligate-io/ligate-research/blob/main/prototypes/native-delegation-sim/src/native_delegation_sim/grant.py) embodies the same type-level invariants the chain runtime enforces: hot keys cannot be concurrent-targets of multiple grants, weight-normalization holds per inheritance rule, and scope is default-deny.
+
 ### 4.1 Delegation Transaction Type
 
-[**v0.2:** Formal `MsgDelegate` schema. Fields: master signature, hot pubkey, scope predicate (schema list + action list), time-bounds (height_start, height_end), slash-inheritance rule (enum). Validation rules at proposal time: master signature checks, hot pubkey not already delegated (or super-delegated, see §4.5), scope predicate is well-formed, time-bounds are forward-only.]
+The `MsgDelegate` message issues a grant from a master to a hot key. Schema (Borsh-encoded for signing):
+
+```
+MsgDelegate {
+    master_pubkey:   PublicKey,
+    hot_pubkey:      PublicKey,
+    scope:           ScopePredicate {
+        schemas: Vec<SchemaId>,
+        actions: Vec<ActionType>,
+    },
+    time_bounds:     TimeBounds {
+        height_start: u64,
+        height_end:   u64,
+    },
+    inheritance:     InheritanceRule {
+        kind: enum { MasterOnly, HotOnly, BothSlashed },
+        w_m:  u16,  // basis points; meaningful only for BothSlashed
+        w_h:  u16,  // basis points; meaningful only for BothSlashed
+    },
+    nonce:           u64,
+}
+```
+
+The transaction is signed by `master_pubkey`. Validation at proposal time (run by every honest validator before vote-tallying):
+
+1. **Master signature.** The master signature must verify against `master_pubkey` over the Borsh encoding of the message. Standard ed25519 verification per the chain's signing semantics.
+2. **Master is a registered validator.** `master_pubkey` must already be in the validator registry (see PoUA §3.3); delegation is a validator-only primitive in v0.
+3. **Hot key not already granted.** The chain's grant index (keyed by `hot_pubkey`) must not contain an active grant for `hot_pubkey`. Concurrent grants are not allowed (§3.2 rationale).
+4. **Scope well-formed.** Every schema in `scope.schemas` must be a registered schema (see PoUA §3.4). Every action in `scope.actions` must be in the runtime's known action set.
+5. **Time-bounds valid.** `height_start >= h_current` (forward-only; cannot back-date a grant) and `height_end - height_start <= T_grant_max` (bounded duration, §3.4).
+6. **Inheritance well-formed.** If `inheritance.kind == BothSlashed`, the weights must satisfy `w_m + w_h <= 10000` basis points (P4 from §5.5) and both must be strictly positive (P2 + P3). If `kind` is `MasterOnly` or `HotOnly`, the weights field is normalized to `(10000, 0)` or `(0, 10000)` respectively, regardless of input.
+
+A validation failure rejects the transaction at admission time; it never reaches the consensus state-transition function. Successful admission moves the grant to `PROPOSED` state (§4.4); the grant becomes `ACTIVE` at `height_start`.
 
 ### 4.2 Revocation Transaction
 
-[**v0.2:** Formal `MsgRevokeDelegate` schema. Master signature, hot pubkey, optional grace-period parameter. Effect: grant is invalidated at (block_height + grace_period). Grace period is bounded above by a protocol parameter to prevent indefinite delays.]
+`MsgRevokeDelegate` terminates an active grant. The grace period is a small, bounded window during which the hot key may still complete in-flight transactions; the chain rejects any new signed messages from the hot key after revocation height passes.
+
+```
+MsgRevokeDelegate {
+    master_pubkey:  PublicKey,
+    hot_pubkey:     PublicKey,
+    grace_period:   u64,  // blocks; 0 means immediate
+    nonce:          u64,
+}
+```
+
+Signed by `master_pubkey`. Validation:
+
+1. **Master signature.** Same as `MsgDelegate`.
+2. **Active grant exists.** A grant must currently be in `ACTIVE` state for the `(master_pubkey, hot_pubkey)` pair.
+3. **Grace period bounded.** `grace_period <= T_grace_max`, a protocol parameter recommended at 100 blocks for v0 (a few minutes of clock time at 12-second slots). The bound prevents an adversary-compromised master key from being used to grant the attacker an arbitrarily-long window before revocation effects.
+
+Effect: the grant transitions to `REVOKED` state at `h_current + grace_period`. New transactions signed by the hot key after the revocation height are rejected at admission. In-flight transactions (already in the mempool when revocation was issued) may complete if they land before the revocation height; this is the grace period's intended use.
 
 ### 4.3 Authorization Check at Tx Validation Time
 
-[**v0.2:** When a transaction is signed by hot key $K^{\text{hot}}$, the runtime checks: (1) does an active grant exist for $K^{\text{hot}}$? (2) is the current block height in $[T_{\text{start}}, T_{\text{end}}]$? (3) is the requested action in the grant's scope predicate? If any check fails, the tx is rejected at mempool admission, not at execution.]
+When a transaction $\tau$ signed by a hot key $K^{\text{hot}}$ is admitted to the mempool, the runtime checks:
+
+1. **Active grant exists.** The chain's grant index must contain an active grant $G$ keyed by $K^{\text{hot}}$.
+2. **Within time bounds.** `G.height_start <= h_current <= G.height_end` and the grant is not in `REVOKED` state at $h_{\text{current}}$.
+3. **Action authorized.** $\tau$'s action type is in $G.\text{scope.actions}$.
+4. **Schema authorized.** If $\tau$ targets a schema (e.g., for attestation submission), the schema is in $G.\text{scope.schemas}$.
+
+If any check fails, $\tau$ is rejected at admission. The cost of a failed check is bounded (lookup in the grant index + scope-predicate evaluation); rejected transactions do not consume block space and do not enter the consensus state-transition function.
+
+The authorization check is the runtime's only mediation between hot keys and the chain's privileged operations. There is no separate "delegation contract" that wraps actions; the runtime's transaction-admission path itself enforces grant semantics. This is the meaning of "native" in native delegation.
 
 ### 4.4 Grant Lifecycle State Machine
 
-[**v0.2:** PROPOSED → ACTIVE → REVOKED / EXPIRED. State transitions are deterministic from chain state; no off-chain reconciliation needed.]
+Grant state is fully determined by chain state. The state transition function:
+
+```
+                                 height_start
+                          PROPOSED ─────► ACTIVE
+                              │              │
+                              │              │ MsgRevokeDelegate
+                              │              │  + grace_period
+                              │              ▼
+                              │           REVOKED
+                              │              │
+                              │              ▼
+                              └─────►   EXPIRED  ◄─────  height > height_end
+```
+
+States:
+
+- **PROPOSED**: `MsgDelegate` admitted; current block height $< T_{\text{start}}$. Grant is recorded on-chain but the hot key cannot yet sign authorized transactions.
+- **ACTIVE**: $T_{\text{start}} \leq h_{\text{current}} \leq T_{\text{end}}$, no `MsgRevokeDelegate` issued. Hot key transactions in scope are authorized.
+- **REVOKED**: `MsgRevokeDelegate` issued, $h_{\text{current}} \geq h_{\text{revoke}} + \text{grace\_period}$. Hot key transactions rejected.
+- **EXPIRED**: $h_{\text{current}} > T_{\text{end}}$ without revocation. Hot key transactions rejected.
+
+Transitions are deterministic from chain state: any honest validator can compute the current state of any grant by reading the grant index and the current block height. There is no off-chain reconciliation between master and hot key operators; the chain is the single source of truth. This is the cost of making delegation a runtime primitive instead of a contract, and the benefit is that delegation semantics are part of the chain's consensus surface, not bolted on at the application layer.
 
 ### 4.5 Recursive Delegation (Deferred to v0.3)
 
-[**v0.2:** Excluded from the v0.2 specification. Recursive delegation is a hot key further delegating to a sub-key. Open questions: depth limit, scope-monotonicity (sub-grant scope must be a subset of parent grant scope), revocation cascade (does revoking a parent revoke all children?). Tracked as a follow-up issue once v0.2 ships.]
+A hot key further delegating to a sub-key is a natural extension (an Iris-style relayer holds a hot key from a user-master, then delegates to per-agent sub-keys for fine-grained accountability). The v0.2 specification excludes this for clarity. Three open design questions need resolution before recursive delegation lands:
+
+1. **Depth limit.** Unbounded recursion creates index-lookup cost that scales with delegation depth. v0.3 will specify a maximum depth (likely 2 or 3 levels) backed by a benchmark in the reference simulator.
+2. **Scope-monotonicity.** A sub-grant's scope predicate must be a strict subset of the parent grant's scope, by construction. The runtime enforces this at sub-grant admission time. Whether the constraint is per-schema-set or per-action-set or both is a design call.
+3. **Revocation cascade.** Revoking a parent grant should cascade to all descendant sub-grants. The chain index must track parent-child relationships to make this O(grant tree depth) instead of O(all grants). Tracked under the open issue list.
+
+Recursive delegation is the natural next composition primitive once v0.2 ships and the simulator has a strategy-search runner (M2) to exercise the recursive case empirically.
 
 ---
 
@@ -270,6 +388,8 @@ Equality in (P4) ($w_m + w_h = 1$) is preferable to strict inequality because to
 - The chain's appetite for centralization risk (centralized agent vendors have larger $G_{\text{hot}}$ and tolerate larger $w_h$)
 
 §5.6 specifies the recommended v0 calibration.
+
+**Empirical validation.** The [reference simulator](https://github.com/ligate-io/ligate-research/tree/main/prototypes/native-delegation-sim) implements the four-property predicates and the §5.4 inheritance-rule dispatch (M1 milestone, closed 2026-05-19, 27 tests). A 441-point grid sweep over $(w_m, w_h) \in [0, 1]^2$ at 0.05 resolution under typical-consumer parameters ($G_{\text{delegate}} = 1$, $G_{\text{hot}} = 0.5$, $p_c = 0.05$, $\Lambda = 1$, $\gamma = 2$) shows the empirical satisfying region matches the theorem's prediction at every grid point. Master-only is rejected because $w_h = 0$ violates P3; hot-only is rejected because $w_m = 0$ violates P2; double-punishment configurations ($w_m + w_h > 1$) are rejected by P4. The recommended $(0.7, 0.3)$ point lies strictly inside the satisfying region; the dispatch and predicates are exercised in [the test suite](https://github.com/ligate-io/ligate-research/blob/main/prototypes/native-delegation-sim/tests/test_slashing_inheritance.py). The Monte Carlo strategy-search figure that would visualize the dominance landscape across adversary strategies is M2 work, scheduled alongside v0.3 of this paper.
 
 ### 5.6 Recommended v0 Rule
 
