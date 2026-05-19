@@ -124,14 +124,22 @@ Reviewers asking the right questions converge on the same separation. We name it
 - The honest equilibrium argument (§6.2) assumes profit-maximizing validators with full information about protocol rules and other validators' strategies. Validators with non-economic motives sit outside the model.
 - Reputation as forward-revenue (§6.3) assumes attestation fee flow $R_f$ is positive and approximately stationary across the validator's discount horizon. In low-volume periods the slash deterrent attenuates.
 
-**Empirical or heuristic, named as such, requiring devnet or simulator validation:**
+**Empirically validated via the reference simulator** ([`prototypes/poua-sim/`](https://github.com/ligate-io/ligate-research/tree/main/prototypes/poua-sim), M1-M7):
 
-- A2 (censorship) and A3 (grinding) detection. Appendix A gives analytical false-positive bounds under stated null hypotheses ($\chi^2$ for A2, Erdős-Rényi-style for A3); detection *power* (true-positive rate against realistic adversaries) requires devnet traffic and is deferred to v0.7.
-- The Erdős-Rényi null hypothesis for A3 detection does not match real chain transaction graphs, which are typically scale-free. The analytical $\beta_3 = 1\%$ false-positive target may understate realistic FPR; §A.4 acknowledges this and defers to empirical calibration.
-- Validator behavior at scale under adversarial conditions. Reputation distribution dynamics, the cold-start premium's practical impact, and the realized $\kappa$ trajectory are modeled, not measured. The reference simulator at [`prototypes/poua-sim/`](https://github.com/ligate-io/ligate-research/tree/main/prototypes/poua-sim) is the planned validation surface.
-- Full mechanism-design-grade incentive compatibility. §6 gives a game-theoretic argument, not a Hurwicz-style proof of full strategy-proofness. §9.1 acknowledges this as v0.7+ research.
+- The cost-to-attack premium $\kappa$ algebra (§5.3) reproduces under Monte Carlo to within binomial sampling variance (Figure 2). The transition-state $\kappa$ envelope (§5.3.1) reproduces empirically across warmup / ramp / steady / post-slash phases (Figure 3).
+- Lemma 1's cartel cost-to-grind bound (§5.5.3) reproduces under all three Layer 3 burn destinations across $m \in \{1, 2, 3, 4\}$ in $k = 12$ to floating-point precision (Figure 6).
+- The full named-deviation strategy space (§6.2) collapses to $r_{\min}$ under the full layered defense (Panel C of Figure 8), validating the honest-equilibrium claim against the M6 strategy-search heatmap including GRIND_VIA_STAGED_SUBMITTERS at small / medium / large pool sizes.
+- Scale invariance of $\kappa$ holds across $|V| \in \{50, 100, 250, 500, 1000\}$ (§5.3.2, Figure 4); the §5.3 small-set Lemma 1 example generalizes to mainnet-scale validator sets without parameter retuning.
+- Eclipse recovery follows the analytical §4.3 update rate (§5.5.6.1, Figure 7); $\kappa$ is insensitive to adversarial latency in the single-canonical-chain model (§5.3.2.1, Figure 5).
+- The three-rebase auto-adjuster (§4.4.2 + §4.4.3) Lyapunov function $V = D_\tau^2 + D_\eta^2 + D_\lambda^2$ is non-increasing under correlated drift (`test_three_rebases_concurrent_no_amplification`).
 
-The honest one-line takeaway: **PoUA is a mechanism design proposal with a formal economic floor (Lemma 1) plus inherited BFT safety and liveness (Theorems 1-2), tested against named limitations and a published v0.7 validation roadmap.** It is not a complete cryptographic security proof. Where the paper makes "if-then" arguments, the "if" is named and bounded; where the argument is heuristic, the heuristic is labeled and the limitation acknowledged.
+**Empirical or heuristic, named as such, still requiring devnet validation (deferred to v0.9 and beyond):**
+
+- A2 (censorship) and A3 (grinding) detection *power* against realistic adversaries. Appendix A gives analytical false-positive bounds under stated null hypotheses ($\chi^2$ for A2, Erdős-Rényi-style for A3); the synthetic-attestor TPR scan in §A.4 saturates and does not provide a calibrated true-positive curve. Devnet attestation traffic is required to position the detectors against realistic graph structure.
+- The Erdős-Rényi null hypothesis for A3 detection does not match real chain transaction graphs, which are typically scale-free. §A.4's Chung-Lu comparison figure (Figure 10) quantifies the gap; production deployment should re-derive the threshold against an empirical chain-graph baseline (post-devnet calibration).
+- Full mechanism-design-grade incentive compatibility. §6 plus the M6 strategy-search heatmap give a layered economic argument against the named rational-deviation strategies; a Hurwicz-style proof of full strategy-proofness across an unconstrained strategy space remains open (v1.0+ research).
+
+The honest one-line takeaway: **PoUA is a mechanism design proposal with a formal economic floor (Lemma 1) plus inherited BFT safety and liveness (Theorems 1-2), empirically validated through M1-M7 of the reference simulator across the named adversary models, with the remaining heuristic surfaces (A2 / A3 detector power, full strategy-proofness) explicitly deferred to devnet calibration and post-arXiv research.** It is not a complete cryptographic security proof. Where the paper makes "if-then" arguments, the "if" is named and bounded; where the argument is heuristic, the heuristic is labeled and the limitation acknowledged.
 
 ### 1.7 Scope and Non-Goals
 
@@ -746,7 +754,10 @@ where $s_{\text{submitter}}$ is the funding amount routed through each intermedi
 
 **Recommended parameter.** $\tau_{\text{burn}} = 0.5$ for v0.6.
 
-**Cost to grind.** This is the **load-bearing economic defense**. Even if the adversary perfectly evades Layers 1 and 2, the fees they submit are not fully recoverable. We formalize the cost-to-grind floor:
+**Cost to grind.** This is the **load-bearing economic defense**. Even if the adversary perfectly evades Layers 1 and 2, the fees they submit are not fully recoverable.[^layer2-evasion-note] We formalize the cost-to-grind floor:
+
+[^layer2-evasion-note]: The "perfectly evades Layer 2" assumption applies to the production distance-$d$ rule of §5.5.2, where on-chain graph-distance approximation leaves a finite staging path quantified by $F_{\text{stage}}$. Under the simulator's deterministic-membership specialization, the chain's knowledge of controlled-membership is exact and Layer 2 evasion is impossible ($F_{\text{stage}} \to \infty$); Lemma 1's bound is therefore conservative against the production rule and is exceeded under the specialization. The §6.2 Panel C empirical heatmap quantifies the difference: under the specialization, GRIND_VIA_STAGED_SUBMITTERS collapses to $r_{\min}$ across all stake-share and pool-size regimes.
+
 
 **Lemma 1 (Cost-to-grind bound, v0.6.1).** *Let $m \geq 1$ be the size of a coordinated adversarial validator cartel and $k \geq m$ the per-block voter count. Under Layer 3 with parameter $\tau_{\text{burn}} \in (0, 1]$ and the §4.3 reputation update with proposer-share $\alpha \in (0, 1]$ and voter-share $\beta = 1 - \alpha$, any compound adversary cartel acting as block proposer (with proposer-role rotation among cartel members) to acquire per-member reputation gain $\Delta r$ pays per-member non-recoverable fees of at least*
 
@@ -1106,16 +1117,18 @@ We acknowledge the following as real limitations of PoUA v0.1:
 
 4. **Cold-start dependent on initial validator set.** If the genesis validator set is poorly distributed, the warmup period may not produce a healthy reputation distribution, and the bootstrap conditions of the equilibrium may fail. We recommend devnet operation provides empirical evidence before mainnet launch.
 
-5. **No empirical validation.** This paper specifies a mechanism. Production-scale validation requires devnet operation, simulation studies, and comparison to baseline pure-PoS performance under realistic adversary models. The Ligate research roadmap commits to a reference simulator and devnet calibration studies in v0.7 of this paper.
+5. **Devnet calibration still pending.** The reference simulator at [`prototypes/poua-sim/`](https://github.com/ligate-io/ligate-research/tree/main/prototypes/poua-sim) closed milestones M1-M7 across v0.7 + v0.8 (cost-to-attack, transition-state $\kappa$, Lemma 1, A3 detector FPR, M6 strategy-search heatmap, M7 network adversity, scale invariance). What remains is production-scale calibration against real attestation traffic, including the §A.4 ER-vs-Chung-Lu threshold reformulation and the A2 / A3 detector TPR curves under realistic chain-graph baselines. Devnet operation (mid-2026 per current roadmap) provides those inputs.
 
 ### 9.2 Future Work
 
 - **Zero-knowledge attestation of reputation accumulation.** Validators could prove they accumulated reputation honestly without revealing the underlying attestation submission graph, eliminating much of A3's heuristic surface.
 - **Reputation futures markets.** Validators could sell forward rights to a fraction of their future reputation-derived revenue, hedging entry-cost risk. This is a market design question, not strictly a protocol question.
-- **Cross-chain reputation portability.** A canonical primitive for transferring reputation across chains, possibly through a shared reputation registry or zkbridge-based assertion.
+- **Cross-chain reputation portability.** A canonical primitive for transferring reputation across chains, possibly through a shared reputation registry or zkbridge-based assertion. The companion paper [Cross-Schema Composition](https://github.com/ligate-io/ligate-research/tree/main/papers/cross-schema-composition) covers the typed-reference foundation; the cross-chain extension is the harder lift.
 - **Reputation as governance weight.** Beyond consensus, reputation could enter governance vote tallying. The case is delicate (protects against governance capture by capital, but may entrench validator-class dominance over user-class voice).
-- **Adaptive reputation parameters.** Dynamic adjustment of $\eta, \lambda$ in response to network conditions (attestation volume, attack frequency) rather than fixed at genesis.
 - **Privacy-preserving reputation.** A scheme in which reputation is observable in aggregate (so validator selection is verifiable) but per-validator privacy is preserved. Useful for politically sensitive validation contexts.
+- **Hybrid post-quantum signatures.** Tracked at [ligate-research#50](https://github.com/ligate-io/ligate-research/issues/50). Ed25519 default with Dilithium opt-in for validators with longer-horizon threat models.
+
+Adaptive $\eta$ and $\lambda$ rebase, previously listed as future work, landed in §4.4.3 of this version. The M6 strategy-search and M7 network-conditions extensions previously listed as future simulator work closed via PRs in the v0.8 cycle.
 
 ---
 
