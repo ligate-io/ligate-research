@@ -444,21 +444,89 @@ This satisfies the theorem's requirements ($w_m + w_h = 1$, $0 < w_h < w_m$) whi
 
 ## 7. Iris MCP Relayer Integration
 
+Native delegation was designed with one specific product in mind: Iris, the USD-billed MCP relayer for autonomous AI agents that ships as the first commercial deployment of this paper's primitive. This section walks through the integration: how Iris uses native delegation to let a user delegate to an autonomous agent without ceding the master key, how the sponsored-gas economics compose with delegation, how the §5.5 calibration maps onto the relayer's reputation, and how the §4.4 lifecycle interacts with multi-agent scenarios.
+
+This section is normatively scope-restricted to the Iris product. The native delegation primitive is more general and works for any chain that wants hot-key / master-key separation. We name Iris explicitly because it's the canonical first consumer and the worked example reduces the abstraction gap for readers.
+
 ### 7.1 Iris Architecture Recap
 
-[**v0.2:** MCP server + USD-billed relayer for autonomous AI agents. Open-source MCP, SaaS margin on the relayer. Agent runs MCP, relayer pays gas, user signs the delegation grant up-front.]
+Iris is a [Model Context Protocol](https://modelcontextprotocol.io/) server + chain relayer for autonomous AI agents. An agent (Claude Code, Cursor, Cline, a custom MCP client) calls the Iris MCP server to submit attestations on chain. Iris signs the attestation transactions on behalf of the agent's owner and pays the chain gas; the owner is billed in USD by Iris (Stripe + USDC settlement under the hood). The MCP server is open-source; the relayer is a SaaS margin on top, with monthly subscription tiers that cap usage at agreed monthly-attestation budgets.
+
+The threat model. The agent runs in environments the owner does not trust as much as their cold-key infrastructure: a browser extension, a server in the agent vendor's cloud, a per-session container that is destroyed after the agent finishes. The owner wants the agent to be able to attest things on their behalf for the duration of a task or workday, then stop. Three off-the-shelf approaches fail:
+
+- **Custodial relayers** (the agent vendor holds the user's signing keys). The user has to trust the vendor with sign-anything authority for the agent's lifetime. The vendor's compromise compromises the user. Industry norm; broken trust model.
+- **ERC-4337 account abstraction** (smart-contract wallets with on-chain authorization rules). Wrong chain semantics for Ligate: the contract model assumes a general-purpose EVM, which Ligate's runtime does not provide. Bolted-on abstraction would re-implement the chain's own attestation primitives at the contract layer.
+- **Per-attestation cold-key signing** (user signs each attestation manually). UX death; the whole point of agent automation is bounded autonomy.
+
+Native delegation is the architectural answer. The user signs **one** `MsgDelegate` from cold storage (Mneme wallet on hardware or a secure desktop client), scoping a hot key to specific schemas + actions + a time window. The agent runs with the hot key for that window. The relayer (Iris) pays gas and routes attestations. When the time window ends, the grant expires; the hot key becomes inert on chain.
 
 ### 7.2 The Canonical Iris Delegation Flow
 
-[**v0.2:** (1) User opens Mneme wallet, signs `MsgDelegate` granting `iris-agent.v1` schema scope to a per-session hot key, time-bound to 24 hours, both-slashed at $(1, 0.3)$. (2) Hot key is loaded into the agent's runtime. (3) Agent submits attestations signed by hot key. Relayer pays gas. PoUA reputation accumulates on the master via §4.3 (good behavior) or both (slash). (4) At $T_{\text{end}}$ the grant expires automatically; revocation tx is unnecessary.]
+End-to-end flow for a user delegating to an Iris-managed agent for a 24-hour Themisra attestation session:
+
+1. **Grant issuance.** User opens Mneme. Mneme generates a per-session hot key locally. Mneme constructs `MsgDelegate` (§4.1) with:
+   - `master_pubkey` = the user's master key
+   - `hot_pubkey` = the freshly generated per-session hot key
+   - `scope.schemas` = `{themisra.proof-of-prompt/v1, themisra.content-provenance/v1}`
+   - `scope.actions` = `{submit_attestation}`
+   - `time_bounds` = `(h_now, h_now + 24h_blocks)`
+   - `inheritance.kind` = `BothSlashed`, `(w_m, w_h) = (0.7, 0.3)` per §5.6
+   
+   User signs in Mneme with hardware-wallet confirmation. Tx is submitted; admission validation runs (§4.1).
+
+2. **Hot key handoff.** Once `MsgDelegate` is admitted (PROPOSED state at `h_now < height_start` if there's any future-dating, else ACTIVE immediately), Mneme exports the per-session hot key material to Iris's MCP server over a TLS connection. Iris stores the hot key in an in-memory keystore scoped to the user's session.
+
+3. **Agent operation.** The agent calls the Iris MCP server's `attest()` tool. Iris constructs a `SubmitAttestation` chain transaction, signs it with the hot key, attaches Iris's relayer address as the fee-payer (see §7.3), and submits to the chain. The chain's authorization check (§4.3) verifies the hot key has an active grant, the action is in scope, and the schema is in scope; all four checks pass; the attestation lands.
+
+4. **Reputation accrual.** Per the §5 inheritance rule with `(w_m, w_h) = (0.7, 0.3)`, valid attestation work contributes to **both** the master's reputation (via the master-side weight, weighted by `w_m = 0.7`) and the hot key's reputation (weighted by `w_h = 0.3`) under the PoUA §4.3 update at each epoch boundary. The master accumulates reputation passively from their agent's activity; the hot key builds its own session-bounded reputation that disappears at `height_end`.
+
+5. **Slashing path.** If the hot key signs a misbehaving attestation that triggers a §4.5 slash of severity $\Lambda$, the slash is dispatched per §5.5: master takes `0.7 * Λ` reputation loss, hot key takes `0.3 * Λ`. Master is incentivized to monitor Iris's behavior (P2); hot key (Iris) bears real cost (P3); total system loss is `Λ`, no double-punishment (P4).
+
+6. **Expiry.** At `h_now + 24h_blocks`, the grant transitions to EXPIRED (§4.4). The hot key becomes unusable; any pending Iris transactions signed by it after this height are rejected at admission. No explicit revocation tx is needed in the happy path.
+
+7. **Revocation path** (if the user wants to stop the agent early). User signs `MsgRevokeDelegate` (§4.2) from Mneme. Grace period (recommended 100 blocks for Iris use cases) lets in-flight transactions complete cleanly. After grace, the grant is REVOKED; Iris rejects further signing requests against the hot key locally; even if Iris is compromised and tries to sign, the chain rejects at admission.
+
+Net effect: the user signed once. The agent operated for a bounded window. The master key never left cold storage. Any slashing exposure was bounded by the master-side weight $w_m \cdot \Lambda$ (a known quantity), and the master's reputation continued accumulating from honest agent attestations.
 
 ### 7.3 Sponsored-Gas Composition
 
-[**v0.2:** The fee-payer mechanism (proposed separately in the per-schema-fees paper, §X) composes with delegation orthogonally. A delegated hot key signs the action; a sponsored fee-payer covers the gas. The combination is the Iris primary use case. Verification of orthogonal composition: scope predicate covers actions, fee-payer covers payment, neither overlaps the other's authorization decision.]
+A separate companion paper, [Per-Schema Fees](../per-schema-fees/), specifies the fee-payer mechanism: a transaction can name a fee-payer distinct from its signer, and the fee-payer's account is charged for gas. Iris's monetization model leans on this primitive. The user signs (via the delegated hot key); the relayer pays (via the fee-payer field). The chain authorizes the action based on the signer's scope and authorizes the payment based on the fee-payer's balance. These are two orthogonal authorization decisions on the same transaction.
 
-### 7.4 Multi-Agent Delegation
+Why this composes cleanly under native delegation. The §4.3 authorization check verifies that the signing identity (the hot key) has scope to do what the transaction claims. The fee-payer mechanism verifies that the paying identity (Iris's relayer address) has the balance to cover gas. The hot key's scope predicate does not need to include any fee-payment authority; the relayer's account does not need to be a delegate of the user's master. The two trust relationships are independent: the user delegates **action authority** to the hot key (with bounded scope), and the user has a contractual relationship with Iris (off-chain billing in USD) for **gas sponsorship**. Iris's incentive to spend $LGT on the user's behalf comes from the USD billing, not from any on-chain delegation; the chain sees only "this transaction has a valid signer + a solvent fee-payer."
 
-[**v0.2:** A user with three agents (Themisra prompt-attestor, Iris general agent, Mneme-paired auto-signer) issues three concurrent grants with non-overlapping scopes. Each grant is independent; revoking one does not affect the others. Worked example in v0.2.]
+The combined product surface: from the user's perspective, agent operation is a per-task subscription; from the chain's perspective, the attestation traffic is indistinguishable from cold-key-signed attestation traffic of the same volume. The reputation accumulated to the master's address is the same whether the user signed each transaction themselves or delegated to Iris and let Iris's relayer pay. This invariance under delegation-with-sponsored-gas is the property the per-schema-fees paper §4 formalizes; this section names the composition by its product use case.
+
+### 7.4 Stake-to-Attest Delegation Under PoUA
+
+The §5.6 recommended calibration $(w_m, w_h) = (0.7, 0.3)$ makes Iris-style commercial delegation viable in three ways.
+
+First, **delegators (master-side) bear the dominant slashing exposure.** This is the right asymmetry for a commercial relayer market. The master picks the relayer; the master should bear the cost of picking poorly. If the relayer's reputation history is bad, master's monitoring incentive (P2 from §5.5) is the protocol's enforcement of that responsibility. Delegators who pick well-reputed relayers (Iris included) get the §6.3-style forward-revenue accumulation on attested work that compounds with time.
+
+Second, **operators (hot-side) bear residual but real exposure.** $w_h = 0.3$ means Iris loses 30% of any per-event slash on its own relayer reputation. For Iris specifically this is the right size: too low and the relayer can be cavalier with attestation correctness (operators with no skin will eventually be replaced by ones with skin); too high and the operator margin disappears entirely. The §5.5 P3 condition is satisfied; the operator can model expected slashing cost against their per-attestation routing fee revenue.
+
+Third, **the §6.3 forward-revenue logic from PoUA applies to delegated reputation.** A master who builds reputation through their agent's attestations sees that reputation accrue at the same rate as if they signed manually. This means the master has a long-term economic interest in their agent (and the chosen relayer) operating correctly. The chain#383 umbrella's "stake-to-attest delegation" (item A) is the protocol-level realization of this loop: a $LGT holder delegates to an attestor org (here: Iris or any other relayer), the attestor signs attestations, the delegator earns a share of the attestation fees pro rata to their delegation. Native delegation is the substrate that makes this market possible; per-schema fees is the substrate that prices it; this paper specifies the substrate and the security floor (§5).
+
+### 7.5 Multi-Agent Delegation
+
+Most non-trivial agent users will run more than one agent. A typical configuration:
+
+- A **Themisra prompt-attestor** agent that signs `themisra.proof-of-prompt/v1` attestations when the user runs an LLM session
+- An **Iris general-purpose** agent that handles low-stakes administrative attestations the user does not want to manually sign each time
+- A **Mneme-paired auto-signer** for explicit user-driven attestations the user wants the Mneme UI to confirm before signing
+
+Each grant is independent: separate hot keys, separate scope predicates, separate `(w_m, w_h)` calibrations if the user wants different exposure per agent. The §3.2 constraint that each hot key has at most one active grant is honored trivially (each agent gets its own hot key). Revoking one grant does not affect the others. Slashing on one hot key transitions only that grant's master-side weight; the other agents continue operating.
+
+The product UX implication: Mneme's grant-management surface needs to list active grants by purpose, expose per-grant scope details, and offer per-grant revocation. The chain's grant index supports this directly; Mneme's frontend reads the index and renders it. Concurrent multi-grant management is a UX layer, not a protocol concern.
+
+### 7.6 Open Product Questions
+
+Three product-side questions worth flagging for v0.3 paper work and ongoing Iris engineering:
+
+1. **Per-schema vs cross-schema grants.** Iris's monthly-subscription model probably wants a single multi-schema grant per user-session for simplicity. The chain admits this (one grant can name multiple schemas in its scope predicate). The trade-off is blast radius: a single multi-schema grant means a compromised hot key can sign across all included schemas. Recommended pattern: per-schema grants for high-value schemas (financial attestations, regulated content), bundled multi-schema grants for low-value bulk attestations. Mneme's UI will need to surface this distinction.
+
+2. **Sponsored-gas overlap with per-schema fee routing.** The per-schema-fees paper §4 specifies that fee revenue can be routed via `fee_routing_bps`. When a relayer (Iris) is the fee-payer for attestations submitted under a schema with non-zero `fee_routing_bps`, who receives the routed share? Current answer: the schema's named beneficiary (the schema's author), not the fee-payer. This means Iris pays gas but does not receive the routed-fee share; the relayer's revenue comes entirely from its USD subscription. Verified clean composition; documented here for the paper's record.
+
+3. **Multi-relayer competition.** When multiple relayers serve overlapping user bases, does delegation revocation cascade cleanly? Yes (each grant is independent). But the operational question of how a user migrates from relayer A to relayer B in the middle of a task remains a UX matter. Recommended: bounded grant durations (recommended `T_grant_max = 6 months` of block height per §3.4) means migration happens at natural grant boundaries.
 
 ---
 
