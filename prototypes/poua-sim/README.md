@@ -28,6 +28,15 @@ src/poua_sim/
   layers.py       M4: §5.5 Layer 1 (address exclusion), 2 (graph distance),
                        3 (burn destination), 4 (statistical detectors)
   adversary/      M3-M4: capital, reputation, compound (single + cartel)
+  agent.py        M6: 6 adversarial deviation strategies (HONEST baseline +
+                       cartel / dodge / lazy / staged / hybrid)
+  detectors.py    M5-M6: §A.1 A2, §A.2/§A.3 detector implementations + TPR
+                       measurement under each M6 strategy
+  a3_slash.py     M6 follow-up: §A.3-triggered slashing (opt-in via
+                       A3SlashConfig.enabled)
+  network.py      M7: NetworkScheduler protocol + UniformLatency /
+                       AdversarialLatency / Partition / Eclipse schedulers,
+                       per-validator delivery queue
   metrics.py      Realized κ, FPR/TPR, reputation distribution stats
   plotting.py     PGF export for paper figures
 ```
@@ -41,6 +50,8 @@ Tracked in [issue #3](https://github.com/ligate-io/ligate-research/issues/3) wit
 - [x] **M3**: Capital adversary (§5.3) + transition-state κ (§5.3.1): empirical κ matches analytical, realized κ trajectory validated across warmup / ramp / steady / post-slash
 - [x] **M4**: Compound adversary (§5.5): Layer 1 self-submitted exclusion, cartel-aware Lemma 1 validated within 10% across `m ∈ {1, 2, 3, 4}` in `k=12`, per-burn-destination bounds (pure burn / treasury / redistribution) checked
 - [x] **M5**: Statistical detection (§A.1, §A.2) + volume deterrent (§6.3): A2 KL-divergence detector + A3 bipartite-density detector with ER and Chung-Lu null hypotheses, realized A3 FPR under each null compared empirically; volume-deterrent ratio plot showing crossover with pure-stake bond baseline
+- [x] **M6**: Adversarial-agent extension (§5.5, §6.2, §A.3): strategy framework with 6 deviation strategies, A3 TPR + Layer 1/2 evasion measurement, three-panel strategy-reward heatmap showing Panel A (no defense) to Panel C (full layered defense at r_min) collapse of GRIND_VIA_STAGED_SUBMITTERS from `2.96 / 5.79 / 7.98` to `1.00 / 1.00 / 1.00` across small / medium / large pool sizes at α=0.20
+- [x] **M7**: Network-conditions modeling (§3.1, §5.2): `NetworkScheduler` protocol + 4 schedulers (UniformLatency, AdversarialLatency, Partition, Eclipse), per-validator delivery queue with §4.3 voter-share preservation, eclipse-recovery trajectory, scale invariance of κ across `|V| ∈ {50, 100, 250, 500, 1000}` saturating at `r_max/r_min = 8` for every scale tested
 
 Each milestone targets specific issues:
 
@@ -52,6 +63,9 @@ Each milestone targets specific issues:
 | [#14](https://github.com/ligate-io/ligate-research/issues/14) α Pareto frontier | M4 |
 | [#15](https://github.com/ligate-io/ligate-research/issues/15) Volume slash deterrent | M5 |
 | [#16](https://github.com/ligate-io/ligate-research/issues/16) A3 ER mismatch | M5 |
+| [#30](https://github.com/ligate-io/ligate-research/issues/30) Adversarial-agent strategy search | M6 |
+| [#53](https://github.com/ligate-io/ligate-research/issues/53) §A.3 detector chain-slashing + §5.5 Layer 2 | M6 follow-up |
+| [#31](https://github.com/ligate-io/ligate-research/issues/31) Network-conditions modeling | M7 |
 
 ## M1 acceptance (closed)
 
@@ -112,7 +126,32 @@ Note for v0.7 paper: the v0.6 Lemma 1 proof uses `α_eff = α + mβ/k` (assumes 
 - `out/a3_fpr_comparison.png`: ER vs Chung-Lu FPR comparison
 - `out/volume_deterrent.png`: volume-deterrent ratio curve
 
-Run `pytest tests/ -v` to verify (113 tests). Run `python scripts/run_*.py` to regenerate figures.
+Run `pytest tests/ -v` to verify (113 tests at M5 baseline; more after M6/M7). Run `python scripts/run_*.py` to regenerate figures.
+
+## M6 acceptance (closed)
+
+- `agent.py`: adversarial strategy framework with 6 deviation strategies (HONEST, ALL_PROPOSE_CARTEL, STRATEGIC_SLASH_DODGE, LAZY_DEFENDER, GRIND_VIA_STAGED_SUBMITTERS, plus a hybrid)
+- `detectors.py` extended with A3 TPR + Layer 1/2 evasion measurement under each strategy
+- `Validator.controlled_addresses` + `Chain.enable_layer_2`: deterministic-membership specialization of §5.5.2 Layer 2 (strict subset of the paper's distance-$d$ rule; equivalent in the limit where the chain derives controlled-address membership perfectly from the transaction graph)
+- `a3_slash.py`: `A3SlashConfig` drives chain slashing when the §A.3 detector fires per-block; default `enabled=False` preserves the M1-M5 baseline, production calibration sets `beta_3` and opt-in
+- **Strategy-search dominance**: under Panel A (no layered defense), GRIND_VIA_STAGED_SUBMITTERS is the dominant adversarial strategy with reward `2.96 / 5.79 / 7.98` at small / medium / large pool sizes (α=0.20)
+- **Layered-defense collapse**: under Panel C (full layered defense at r_min), GRIND_VIA_STAGED_SUBMITTERS reward collapses to `1.00 / 1.00 / 1.00` (HONEST baseline) across all pool sizes; the three-panel heatmap quantifies the contribution of each layer
+- **A3 TPR vs FPR**: §A.3 detector achieves high TPR at calibrated `β_3 = 0.01` FPR for cartel sizes `m ≥ 3` across the swept parameter range
+- `out/strategy_reward_heatmap.png`, `out/strategy_reward_heatmap_2panel.png`, `out/strategy_reward_heatmap_3panel.png`, `out/a3_tpr_vs_fpr.png` shipped
+- Closes [#30](https://github.com/ligate-io/ligate-research/issues/30) (M6 strategy search) and [#53](https://github.com/ligate-io/ligate-research/issues/53) (M6 follow-up: §A.3 slashing + §5.5 Layer 2)
+- Paper integration spec: [`papers/poua/specs/a3-slash-and-layer-2-paper-integration.md`](../../papers/poua/specs/a3-slash-and-layer-2-paper-integration.md)
+
+## M7 acceptance (closed)
+
+- `network.py`: `NetworkScheduler` Protocol + 4 implementations (`UniformLatencyScheduler`, `AdversarialLatencyScheduler`, `PartitionScheduler`, `EclipseScheduler`)
+- Per-validator delivery queue + proposer-self-fix: blocks propagate at scheduler-determined slot offsets while preserving §4.3 voter-share semantics (per-block `g_vote` denominator fixed at block creation, late-arriving voters use the same denominator)
+- **Latency robustness**: under `UniformLatencyScheduler` across the swept latency range, no κ degradation observed
+- **Partition tolerance**: under `PartitionScheduler` with drop semantics, isolated validators rejoin and the chain converges within bounded recovery time
+- **Eclipse recovery**: under `EclipseScheduler` with target-view restriction, the eclipsed validator's `r_v` trajectory recovers to `r_max` within `T_ramp` epochs after the eclipse is lifted
+- **Scale invariance of κ**: at `|V| ∈ {50, 100, 250, 500, 1000}` with uniform stake and v0 reputation parameters (figure-time scaling of η and G_max to keep ramp bounded), realized κ saturates at the `r_max / r_min = 8` ceiling for every scale tested; the §5.3 small-set Lemma 1 example (`|V| = 10`) generalizes to mainnet-scale validator sets without parameter retuning
+- `out/scale_benchmark.png`, `out/eclipse_recovery.png`, `out/adversarial_latency.png` shipped
+- Closes [#31](https://github.com/ligate-io/ligate-research/issues/31)
+- Paper integration spec: [`papers/poua/specs/m7-network-conditions-paper-integration.md`](../../papers/poua/specs/m7-network-conditions-paper-integration.md)
 
 ## Cross-language test vectors
 
@@ -136,9 +175,13 @@ whichever repo lags. See `test_vectors/README.md` for the format spec.
 
 ## Open follow-ups
 
+- **Adaptive η/λ rebase** ([#28](https://github.com/ligate-io/ligate-research/issues/28)): mirrors v0.7's adaptive τ_burn rebase (§4.4.2) for the two other §4.3 reputation parameters. Working spec at [`papers/poua/specs/eta-lambda-rebase.md`](../../papers/poua/specs/eta-lambda-rebase.md); simulator scaffold tracks the rebase-interaction figure at `out/rebase_interaction.png`. Paper-side integration lands in v0.8.
+
+## Closed follow-ups (historical)
+
 - **Lemma 1 paper reconciliation** ([#22](https://github.com/ligate-io/ligate-research/pull/22), merged): the v0.6 proof and §4.3 disagreed on whether the proposer earns voter-channel reputation on its own block. Simulator implements §4.3 strictly and produced the empirical bound that flagged the inconsistency. v0.6.1 patched the proof to match.
-- **Adaptive τ_burn rebase** ([#17](https://github.com/ligate-io/ligate-research/issues/17)): the v0.6 paper specifies τ_burn as a static parameter and hand-waves drift to "subject to governance." Simulator can implement the threshold-triggered rebase curve once the v0.7 paper specifies it.
-- **Paper-claim discipline** ([#23](https://github.com/ligate-io/ligate-research/issues/23)): the v0.6 → v0.6.1 drift motivated a structural rule that every paper numerical claim must link to a simulator test. Audit + CI enforcement in v0.7 sweep.
+- **Adaptive τ_burn rebase** ([#17](https://github.com/ligate-io/ligate-research/issues/17)): closed by v0.7 §4.4.2. The η and λ analogues remain open under #28 above.
+- **Paper-claim discipline** ([#23](https://github.com/ligate-io/ligate-research/issues/23)): closed in v0.7 sweep. Every paper numerical claim links to a simulator test or test-vector; CI parser at `scripts/check_citations.py` enforces.
 
 ## Reproducibility
 

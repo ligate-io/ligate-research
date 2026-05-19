@@ -1,8 +1,49 @@
 # PoUA Paper Changelog
 
-Tracks substantive changes from v0.1 to v0.7.2. v0.8 entries land when the next paper cycle opens (gated on substantive reviewer feedback consolidation, ~2-3 weeks from 2026-05-03).
+Tracks substantive changes from v0.1 to v0.8. Each entry is brief; the paper itself is the source of truth.
 
-This is for readers asking "what changed since [earlier version]?" Each entry is brief; the paper itself is the source of truth.
+---
+
+## v0.8 (2026-05-19): reviewer-feedback consolidation + simulator-spec integration
+
+Cycle opened 2026-05-19 on branch `paper/poua-v0.8`. Three reviewer-feedback items + three simulator-spec integrations + framing + acknowledgments. No load-bearing claim changed; the security argument in §5 stands; the cost-to-attack moat in §5.3 stands. v0.8 is the empirically-validated, framing-tightened, reviewer-corrected version of v0.7.2.
+
+**Reviewer-feedback corrections** (per [#71](https://github.com/ligate-io/ligate-research/issues/71); authoritative input from Jiangshan Yu, Sydney Blockchain Centre).
+
+- §8 RepuCoin row (line 952): weight basis corrected from "Mining history $\times$ stake" to "Reputation as first-class weight (derived from total blocks produced, activity, and contribution regularity)"; cost-to-attack corrected from "$\geq 1\times$" to time-dependent characterization ("Grows with elapsed chain time as reputation accumulates").
+- §11 Q4 first bullet rewritten to reflect RepuCoin's reputation-as-first-class framing and the time-dependent cost-to-attack growth.
+
+**Framing additions** (per [#37](https://github.com/ligate-io/ligate-research/issues/37)).
+
+- §1.1 new framing paragraph: "What PoUA is and is not." Crisp PoUA-as-DA-layered-primitive framing at skim depth, with forward references to §3.8 and §11 Q11.
+- §3.8 new subsection: "Why Data Availability Alone Is Insufficient." Three-pillar argument (reputation as queryable state, schema-scoped attestor sets, protocol-enforced burn) for careful readers verifying the architecture against the "use Celestia raw" alternative.
+- §11 Q11 new FAQ entry: "Why not just use Celestia raw, or any DA layer, for attestations?" Direct FAQ-depth answer.
+- §11 Q12 new FAQ entry: "Will Ligate Chain ever support general-purpose smart contracts?" Positive design choice explanation; positions Ligate's specialization vs general-purpose-chain alternatives.
+
+**Simulator-spec integration: A3 + Layer 2** (per [`specs/a3-slash-and-layer-2-paper-integration.md`](specs/a3-slash-and-layer-2-paper-integration.md), closing [#53](https://github.com/ligate-io/ligate-research/issues/53)).
+
+- §5.5.2 (Layer 2): footnote + reference-simulator implementation paragraph documenting deterministic-membership specialization; explicit cross-reference to the Panel C empirical collapse.
+- §5.5.4 (Layer 4): detector slashing pathway formalized. Detector firing now records a slash of severity $\Lambda_3$ against the validator's `epoch_b` tally per §4.5, contestable via §5.5.5 appeal window. Reference implementation links to [`A3SlashConfig`](https://github.com/ligate-io/ligate-research/blob/main/prototypes/poua-sim/src/poua_sim/a3_slash.py).
+- §6.2 (Honest Equilibrium): three-panel strategy-reward heatmap with empirical layered-defense progression. Panel A (Layer 1 only): GRIND_VIA_STAGED_SUBMITTERS dominates at $2.96 / 5.79 / 7.98$ across small / medium / large pools at $\alpha = 0.20$. Panel C (Layer 1 + detector slash + Layer 2): collapse to $r_{\min}$ across all pool sizes.
+- §A.4: synthetic-attestor TPR saturation footnote added; honest acknowledgment that synthetic-model TPR saturation is a model artifact, not a calibration win.
+
+**Simulator-spec integration: M7 network conditions** (per [`specs/m7-network-conditions-paper-integration.md`](specs/m7-network-conditions-paper-integration.md), closing [#31](https://github.com/ligate-io/ligate-research/issues/31)).
+
+- §3.1: paragraph on `NetworkScheduler` protocol + 4 schedulers (UniformLatency, AdversarialLatency, Partition, Eclipse) + per-validator delivery queue preserving §4.3 voter-share semantics.
+- §5.3.2 new subsection: scale invariance of $\kappa$ across $|V| \in \{50, 100, 250, 500, 1000\}$, with figure. §5.3 small-set Lemma 1 example generalizes to mainnet scale.
+- §5.3.2.1 new sub-subsection: $\kappa$ under adversarial scheduling. Realized $\kappa$ insensitive to $\Delta_{\text{adv}}$ in the single-canonical-chain model.
+- §5.5.6.1 new sub-subsection: empirical eclipse-recovery profile. Validates the §4.3 analytical recovery rate.
+
+**Simulator-spec integration: §4.4.3 adaptive $\eta$ and $\lambda$ rebase** (per [`specs/eta-lambda-rebase.md`](specs/eta-lambda-rebase.md), closing [#28](https://github.com/ligate-io/ligate-research/issues/28)).
+
+- §4.4.3 new big subsection mirroring §4.4.2's structure for $\eta$ (telemetry $T_{\text{ramp,obs}}$ via median-participation validator) and $\lambda$ (telemetry $\Delta r_{\text{obs}}$ event-counted over severe slashes with sparsity floor). Three-rebase interaction analysis: orthogonal first-order signals, 34% one-step worst-case bound under correlated drift, simulator validation via `test_three_rebases_concurrent_no_amplification`.
+- §11 Q13 new FAQ entry: "Why three rebase parameters? How do they interact?" Compact answer plus rebase-saturation alert behavior.
+
+**Acknowledgments section added** (new section between §10 Conclusion and §11 FAQ). Yu (Sydney Blockchain Centre) and Vukolić (Bitcoin Scaling Labs) acknowledged with permission and per-engagement summary.
+
+**Simulator README updated.** M6 + M7 acceptance blocks added; layout section extended with `agent.py`, `detectors.py`, `a3_slash.py`, `network.py`; closed-vs-open follow-up split.
+
+**No load-bearing changes.** Lemma 1 unchanged. The cost-to-attack premium claim ($4\times$ to $10\times$) unchanged. §A.2 / §A.3 detector formalism unchanged. v0.8 is corrections, integrations, and framing; the security argument's load-bearing parts are stable.
 
 ---
 
