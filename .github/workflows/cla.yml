@@ -27,6 +27,6 @@ jobs:
           # PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           path-to-signatures: 'signatures/version1/cla.json'
-          path-to-document: 'https://github.com/ligate-io/ligate-chain/blob/main/CLA.md'
+          path-to-document: 'https://github.com/ligate-io/ligate-research/blob/main/CLA.md'
           branch: 'cla/signatures'
           allowlist: 'sstefdev,dependabot[bot],*[bot]'
