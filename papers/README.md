@@ -8,7 +8,7 @@ The canonical sequence per the marketing-side umbrella tracker (ligate-marketing
 
 | Paper | Latest | Status | Topic |
 |---|---|---|---|
-| [PoUA, Proof of Useful Attestation](poua/) | v0.7.2 (2026-05-03) | Draft, external review (sending) | Consensus weighting primitive aligning validator influence with valid attestation work |
+| [PoUA, Proof of Useful Attestation](poua/) | v0.8 (2026-05-19) | Draft, arXiv submission pending endorser | Consensus weighting primitive aligning validator influence with valid attestation work. Reviewer-feedback consolidation + M1-M7 simulator integration of v0.7.2. |
 | [Per-Schema Fee Markets](per-schema-fees/) | v0.1.1 (2026-05-04) | Outline + §4 substantive | EIP-1559-style demand curves per attestation schema, with sponsored-gas integration |
 | [Cross-Schema Composition](cross-schema-composition/) | v0.1.1 (2026-05-04) | Outline + §3 + §4 substantive (deferred) | Typed attestation references with slashing-aware proof propagation; v2 protocol territory pending design-partner validation |
 | [Native Delegation](native-delegation/) | v0.1.1 (2026-05-04) | Outline + §5 substantive | Hot-key / master-key separation as a runtime primitive; foundation for the Iris MCP relayer |
@@ -25,6 +25,7 @@ Papers outside the canonical protocol-primitive sequence.
 | Paper | Latest | Status | Topic |
 |---|---|---|---|
 | [Native DA Layer](native-da/) | v0.1.1 (2026-05-04) | Outline + §3 substantive | Attestation-optimized data availability (post-Celestia track); per-schema indexed commitments, attestor-history queries. Explicitly not advocacy for migration; documents the option. |
+| [Schema-Bound Tokens](schema-bound-tokens/) | v0.1 (2026-05-19) | Draft, formal properties (§3) written | Attestor-set-as-mint-authority as a third user-token primitive; mint events as attestations under `chain.token-mint/v1`. Companion to [ligate-chain#286](https://github.com/ligate-io/ligate-chain/issues/286). |
 
 ## Status definitions
 
