@@ -532,39 +532,88 @@ Three product-side questions worth flagging for v0.3 paper work and ongoing Iris
 
 ## 8. Security Analysis
 
+The native delegation primitive opens a new attack surface (the hot key) without removing any existing surface (the master key). This section enumerates the attacks that target the new surface, names the protocol-level defenses against each, and bounds the damage when defenses are partial or absent. The §5.5 slashing-inheritance theorem is the load-bearing claim; this section verifies that the theorem's economic argument is not undermined by mechanical attack vectors.
+
 ### 8.1 Threat Models
 
-[**v0.2:** Five threat models:
-1. Hot-key compromise (agent-side breach)
-2. Master-key compromise (user-side breach, off-protocol)
-3. Replay attacks (delegated tx broadcast on a chain fork or to a different network)
-4. Cross-schema delegation abuse (agent grants in a wider scope than intended)
-5. Time-bound circumvention (race between grant expiry and tx inclusion)
-]
+We consider six attack categories spanning the new surface. Each gets its own subsection below.
+
+1. **Hot-key compromise** (§8.2): adversary steals the hot key's secret material from the agent operator's runtime.
+2. **Master-key compromise** (§8.3): adversary steals the master key's secret material, off-protocol.
+3. **Replay attacks** (§8.4): adversary broadcasts a captured signed delegation transaction on a different chain, fork, or context.
+4. **Cross-schema delegation abuse** (§8.5): a compromised or careless hot key tries to act outside its scope predicate.
+5. **Time-bound circumvention** (§8.6): adversary races against grant expiry to land transactions just past the window.
+6. **Adversarial delegator-agent collusion** (§8.7): the master and hot key cooperate to extract value from a third party.
+
+Crucially, every category is bounded by some combination of the §3.3 scope predicate, the §3.4 time-bound, the §4.3 admission check, and the §5 slashing-inheritance rule. The new attack surface is real; it is not unbounded.
 
 ### 8.2 Hot-Key Compromise
 
-[**v0.2:** Adversary controls $K^{\text{hot}}$ for time $\Delta < T_{\text{end}} - T_{\text{start}}$. Maximum damage bounded by scope predicate AND time-window AND slash-inheritance rule. Defense: tight scopes, short time-windows, master-side monitoring (§5).]
+**Setup.** Adversary controls the hot key $K^{\text{hot}}$ for some time interval $\Delta$ within the grant window $[T_{\text{start}}, T_{\text{end}}]$. The adversary can sign anything within the grant's scope predicate during $\Delta$.
+
+**Damage bound.** The damage is bounded jointly by three factors:
+
+1. **Scope predicate (§3.3).** The adversary cannot sign actions outside $A_G$ or schemas outside $\Sigma_G$. A grant scoped to `{submit_attestation}` × `{themisra.proof-of-prompt/v1}` cannot be used to drain the master's $LGT balance, vote on chain governance, or transfer NFTs.
+2. **Time window (§3.4).** Damage is bounded above by $T_{\text{end}} - T_{\text{compromise}}$, the remaining grant lifetime after the compromise begins. The protocol parameter $T_{\text{grant,max}}$ (recommended 6 months at v0) caps the worst case.
+3. **Slashing-inheritance (§5.5).** Any chain-detected misbehavior by the compromised hot key triggers the §4.5 slash dispatched per §5.5. With the recommended $(w_m, w_h) = (0.7, 0.3)$, the master absorbs 70% of the slash; the hot key absorbs 30%. The master's economic exposure to a compromise is $0.7 \cdot \Lambda \cdot N_{\text{slash}}$ where $N_{\text{slash}}$ is the number of slashable events triggered during $\Delta$.
+
+**Defense.** Tighten scope predicates to the minimum necessary action set. Use short grants for high-stakes scopes. Monitor the chain's grant index for unexpected activity (Mneme's notification surface). Revoke via §4.2 the moment compromise is detected; grace period gives in-flight legitimate transactions a clean window.
+
+**Comparison to vanilla wallets.** Without native delegation, the only way to give an agent signing authority is to share the master key. A compromised master key has *unbounded* damage potential within the master's full chain-state surface. Native delegation reduces this to a *bounded* damage potential within the scope predicate and time window. The reduction in attack surface is the primary security argument for the primitive.
 
 ### 8.3 Master-Key Compromise
 
-[**v0.2:** Adversary controls $K^{\text{master}}$. Game over for the validator's reputation; this is the same threat as in vanilla PoUA. Delegation does not amplify this threat; if anything, having delegated hot keys gives the adversary fewer extra capabilities than starting fresh would.]
+**Setup.** Adversary controls the master key $K^{\text{master}}$. This is an off-protocol breach (hardware wallet phishing, social engineering, supply-chain attack on the wallet software).
+
+**Damage bound.** Equivalent to master-key compromise on a chain *without* native delegation. The adversary can sign anything the master could sign: full $LGT transfers, governance votes, new grants to attacker-controlled hot keys, revocation of legitimate grants. PoUA's reputation slashing applies, but the adversary may have already extracted economic value before any slash lands.
+
+**Delegation does not amplify this threat.** If anything, the existence of native delegation gives a *partial* mitigation: a user who keeps their master key cold and uses delegation for every active session reduces the master key's online exposure window to the moments they sign delegation transactions. Most of the time, the master key is offline. By contrast, a non-delegating user keeps their master online whenever they want their wallet to be functional.
+
+**Defense.** Hardware-wallet integration (Mneme on Ledger / Trezor / dedicated signing devices) is the canonical defense. The chain protocol cannot reach off-protocol; the protocol's contribution is making it *cheap* to keep the master cold by reducing how often the master must sign.
 
 ### 8.4 Replay Attacks
 
-[**v0.2:** Defenses: chain ID in the grant signature, nonce-style sequence numbers per hot key, height-bounded grant validity. v0.2 specifies the canonical encoding to prevent cross-chain replay.]
+**Threat surface.** An adversary captures a signed `MsgDelegate` or hot-key transaction and attempts to replay it: on a chain fork, a testnet copy of the chain state, a different chain with the same address space, or in a temporal window after legitimate use.
+
+**Defenses, layered.**
+
+1. **Chain ID in the signed message.** The Borsh-encoded message includes the chain identifier as part of the signed bytes. A signature over `ligate-mainnet`'s chain ID does not verify against `ligate-devnet-1`'s chain ID. Cross-chain replay is cryptographically impossible.
+2. **Per-key nonce.** The §4.1 `MsgDelegate` schema includes a nonce field. Each master key tracks its own nonce counter on-chain; admission rejects out-of-order nonces. A captured `MsgDelegate` with an already-used nonce is rejected immediately.
+3. **Block-height time-bounds.** Grants are valid only within $[T_{\text{start}}, T_{\text{end}}]$. A replayed grant whose window has closed is in EXPIRED state at admission; even if its signatures verify, the §4.3 authorization check rejects it.
+
+**Edge case: same chain, same fork, same height.** If an adversary captures a valid hot-key transaction and replays it identically (same nonce, same chain ID, same recipient), the chain treats it as a duplicate and rejects on nonce match. The hot key's nonce is incremented after the first inclusion; the replay's nonce is now stale. No double-spending or double-attesting is possible.
 
 ### 8.5 Cross-Schema Delegation Abuse
 
-[**v0.2:** A hot key with `themisra.proof-of-prompt/v1` scope tries to attest under `kleidon.passify.v1`. Mempool validation rejects at admission time per §4.3. Defense is straightforward; the attack vector is "user issued a wider grant than necessary," which is a UX problem solved by Mneme's per-schema confirmation flow.]
+**Setup.** A compromised or buggy hot key signs a transaction targeting a schema *not* in its grant's scope predicate $\Sigma_G$.
+
+**Defense.** §4.3 admission check verifies the transaction's target schema against $\Sigma_G$. Mismatch rejects at admission. The cost of attack is bounded by the admission-time cost of rejected transactions; no state change occurs, no reputation is awarded or slashed.
+
+**Where this becomes a UX problem.** The hot key is operating *within* the protocol's rules but signing things the user did not intend. This happens when the user issues an overly broad grant. The protocol cannot prevent the user from issuing a grant with `scope.schemas = ALL`; that's the user's choice. The mitigation is product-level: Mneme's grant-issuance UI exposes the scope predicate as a checklist of schemas + actions and warns when the selection is unusually broad. Default-deny in the protocol; default-cautious in the UX.
 
 ### 8.6 Time-Bound Race Conditions
 
-[**v0.2:** A delegated tx signed at height $H_{\text{end}} - 1$ but included at height $H_{\text{end}} + k$. Specification: validity is checked at inclusion height, not signing height. Late-arriving txs from expiring grants are rejected. v0.2 considers whether a grace period (k blocks) is appropriate for short-window grants.]
+**Setup.** The hot key signs a transaction at chain height $H_{\text{sign}}$ where $H_{\text{sign}} < T_{\text{end}}$ (valid). The transaction enters the mempool. By the time a proposer includes it in a block, the chain is at height $H_{\text{include}}$ where $H_{\text{include}} > T_{\text{end}}$ (grant expired). Should the transaction be accepted?
+
+**Specification.** Validity is checked at *inclusion height*, not signing height. A transaction included after `T_end` is rejected by the §4.3 admission check at proposal time, regardless of when it was signed.
+
+**Justification.** Honoring sign-time validity creates an attack vector: an adversary could pre-sign many transactions inside the grant window and broadcast them later, after the user has revoked. Pre-signed transactions are bearer instruments only when validity is determined at signing time. Inclusion-time validity makes the grant window an absolute upper bound on the hot key's authority.
+
+**Application-layer mitigation.** Users who want a transaction signed near $T_{\text{end}}$ to land reliably should either issue grants with generous time margins (a few extra blocks past their planned use) or use the §4.2 grace period mechanism for revocation: in-flight transactions submitted during the grace window complete normally; outside the window they are rejected.
 
 ### 8.7 Adversarial Delegator-Agent Collusion
 
-[**v0.2:** Master and hot key collude to extract value from a third party. Key insight: PoUA's reputation accounting holds the master accountable regardless of which key signed; collusion does not bypass §4.3. Slashing inheritance under the both-slashed rule (§5.4) means colluders bear the cost on both keys.]
+**Setup.** The master and the hot key cooperate (the user is acting in bad faith, or the user's relationship with the agent vendor includes an off-chain agreement to misbehave on chain).
+
+**Threat.** The collusion could try to extract value from a third party: e.g., the user's master + a relayer collude to issue attestations that defraud a downstream consumer of those attestations.
+
+**Defense (PoUA reputation accounting).** Per PoUA §4.3, the reputation update applies to the master regardless of which key signed. The §5.5 slashing inheritance applies to both keys for any §4.5 slashable event. Collusion does not bypass the reputation accounting; it only means the colluders mutually accept the slashing exposure as a cost of their coordinated attack.
+
+**Defense (economic floor from PoUA Lemma 1).** PoUA's §5.5.3 cost-to-grind bound applies to any party trying to inflate their reputation. A master delegating to a colluding agent who attests fraudulently still pays the $\tau_{\text{burn}}$ non-recoverable fee on every attestation under Lemma 1. The colluders cannot bypass the per-fee burn by routing their attestations through delegation; the chain charges the same fee regardless of signing-identity flavor.
+
+**Defense (third-party recourse via §5.5.5 governance).** Detected fraud triggers the §5.5.5 governance appeal pathway. The colluders' reputation is appealable-slash; downstream consumers can argue for slashing the offending attestations and the validators who included them. This is the same recourse as for non-delegated misbehavior; delegation does not weaken it.
+
+**Net.** Adversarial delegator-agent collusion is bounded by exactly the same economic and reputational mechanisms that bound a single-party adversary in PoUA. Delegation is not a new attack surface for collusion; it is a different way of organizing the same attack surface PoUA already bounds.
 
 ---
 
