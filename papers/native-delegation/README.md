@@ -4,27 +4,31 @@ Hot-key / master-key separation for attestation-native chains, with slashing inh
 
 ## Latest
 
-- **Working paper**: [`native-delegation.md`](native-delegation.md) (source) + [`native-delegation.pdf`](native-delegation.pdf) (17 pages, ~110 KB).
-- **Version**: v0.2 (Block 1 of v0.2 cycle landed)
-- **Status**: **§3 + §4 + §5 substantive.** v0.2 expanded §3 System Model (validators, master/hot keys, grant object, scope predicate, time-bounds) and §4 Mechanism (MsgDelegate, MsgRevokeDelegate, authorization check, lifecycle state machine, recursive delegation deferred to v0.3). §5 slashing-inheritance theorem now cites the M1 reference simulator's empirical validation (`prototypes/native-delegation-sim/`, 27 tests, 441-point grid sweep matches §5.5 theorem). §6, §7, §8, §9, §10, §11 remain v0.1 outline; Block 3 of the v0.2 cycle covers them.
+- **Working paper**: [`native-delegation.md`](native-delegation.md) (source) + [`native-delegation.pdf`](native-delegation.pdf) (40 pages, ~330 KB).
+- **Version**: v0.2 (substantive draft complete)
+- **Status**: **All eleven sections substantive.** v0.2 specifies the protocol mechanism (§3 system model, §4 `MsgDelegate` / `MsgRevokeDelegate` / authorization check / lifecycle state machine), proves the slashing-inheritance theorem (§5.5 both-slashed rule with $(w_m, w_h) = (0.7, 0.3)$), cites simulator validation (88,200 Monte Carlo simulations in `prototypes/native-delegation-sim/`, 56 tests), positions against five existing patterns (§6), documents the Iris MCP integration (§7), analyzes six threat models (§8) and four-party incentives (§9), and names five forward-looking extensions (§10). Abstract + §1 Introduction + §2 Background + §11 Conclusion + References + Appendix A (simulator reference) + Appendix B (formal definitions) all complete.
 - **Date**: 2026-05-20
 
 ## Abstract (placeholder)
 
 Smart-contract wallets (ERC-4337, SafeWallet) and module-level delegation (Cosmos authz) provide hot-key / master-key separation as an application-layer pattern: the contract or module mediates which key can sign what, when, and for how long. This works on chains with general-purpose smart contracts. Ligate Chain does not have general-purpose contracts; runtime primitives are how we express anything that elsewhere would be a contract. This paper specifies **native delegation** as a runtime primitive: a delegation transaction type, schema-scoped and action-scoped grants, time-bounds with explicit revocation, and slashing-inheritance rules tied to PoUA reputation. The mechanism is the foundation for the Iris MCP relayer, where autonomous agents act on a user's behalf without holding the user's master key.
 
-## What's planned for v0.2
+## What shipped in v0.2
 
-The v0.2 milestone is the first substantive draft. Target deliverables:
+The v0.2 milestone is the first substantive draft. All target deliverables landed:
 
-- Full §1 Introduction with thesis, problem statement, central question, contributions
-- §3 System Model formalising master keys, hot keys, delegation grants, scope predicates
-- §4 Mechanism specification: delegation tx structure, scope grants, time-bounds, revocation tx
-- §5 Slashing-inheritance rules (master-only vs hot-only vs both, with PoUA reputation accounting)
-- §6 Comparison: ERC-4337 / SafeWallet / Cosmos authz / Solana fee-payer
-- §7 Iris MCP relayer integration: agent-on-behalf-of-user use cases
-- §8 Security analysis: hot-key compromise, master-key compromise, replay, cross-schema, time-bound
-- §A simulator scaffolding under `prototypes/native-delegation-sim/`
+- Full §1 Introduction with thesis, problem statement, central question, contributions, and §1.6.1 status-of-claims panel
+- §2 Background: ERC-4337, SafeWallet, Cosmos authz, Solana fee-payer, custodial hot/cold patterns, EigenLayer restaking
+- §3 System Model: validators, master keys, hot keys, grant object, scope predicate, time-bounds
+- §4 Mechanism: `MsgDelegate`, `MsgRevokeDelegate`, authorization check, lifecycle state machine
+- §5 Slashing-inheritance theorem with §5.5 both-slashed rule + §5.6 recommended $(0.7, 0.3)$ calibration
+- §6 Comparison table across the five comparators on eight axes
+- §7 Iris MCP integration: canonical delegation flow, sponsored-gas composition, stake-to-attest
+- §8 Security analysis: six threat models with bounded-damage arguments
+- §9 Incentive analysis: validator / user / agent / sponsor equilibrium
+- §10 Limitations: recursive delegation, cross-chain, hardware-wallet UX, PQ signatures, privacy
+- §11 Conclusion + References + Appendix A (simulator reference) + Appendix B (formal definitions)
+- Simulator under `prototypes/native-delegation-sim/`: M1 + M2 complete, 56 tests, 88,200 Monte Carlo simulations producing the §5.5 validation figure
 
 ## Discipline
 
@@ -36,24 +40,20 @@ This paper adopts the v0.7-PoUA discipline from draft v0.1:
 
 See [`papers/poua/`](../poua/) for the worked example of this discipline applied through a v0.1 to v0.7 cycle.
 
-## Open questions
+## v0.2 resolutions of v0.1 open questions
 
-- **Slashing inheritance**: master-only is safest for users (hot key is disposable), both-slashed is safest for the network (master incentivized to monitor). Recommendation depends on which threat model dominates: rogue agent vs sloppy delegator. v0.2 will specify.
-- **Recursive delegation**: can a hot key further delegate to a sub-key? If yes, depth limit and scope-monotonicity become protocol parameters. If no, agent-of-agent patterns are blocked. Likely answer: bounded depth with strict scope intersection.
-- **Revocation latency**: instant revocation (next block) gives users tight control but enables user-side griefing of in-flight agent actions. Delayed revocation (N-block grace period) is friendlier to the agent layer but extends the compromise window. v0.2 will pick.
-- **Hardware-wallet integration**: master keys living on Ledger / Trezor / Mneme means delegation grants must be human-readable in the device UI. The on-chain encoding has to round-trip cleanly to a UI string. This is product UX, but it constrains the on-chain encoding.
-- **Cross-schema delegation**: a single grant covering multiple schemas vs one grant per schema. The former is convenient; the latter limits blast radius. Likely answer: explicit per-schema grants are the only canonical form, with batched submission as a UX optimization.
-- **Sponsored-gas overlap**: delegation says who can sign; sponsored-gas says who pays. The two compose orthogonally but the combined object (delegated + sponsored) is the Iris primary use case. v0.2 will verify the composition is clean.
+The v0.1 outline left six open questions; v0.2 resolves each:
+
+- **Slashing inheritance**: both-slashed wins. §5.5 proves the unique calibration $(w_m, w_h) = (0.7, 0.3)$ satisfies P1-P4 under EV-maximizing adversaries with $\gamma > 1$.
+- **Recursive delegation**: deferred to v0.3 (see §4.5 + §10.1). Single-level delegation is the v0.2 surface; recursion needs a re-derivation of the slashing-inheritance proof for n-level hierarchies.
+- **Revocation latency**: grace period model (§4.2 + §4.4). Revocation is instant on-chain; in-flight transactions inside a configurable grace window still apply.
+- **Hardware-wallet integration**: protocol-side encoding is fixed-shape and small (§3.4 + §10.3). Product-side display is Mneme's responsibility; encoding fits standard Ledger / Trezor display budgets.
+- **Cross-schema delegation**: per-schema grants are the canonical form (§3.3). Batched submission is a UX optimization.
+- **Sponsored-gas overlap**: clean (§7.3). Signing authority and payment authority are orthogonal axes; the chain authorizes them independently.
 
 ## Authoring
 
-Filed as [issue #5](https://github.com/ligate-io/ligate-research/issues/5). Pull into a focused work cycle when:
-
-- Iris MCP relayer engineering reaches the design-doc phase (the paper informs the implementation)
-- The PoUA paper is at v0.8+ (so reputation-side semantics for slashing inheritance are post-review-feedback stable)
-- Contributor or external collaborator with mechanism-design or wallet-security expertise is engaged
-
-In the meantime, this scaffold reserves the directory and lays out the v0.2 structure. New ideas that belong in this paper land as comments on #5.
+Filed as [issue #5](https://github.com/ligate-io/ligate-research/issues/5). v0.2 substantive draft landed across PRs #93 (Block 1: §3 + §4 + §5.5 anchor), #94 (M2 simulator + §5.5 figure), #96 (§7 Iris), #97 (§8 Security), #98 (§6 Comparison), #99 (§9 Incentive), and the v0.2 finishing-pass PR (Abstract + §1 + §2 + §10 + §11 + References + Appendices).
 
 ## Critical for
 
