@@ -642,21 +642,74 @@ Crucially, every category is bounded by some combination of the §3.3 scope pred
 
 ## 9. Incentive Analysis
 
+Section 5.5 proved the existence of a slashing-inheritance calibration $(w_m, w_h)$ that simultaneously satisfies the four formal properties (P1-P4). This section closes the loop on the *behavioral* layer: when delegation is the rational choice for each of the four parties (validators including transactions, users issuing grants, agents operating under grants, sponsors paying gas) and when it is not. The §5.5 theorem is necessary; this section argues it is sufficient for adoption.
+
+The standard model from PoUA §6.1 applies: each party is a rational profit-maximizer with full information about protocol rules. We add one element: the user has a private $\gamma > 1$ risk-aversion parameter over reputation loss, reflecting that real users are not risk-neutral over their own credentials. The PoUA reputation acts as a forward-revenue stream (PoUA §6.3); a slash reduces the present value of that stream, and risk-averse users weight that reduction more heavily than expected value alone would suggest.
+
 ### 9.1 Validator Incentive to Honor Grants
 
-[**v0.2:** Validators including delegated transactions earn the same fees as for undelegated txs. No penalty for honoring grants; modest gain from agent-driven volume. Equilibrium: honor grants by default.]
+**Question.** When a validator $v$ proposes or votes on a block containing a delegated transaction (signed by a hot key under an active grant), does $v$ have any incentive to refuse inclusion, censor the grant, or weight its admission check differently than for non-delegated transactions?
+
+**Answer.** No. The §4.3 admission check is a pure function of chain state (grant index, scope predicate, time-bounds). The check has no validator-specific input and no validator-specific reward. A validator that censors a delegated transaction it could have included foregoes the same per-attestation fee they would earn from including it; from §6.1's payoff $R_v = R_b + R_f - S$, the foregone fee is a strict utility loss with no offsetting gain. Censorship of delegated transactions is dominated by inclusion, identically to censorship of non-delegated transactions (PoUA §6.2 selective-censorship dominance argument).
+
+**Equilibrium.** Honor grants by default. The volume of delegated traffic creates a modest gain ($R_f$ rises) without changing the validator's exposure to misbehavior (slashing applies to the master and hot key per §5.5, not to the including validator). Delegation is a Pareto improvement for honest validators: more fee revenue, no new exposure.
+
+**Edge case.** A cartel of validators could collude to censor a specific user's delegated traffic (e.g., to grief a competitor's hot key). This is the same threat as cartel censorship of any other transaction class and is addressed by PoUA's §5.2 safety inheritance combined with the chain's force-include path (Ligate Chain issue #81; outside the scope of this paper). Native delegation does not introduce a new censorship surface; it inherits the same censorship resistance the underlying BFT primitive provides.
 
 ### 9.2 User Incentive to Issue Tight Grants
 
-[**v0.2:** Tight scope + short time-bound + both-slashed inheritance shifts the cost of agent failure modes to the user (proportionally). Users who issue loose grants accept higher risk. v0.2 quantifies the tradeoff.]
+**Question.** Given a slashing-inheritance calibration $(w_m, w_h)$ fixed at the protocol layer, when does a user prefer to issue a tight grant (narrow scope, short time, fully-bounded actions) over a loose one (wide scope, long time, expansive action set)?
 
-### 9.3 Agent Incentive to Behave
+**Answer.** Always. The user's per-grant utility is
 
-[**v0.2:** Hot-key reputation is local but slashable. Agents that operate across many users build operator-side reputation that PoUA recognizes (extension of §4.3 to per-key reputation, deferred to a follow-up issue).]
+$$\mathbb{E}[U_{\text{master}}] = G_{\text{delegate}} - \gamma \cdot p_c \cdot w_m \cdot \Lambda \cdot N_{\text{slashable}}$$
+
+where $N_{\text{slashable}}$ is the expected number of slashable events the hot key could trigger under the grant. Wider scope (more authorized actions, more schemas) increases $N_{\text{slashable}}$ linearly; longer time-bounds increase $p_c$ (more time = more compromise probability) and $N_{\text{slashable}}$ (more actions per unit time). Both directions move $\mathbb{E}[U_{\text{master}}]$ downward.
+
+A rational user therefore picks the tightest grant that still admits their intended agent use. This is the protocol-economic argument behind §3.3's default-deny scope semantics: the chain rewards the user for being specific. The §5.5 calibration $(0.7, 0.3)$ amplifies the reward because the master absorbs 70% of any slash; even small reductions in $N_{\text{slashable}}$ translate to substantial utility gains.
+
+**Friction.** The tighter the grant, the more user-side cognitive work to specify it (which schemas? which actions? what time window?). Mneme's grant-issuance UX is the product mitigation: pre-built grant templates for common agent use cases (Themisra session, Iris general-purpose agent, etc.) plus an "advanced" mode for custom scopes. Without the UX layer, users default to loose grants out of friction; with it, tight grants become the easy path.
+
+**Equilibrium.** Users who delegate at all delegate with tight grants. Users who would have to issue loose grants to make their use case work choose not to delegate at all (and either self-sign or skip the use case). This is the right behavioral outcome: the cases where delegation is rational are exactly the cases where the agent's authority can be specified narrowly enough to make $\mathbb{E}[U_{\text{master}}] > 0$.
+
+### 9.3 Agent (Hot-Key Operator) Incentive to Behave
+
+**Question.** Under the §5.5 calibration, when does the hot-key operator (e.g., an Iris-style commercial relayer running many concurrent delegated sessions) prefer to operate honestly vs deviate?
+
+**Answer.** Honesty is dominant under any realistic $G_{\text{hot}}$ : $\Lambda$ ratio. The operator's per-grant utility is
+
+$$\mathbb{E}[U_{\text{hot}}] = G_{\text{hot}} - p_c \cdot w_h \cdot \Lambda - p_d \cdot \Lambda_{\text{rep,operator}}$$
+
+where $p_d$ is the probability of detection if the operator deliberately misbehaves (separate from $p_c$, which models accidental compromise) and $\Lambda_{\text{rep,operator}}$ is the operator's reputation damage on the operator-side reputation aggregation (an extension of PoUA §4.3 to per-key reputation that compounds across the operator's full client base, deferred to a follow-up paper but qualitatively understood today).
+
+Deliberate misbehavior has two costs: the §5.5 slash on the hot key (bounded above by $\Lambda$, weighted by $w_h = 0.3$) and the operator's reputation across all current and future clients (effectively unbounded above, since reputation losses on one grant signal to clients on every other grant). The first cost is bounded; the second is not. A commercial relayer's economic existence depends on the operator-side reputation; misbehaving in any single grant destroys it across all grants.
+
+**Equilibrium.** Operators behave honestly because the marginal gain from one misbehavior is bounded ($G_{\text{misbehave}}$ < some application-layer figure) while the marginal loss is the operator's entire client base. This is the standard repeated-game argument for commercial intermediaries; native delegation amplifies it by making the per-grant reputation accounting machine-readable via the chain's grant index, which means new clients can verify an operator's reputation history before issuing a grant.
+
+**Side observation.** The operator's incentive structure is what makes the §5.5 $w_h = 0.3$ calibration adequate. A risk-neutral operator with $w_h = 0$ has no protocol-level cost for misbehavior; only the operator-side reputation discipline keeps them honest. With $w_h = 0.3$, the protocol-level cost is non-zero, which removes any operator-side incentive to take grants from clients they intend to defraud. The $0.3$ is the smallest weight that makes the operator's per-grant participation rational under standard parameters; anything lower and the operator absorbs all misbehavior risk via operator-side reputation alone, which is fragile if the chain's reputation observability is incomplete.
 
 ### 9.4 Sponsor Incentive (Iris-Specific)
 
-[**v0.2:** Iris-as-relayer pays gas for delegated agent transactions. Iris's incentive: charge users a USD-denominated fee per agent-action, eat the LGT-denominated gas variance. The per-schema-fees paper handles the variance-management mechanism.]
+**Question.** Iris pays gas in $LGT for delegated transactions submitted via its relayer; Iris bills the user in USD. When does this composition make economic sense for Iris?
+
+**Answer.** When the USD-denominated subscription fee covers the expected $LGT-denominated gas cost over the billing period, plus the operating margin Iris needs to fund the MCP server infrastructure.
+
+The composition has two variance sources: (1) the $LGT/USD exchange rate over the billing period (Iris bills monthly in USD; spends $LGT continuously); (2) the per-attestation gas cost variability under the per-schema fee market (per-schema-fees paper §4). Both are managed by standard SaaS margin-and-hedging tooling: Iris sets the subscription tier with sufficient margin to absorb the $1\sigma$ exchange-rate move and the typical per-schema fee-market range, and uses the per-schema-fees paper's adaptive fee rebasing to bound the variance.
+
+The composition is clean because the chain authorization (the hot key's signature) is orthogonal to the chain payment (the fee-payer's balance). Iris does not need protocol-level delegation from the user to pay the user's gas; the fee-payer field is sufficient. Iris's only protocol-level interaction with delegation is on the signing side, where it holds the hot key for the duration of the grant.
+
+**Equilibrium.** Iris's sustainability depends on subscription-pricing discipline, not on protocol-level innovation. The protocol's contribution is making the underlying chain transactions cheap enough that the USD-denominated subscription comes out positive at reasonable per-user attestation volumes. Native delegation's $\sim 10\%$ admission overhead (§6.3) is well within Iris's margin tolerance; ERC-4337's $2\times$ to $4\times$ overhead would not be.
+
+### 9.5 Equilibrium Summary
+
+Across the four parties:
+
+- **Validators** include delegated transactions by default; censorship is dominated by inclusion identically to non-delegated transactions.
+- **Users** issue tight grants because tight grants strictly dominate loose grants under any non-trivial $\gamma \cdot p_c$. Users who cannot specify their use case tightly enough simply do not delegate.
+- **Agents (hot-key operators)** behave honestly because the operator-side repeated-game reputation dominates the bounded per-grant slash; the §5.5 $w_h$ keeps the marginal protocol cost non-zero even before the repeated-game argument kicks in.
+- **Sponsors (Iris)** find delegation economically viable as long as the subscription pricing covers expected gas + margin, which it does at native delegation's low admission overhead.
+
+The §5.5 theorem ensures no party is being asked to absorb more cost than they are compensated for; this section verifies that each party's individual rationality choice is "use delegation honestly." The Nash equilibrium is honest delegation, sustained by the four asymmetric incentive structures above. There is no off-equilibrium strategy that improves any single party's utility unilaterally. Native delegation is incentive-compatible by construction; this is what the §5.5 theorem guaranteed and this section confirmed.
 
 ---
 
