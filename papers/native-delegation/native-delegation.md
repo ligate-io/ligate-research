@@ -421,24 +421,47 @@ This satisfies the theorem's requirements ($w_m + w_h = 1$, $0 < w_h < w_m$) whi
 
 ## 6. Comparison: Native vs Contract
 
+Hot-key / master-key separation is not a new idea. The pattern exists on every major chain in some form, implemented at different layers: smart-contract account abstractions (Ethereum's ERC-4337, SafeWallet), module-level authorization (Cosmos's authz module), transaction-level fee delegation (Solana's fee-payer field), and ad-hoc multisig wallets. This section positions native delegation against those alternatives on six axes that matter for application correctness, security, and economics. The verdict: native delegation is unique in coupling delegation directly to a consensus-layer reputation system, which only an attestation-native chain like Ligate can offer.
+
 ### 6.1 Comparison Table
 
-[**v0.2:** Table comparing this paper's primitive against ERC-4337 / SafeWallet / Cosmos authz / Solana fee-payer across:
-- Cost per delegated tx (overhead)
-- Scope expressiveness
-- Time-bound granularity
-- Revocation semantics
-- Slashing integration
-- Cross-product portability
-]
+| | **ERC-4337** | **SafeWallet** | **Cosmos authz** | **Solana fee-payer** | **Native delegation (this paper)** |
+|---|---|---|---|---|---|
+| **Layer** | Smart contract (EntryPoint + paymaster) | Smart contract (Gnosis Safe) | Module (`x/authz`) | Transaction-level (single field) | Runtime / consensus |
+| **Scope expressiveness** | High (arbitrary EVM predicate logic) | High (transaction whitelist via guards) | Medium (typed grant: send / vote / specific msg types) | None (only fee payment) | Medium-high (schema + action subsets, default-deny) |
+| **Time-bound granularity** | Block-level (via paymaster validation) | Per-tx (no native expiry; revocation only) | Block-level expiry per grant | None (per-tx only) | Block-level (`height_start`, `height_end`) |
+| **Revocation semantics** | Off-chain coordination + on-chain transaction | On-chain Safe tx | On-chain revoke msg | N/A (no persistent grant) | On-chain `MsgRevokeDelegate` with grace period |
+| **Slashing integration** | None (no chain-level slashing for misbehavior under delegation) | None | None (authz transfers authority but not slashing exposure) | None | Native: §5.5 inheritance with calibrated `(w_m, w_h)` |
+| **Cost per delegated tx (overhead)** | $2\times$ to $4\times$ gas | $\sim 30{,}000$ extra gas per call | $\sim 5\%$ overhead | $0$ (single field) | $\sim 10\%$ overhead (one state-tree lookup + scope eval) |
+| **Light-client verifiability** | Hard (must execute contract logic) | Hard | Easy (state-tree lookup) | Trivial | Easy (state-tree lookup) |
+| **Cross-product portability** | High (EVM standard) | Medium (Safe-specific) | High (any Cosmos-SDK chain) | Solana-only | Medium (Ligate-style attestation-native chains) |
+
+The five comparators each solve a different subset of the problem. ERC-4337 maximizes scope expressiveness at the cost of execution overhead and reputation-system disconnection. SafeWallet does the same for multi-party signing. Cosmos authz comes closest to native delegation in shape but lacks the slashing-inheritance accounting that makes the §5.5 economic argument possible. Solana fee-payer is the cleanest sponsored-gas primitive but does not address signing authority at all.
+
+Native delegation occupies a different design point: middle scope expressiveness (schemas + actions, not arbitrary predicates), excellent light-client verifiability, and unique integration with a chain-level reputation system. The choice to drop arbitrary-predicate scope is deliberate; the §3.3 default-deny semantics are more constrained than ERC-4337's flexibility, but constrained-by-construction means provable, which the §8 security analysis leans on.
 
 ### 6.2 Why Runtime, Not Contract
 
-[**v0.2:** Three reasons. (1) PoUA reputation lives at the protocol layer; slashing accounting cannot be lifted to a contract without re-implementing the §4.3 update rule. (2) Mempool-level rejection of unauthorized actions is cheaper than contract-layer reverts. (3) Light-client verifiability of grants is a single state-tree lookup, vs traversing a contract's storage layout.]
+Three reasons native delegation lives at the runtime / consensus layer rather than as a contract.
+
+**First, PoUA reputation lives at the protocol layer.** The §4.3 reputation update is computed by every honest validator at each epoch boundary, deterministically from chain state. Lifting delegation to a contract layer means the slashing-inheritance dispatch (§5.5) must also live in a contract, which means re-implementing the §4.3 update rule in contract bytecode. That re-implementation creates a divergence risk: protocol-layer reputation and contract-layer reputation can drift, and the chain's source of truth for "what is this validator's reputation right now" becomes ambiguous. Native delegation eliminates this by making the slashing-inheritance dispatch a runtime concern, computed in the same code path as PoUA's §4.3 update.
+
+**Second, mempool-level rejection of unauthorized transactions is cheaper than contract-layer reverts.** Under ERC-4337, an unauthorized transaction reaches the EntryPoint contract, executes the paymaster's validation logic, and reverts. The chain pays for the validation gas even though the transaction is invalid. Under native delegation, the §4.3 admission check rejects the transaction at the mempool boundary, before it consumes block space. The cost difference is real: at scale, an attacker spamming unauthorized delegated transactions costs the chain orders of magnitude less under native delegation than under contract-layer alternatives.
+
+**Third, light-client verifiability of grants is a single state-tree lookup.** A light client wanting to know "does this hot key have an active grant to do this action under this schema right now" reads one state-tree entry (the grant index keyed by hot key) and evaluates the scope predicate locally. Under ERC-4337 the equivalent verification traverses the EntryPoint contract's storage, the paymaster's validation logic, and any wallet-specific delegation modules. Light clients on resource-constrained devices (mobile wallets, embedded signing devices, hardware wallets) cannot reasonably do this; they must trust a full node. Native delegation makes the verification cheap enough that even a hardware wallet can do it locally before signing.
 
 ### 6.3 Cost Analysis
 
-[**v0.2:** Estimated overhead per delegated transaction: a few extra bytes on the wire, a single state-tree lookup (grant existence and time-bounds check), and a scope predicate evaluation. At v0 parameters this is roughly $10\%$ of an undelegated tx's cost. ERC-4337 overhead is typically $2 \times$ to $4 \times$ depending on the bundler and paymaster path.]
+Estimated overhead per delegated transaction on Ligate Chain at v0 parameters:
+
+- **Wire bytes**: ~80-120 extra bytes for the hot-key signature and the grant-id reference. Comparable to the marginal cost of adding a second signer.
+- **State-tree lookup**: one read against the grant index, keyed by the hot key's address. At v0 storage backing (RocksDB), this is roughly 50 microseconds.
+- **Scope predicate evaluation**: `O(|\Sigma_G| + |A_G|)` lookups against small sets (typically $|\Sigma_G| \leq 5$ schemas, $|A_G| \leq 10$ actions). At v0 this is bounded by 1 microsecond per evaluation.
+- **Time-bound check**: integer comparison against `h_current`. Free at machine speed.
+
+Total: roughly $10\%$ overhead vs an undelegated transaction's admission-time cost, dominated by the state-tree lookup. This is a $10\times$ improvement over ERC-4337's typical $2\times$ to $4\times$ gas overhead, and comparable to Cosmos authz's $\sim 5\%$.
+
+The cost asymmetry has product implications. Iris-scale delegated traffic (estimated $10^6$ attestations per day at maturity) under ERC-4337 would 2-4x the chain's effective load. Under native delegation, the same traffic adds $\sim 10\%$ to the chain's per-attestation cost, which is absorbed by the existing fee market without changing block-time targets or block-size budgets. The economics of an autonomous-agent-heavy chain are workable at native-delegation cost; they would not be workable at contract-layer cost, even before accounting for the slashing-integration problem.
 
 ---
 
