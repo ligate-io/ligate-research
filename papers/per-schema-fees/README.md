@@ -4,9 +4,9 @@ Per-schema EIP-1559-style fee dynamics for attestation-native chains.
 
 ## Latest
 
-- **Working paper**: [`per-schema-fees.md`](per-schema-fees.md) (source) + [`per-schema-fees.pdf`](per-schema-fees.pdf) (26 pages, ~157 KB)
-- **Version**: v0.2 (Blocks 1 + 2 + 3 + 4 of v0.2 cycle landed)
-- **Status**: **§1 + §2 + §3 + §4 + §5 + §6 + §7 substantive.** Block 1 landed Abstract + §3. Block 2 landed §1 + §2. Block 3 landed §5 Security. Block 4 (this PR) landed §6 Incentive Analysis (validator, builder, sponsor, schema-author) and §7 Implementation in Ligate Chain (Sovereign SDK integration points, v0 parameter table, migration notes, test-vector plan). §8, §9, §10, §11 remain v0.1 outline.
+- **Working paper**: [`per-schema-fees.md`](per-schema-fees.md) (source) + [`per-schema-fees.pdf`](per-schema-fees.pdf) (33 pages, ~188 KB)
+- **Version**: v0.2 (substantive draft complete)
+- **Status**: **All eleven sections substantive.** v0.2 specifies the protocol mechanism (§4 per-schema EIP-1559 dynamics, tip auction within slot allocation, configurable burn-and-routing split), proves the cost-to-grind preservation theorem (§5.1 PoUA Lemma 1 floor holds under $\rho_\sigma \leq 0.5$), positions against four existing fee-market designs (§8 EIP-1559 / Solana / Cosmos `x/feemarket` / Aptos), analyzes incentives for four parties (§6 validator / builder / sponsor / schema author), specifies Sovereign SDK integration points (§7), and names five forward-looking extensions (§9). Abstract + §1 Introduction + §2 Background + §11 FAQ + References + Appendix A (parameter defaults) + Appendix B (formal definitions) all complete.
 - **Date**: 2026-05-22
 
 ## Abstract (placeholder)
