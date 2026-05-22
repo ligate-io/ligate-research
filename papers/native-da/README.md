@@ -4,10 +4,11 @@ A native data availability layer specialized for the attestation workload, with 
 
 ## Latest
 
-- **Working paper**: [`native-da.md`](native-da.md) (markdown source), PDF to be generated when v0.2 substantive content lands across §3 + §6 + §10
-- **Version**: v0.1.1
-- **Status**: **Outline + workload-model section substantive.** §3 (workload model) is now substantive prose with formal definitions and v0.2.5-targeted measurement placeholders. §1, §2, §4-§14 remain v0.1 outline.
-- **Date**: 2026-05-04 (updated; original v0.1 scaffold 2026-05-03)
+- **Working paper**: [`native-da.md`](native-da.md) (source) + [`native-da.pdf`](native-da.pdf) (30 pages, ~158 KB)
+- **Version**: v0.2 (substantive draft complete)
+- **Status**: **All 14 sections substantive.** v0.2 specifies the protocol (§5-§9), characterizes the attestation workload empirically (§3 from v0.1.1), analyzes security under a unified threat model (§10), compares to 5 prior DA systems (§10.4 landscape table + §11), enumerates engineering cost and migration-decision criteria (§11.3 + §12), and lists 4 forward-looking extensions (§13). References (5 categories) + Appendix A (simulator plan, gated on §12 migration criteria) + Appendix B (comparison methodology) complete.
+- **Date**: 2026-05-22
+- **Stance**: explicit non-advocacy (§1.9). This is a long-horizon design target; Ligate stays on Celestia through v1.
 
 ## Abstract (placeholder)
 
