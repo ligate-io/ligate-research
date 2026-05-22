@@ -8,10 +8,17 @@ cost-to-grind preservation theorem.
 
 | Milestone | Status | Scope |
 |---|---|---|
-| **M1** | **shipped (this PR)** | §3.1 fee-market state, §3.2 validator income, §4.1 adjustment, §4.4 burn split, §5.1 cost-to-grind theorem, cross-language test vectors |
-| M2 | planned | Stochastic-arrival adversary model for §5.5 sponsored-gas patterns |
+| **M1** | shipped (2026-05-22) | §3.1 fee-market state, §3.2 validator income, §4.1 adjustment, §4.4 burn split, §5.1 cost-to-grind theorem, cross-language test vectors |
+| **M2** | **shipped (this release)** | §5.5 stochastic-arrival adversary model: Poisson arrivals + multi-block simulation + Pattern B (base-fee surge) attack-cost quantification |
 | M3 | planned | Cross-schema slot-allocation dynamics + KL-divergence detector calibration |
 | M4 | planned | Multi-resource within-schema pricing (paper §9.3) |
+
+## M2 surface
+
+- **`PoissonArrival`**: per-block attestation arrival model with `lambda_per_block`, `block_capacity`, and `overflow_policy` (`defer` or `drop`).
+- **`simulate_with_arrivals()`**: deterministic multi-block stochastic simulation. Returns per-block `base_fees`, `arrivals`, `included`, `utilizations`, `sponsor_paid`, `burned`, `validator_paid`, `schema_routed`.
+- **`estimate_pattern_b_attack_cost()`**: quantifies §5.5 Pattern B (base-fee surge exploitation) by running baseline vs attack and computing excess sponsor cost, excess burned amount, max base fee achieved, and blocks-to-recover.
+- **`out/attack_pattern_b.png`**: two-panel figure showing the base-fee spike during attack window + cumulative sponsor cost with attack-excess highlighted.
 
 ## What M1 ships
 
