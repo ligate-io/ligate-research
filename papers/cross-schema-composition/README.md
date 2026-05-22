@@ -4,9 +4,9 @@ Typed attestation references with slashing-aware proof propagation. Schemas decl
 
 ## Latest
 
-- **Working paper**: [`cross-schema-composition.md`](cross-schema-composition.md) (source) + [`cross-schema-composition.pdf`](cross-schema-composition.pdf) (16 pages, ~104 KB)
-- **Version**: v0.2 (Block 1 of v0.2 cycle landed)
-- **Status**: **§3 + §4 + §5 substantive.** Block 1 (this PR) finalized the Abstract (formal contribution outline + use-case-validation gate framing) and landed §5 Slashing Propagation: §5.1 the cascade question, §5.2 strict cascade, §5.3 lazy cascade, §5.4 configurable per-schema, §5.5 slashing-cascade termination theorem (BFS over descendants, $O(d)$ deterministic steps), §5.6 cycle handling (static v0 + dynamic-mode v1+), §5.7 concurrent invalidation races (canonical ordering + per-dependent deduplication). §3 and §4 were already substantive from v0.1.1. §1, §2, §6, §7, §8, §9, §10 remain v0.1 outline.
+- **Working paper**: [`cross-schema-composition.md`](cross-schema-composition.md) (source) + [`cross-schema-composition.pdf`](cross-schema-composition.pdf) (25 pages, ~138 KB)
+- **Version**: v0.2 (Blocks 1 + 2 of v0.2 cycle landed)
+- **Status**: **§1 + §2 + §3 + §4 + §5 + §6 + §7 substantive.** Block 1 landed Abstract + §5 Slashing Propagation. Block 2 (this PR) landed §1 Introduction (1.1-1.8 + 1.6.1 status panel), §2 Background (5 subsections), §6 Use Cases + the validation gate, §7 Comparison (landscape table). §3 + §4 were already substantive from v0.1.1. §8, §9, §10 remain v0.1 outline.
 - **Date**: 2026-05-22
 
 ## Stance still applies

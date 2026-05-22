@@ -26,63 +26,158 @@ The mechanism is positioned as a **v2 protocol feature**. v1 of Ligate Chain shi
 
 ### 1.1 The Composition Thesis
 
-[**v0.2:** Why typed cross-schema references are the right primitive for an attestation-native chain. The argument: attestations are claims about other things; many natural claims are claims about other claims (e.g., "this AI output was generated from this prompt by this model" is a claim that references a prompt attestation). Without chain-enforced typing, every consumer re-implements the type check, which means errors compound. With typing, the chain is the single source of truth for "is this reference valid."]
+Attestations are claims about things. The simplest kind is a claim about an external fact: "I observed event X," "the prompt for this AI output was P," "this content was authored by Y." But many natural claims are claims about *other claims*. "This AI output was produced by model M from prompt P at time T" is a claim that references three other claims: the model attestation, the prompt attestation, and the timestamp attestation. "This DAO membership inherits from this identity proof" is a claim about a claim. "The audit of this RWA reserve was conducted by this licensed auditor" is a claim about a claim. The category is large enough that any production attestation chain will encounter it.
+
+When attestations reference other attestations, the chain has a choice. It can treat the reference as an opaque pointer to chain state and let application code enforce the type contract (this is Ethereum's model: smart contracts read each other's storage by hash and trust the hash to point at the right kind of thing). Or it can enforce the type contract at the chain layer, rejecting attestations that reference inputs of the wrong type or invalid status before they reach consensus.
+
+The thesis of this paper: for an attestation-native chain, **chain-enforced typing is the right place to put the type contract**. Reasons in §1.3.
 
 ### 1.2 Why Now (or Why Not)
 
-[**v0.2:** Honest framing. v1 ships without this primitive. Single-schema attestations are sufficient for Themisra (proof of prompt), Mneme (wallet receipts), Iris (agent attestations), Kleidon (SaaS events). v2 territory; this paper exists to lock in the design before the engineering cycle, not to advocate for shipping it on day 1.]
+Honest framing first: cross-schema composition is **v2 protocol territory**. Ligate Chain v0 ships with single-schema attestations only. Themisra (proof of prompt), Mneme (wallet receipts), Iris (agent attestations), Kleidon (SaaS events): each of the four flagship products at v1 operates on its own schema with no need to reference attestations of other schemas. The single-schema primitive is sufficient for the first wave of products, and v1 engineering cost is finite.
+
+What changes in v2 is the gravitational pull of composition. Once the chain has 50+ registered schemas, the natural next layer is composition: workflows that consume attestations of one schema and produce attestations of another. Themisra wants to produce attribution attestations referencing prompt attestations. Iris wants to produce agent-action attestations referencing the Themisra attribution they were responding to. Compliance partners want to produce audit attestations referencing the financial attestations they audited. The pattern is universal once the schema count crosses a threshold.
+
+This paper exists so the design is captured *before* the engineering cycle starts. v0.2 lands the mechanism, the theorem, the security analysis, and the comparison table. §6 is the gate: actual engineering work begins only when 2-3 design partners have submitted concrete use-case descriptions matching the §6.2 template. Until then, this paper is specification-only.
 
 ### 1.3 The Type-Confusion Problem
 
-[**v0.2:** Worked example. A consumer schema "proof-of-attribution" expects to reference a "proof-of-prompt" attestation. Without chain-enforced typing, the consumer takes any 32-byte hash that points to chain state. Adversary submits a hash pointing to a different schema (a Mneme transfer receipt, say). Consumer accepts; downstream apps treat the bogus attribution as canonical. With chain-enforced typing, the runtime rejects at attestation-time.]
+A worked example clarifies why chain-enforced typing matters.
+
+Consider a consumer schema **`themisra.proof-of-attribution/v1`** that produces attestations of the form: "this AI output was produced from this prompt by this model." The schema declares an input-type set: `{themisra.proof-of-prompt/v1, themisra.model-registration/v1}`. The consumer's predicate evaluates: "the input prompt attestation's `prompt_id` field matches my own `prompt_id`; the input model attestation's `model_hash` matches my own `model_hash`; my own `output_hash` is provided in the payload."
+
+Without chain-enforced typing, the consumer takes any 32-byte attestation-id and trusts it points at the right kind of thing. An adversary submits an attestation-id that points to, say, a Mneme transfer receipt. The bytes happen to deserialize as something the consumer's predicate can parse (Mneme receipts have a `from_addr` field, the consumer reads it expecting a `prompt_id`, the field happens to be 32 bytes, parsing succeeds). The consumer's predicate evaluates against the wrong inputs and may produce `true` for an attribution claim that is structurally meaningless. The chain accepts the attestation. Downstream applications treat the bogus attribution as canonical.
+
+With chain-enforced typing, step 3 of the §4.4 runtime check rejects the submission at admission time: "input type mismatch." The Mneme transfer receipt is not of schema `themisra.proof-of-prompt/v1`, the chain knows this, the attestation never lands. The adversary cannot construct a successful attack without forging an attestation under the correct schema (which is harder, and is bounded by PoUA's slashing).
+
+The same pattern recurs across application domains. Identity composition: a DAO-membership attestation that references the wrong kind of identity proof is a privilege-escalation. Financial conservation: a transfer attestation that references the wrong kind of balance proof is a counterfeiting risk. Audit trails: an audit attestation that references the wrong kind of audited document is a fraud surface. Without chain-enforced typing, every consumer re-implements its own type check, the checks compound errors across the system, and audit costs scale linearly in composition depth.
 
 ### 1.4 The Central Question
 
-> [**v0.2:** What is the minimum typing and slashing-propagation primitive that makes cross-schema composition safe to use in production, without imposing v1 engineering cost on workloads that do not need it?]
+> **What is the minimum typing and slashing-propagation primitive that makes cross-schema composition safe to use in production, while remaining cheap enough to ship in a runtime, and gated cleanly enough that workloads which do not need it pay no overhead?**
+
+This paper answers: schemas declare input-type sets at registration with semver-constrained edges; the runtime checks types at mempool admission; slashing cascades through the dependency graph with bounded depth and deterministic order; cycles are statically rejected by default.
 
 ### 1.5 Approach in Brief
 
-[**v0.2:** Three-sentence preview. Schemas declare dependency edges in their registration. The runtime enforces type checks at attestation-time and propagates slashes through the dependency graph at slash-time. Cycle detection is static-by-default with an opt-in dynamic mode for advanced use cases.]
+Schemas register with a declared input-type set: which schemas they may reference, at which version constraints, with which boolean predicate over the input payloads (§4.1, §4.2, §4.3). The runtime checks each submitted attestation at mempool admission (§4.4): schema lookup, reference resolution, input-type check, validity check, predicate evaluation, plus the existing PoUA checks. Attestations that fail any check are rejected before block inclusion.
+
+When an attestation transitions to REVOKED, SLASHED, or DEPENDENT-INVALID, the runtime cascades the state change through the dependency graph (§5). Cascade rules are configurable per-schema (strict or lazy). The §5.5 termination theorem guarantees the cascade completes in $O(d)$ deterministic steps where $d$ is the dependency graph's depth. Cycles are statically rejected at registration (§5.6); a v1+ dynamic mode allows cycles with a bounded `max_cascade_depth` and a `cycle_break_rule` parameter.
+
+The mechanism composes orthogonally with PoUA's reputation accounting (reputation accrues to the attestor of the consumer schema, independent of the input schemas), per-schema fee markets (each schema in the dependency chain pays its own base fee at its own utilization curve), and native delegation (a hot key with a grant scoped to schema $\sigma$ can submit attestations of $\sigma$ that reference other schemas, but only schemas explicitly enumerated in the grant's scope predicate).
 
 ### 1.6 Contributions
 
-[**v0.2:** Type system specification, slashing-cascade theorem, cycle-detection algorithm, security analysis under three attack families, formal comparison with Ethereum smart-contract references and EAS schema graphs.]
+The paper makes four contributions.
+
+A **mechanism specification** in §3 and §4: the schemas-as-typed-graphs model, the input-type set with semver-constrained edges, the deterministic type predicate with bounded compute, the runtime type check at mempool admission, and the schema versioning rules (strict / subtyping / per-edge override).
+
+A **slashing-cascade termination theorem (§5.5)**: under acyclic dependency graphs with maximum depth $d_{\max}$, the cascade BFS terminates in $O(d)$ deterministic steps with explicit per-dependent deduplication. Cycles are statically rejected by default; an opt-in dynamic mode is specified for v1+ with `cycle_break_rule` and `max_cascade_depth` parameters.
+
+A **security analysis (§8)** of three attack families: type-confusion attacks (rejected at admission), slash-amplification attacks (gas charged to slash root, not dependents), cycle-induced DoS (static rejection plus depth bound). Each family is bounded with explicit cost analysis.
+
+A **use-case-validation gate (§6)**: explicit framing that this paper is specification-only until 2-3 design partners submit concrete use-case descriptions matching the §6.2 template. The mechanism is interesting and probably correct, but the engineering cost is justified only by validated demand. v0.2 captures the design space, not a roadmap commitment.
 
 #### 1.6.1 Status of Claims
 
-[**v0.2:** Same panel as PoUA v0.7 §1.6.1. The slashing-cascade termination theorem is a candidate for "proven"; the type-soundness claim is "bounded-under-stated-assumptions"; use-case fitness is "empirical-or-heuristic."]
+Following the PoUA v0.7 + native-delegation v0.2 + per-schema-fees v0.2 discipline:
+
+**Proven** (formal mathematical argument under standard assumptions):
+
+- §5.5 slashing-cascade termination theorem: under acyclic graphs, BFS terminates in $O(d)$ steps with deterministic per-dependent deduplication.
+
+**Bounded under stated assumptions:**
+
+- §4.4 type check correctness assumes the schema's `predicate` field is deterministic (the runtime verifies this via dry-run on canonical inputs at registration time; non-deterministic predicates are rejected). Under-the-assumption guarantee.
+- §8.3 slash-amplification defense assumes the gas-accounting model from §5.7 (each slash root pays its own cascade cost). If a future architecture separates proposer from builder, the accounting needs revision.
+- §5.6 cycle handling: static-mode correctness is unconditional; dynamic-mode termination assumes the runtime enforces `max_cascade_depth` and `cycle_break_rule` correctly. Trust boundary explicit.
+
+**Empirical or heuristic, requiring real-world demand:**
+
+- §6 use-case validation: not a chain claim; a process claim. The paper claims the mechanism is correct under the §5.5 theorem; whether the mechanism is *useful* depends on whether real workloads need it. v0.2 of the paper does not claim this; it sets the gate at "2-3 design partners with concrete use cases."
 
 ### 1.7 Scope and Non-Goals
 
-[**v0.2:** In scope: typing and slashing propagation for cross-schema references on Ligate Chain. Out of scope: cross-chain references (separate paper), zero-knowledge predicate types (research-grade), fully-dependent type systems (would require a proof-search runtime; not appropriate for a chain).]
+**In scope:**
+
+- Typed attestation references for cross-schema composition on Ligate Chain (single chain)
+- Schema declaration syntax and registration validation
+- Runtime type check at mempool admission
+- Slashing-cascade rules and the termination theorem
+- Cycle handling (static + opt-in dynamic)
+- Security analysis under type-confusion, slash-amplification, cycle-DoS
+
+**Explicitly out of scope:**
+
+- **Cross-chain references.** An attestation on Ligate Chain referencing one on Ethereum (or vice versa) is the cross-chain composition problem; a separate paper covers IBC-mediated attestation references.
+- **Zero-knowledge predicate types.** Predicate types that hide the input payloads while proving validity (Zk-SNARK / Zk-STARK) are research-grade and deferred to a follow-up paper.
+- **Fully-dependent type systems.** Coq / Agda / Idris / Lean offer arbitrarily expressive types but require proof-search at type-check time. Inappropriate for a chain runtime; included in §2.4 only as design-space context.
+- **Privacy-preserving references.** A reference reveals the dependency edge in public chain state. Use cases requiring private references (e.g., the consumer schema does not want to disclose which input it consumed) need additional cryptography; §9.4 names this as future work.
+- **Multi-resource per-attestation pricing.** The per-schema fees paper (companion) handles per-workload pricing; the within-schema multi-resource axis is deferred to a separate paper.
 
 ### 1.8 Document Structure
 
-[**v0.2:** TOC walkthrough.]
+Section 1.6.1 separates the paper's claims into proven, bounded-under-stated-assumptions, and empirical-or-heuristic; readers in a hurry may want to start there. Section 2 surveys smart-contract reference patterns, EAS schema graph, capability-secure languages, dependent types in programming languages, and recursive invalidation patterns from distributed systems. Section 3 fixes the system model: schemas as typed graphs, dependency graph, attestation as witness, validity states. Section 4 specifies the type system: schema declaration, input-type set, type predicate, runtime check, versioning semantics. Section 5 specifies slashing propagation: strict and lazy cascade, configurability, the §5.5 termination theorem, cycle handling, concurrent invalidation races. Section 6 documents the use-case validation gate. Section 7 positions cross-schema composition against prior systems. Section 8 analyzes three attack families. Section 9 lists limitations and future work; Section 10 concludes.
 
 ---
 
 ## 2. Background and Related Work
 
+Cross-system references with type and validity propagation is a recurring problem across distributed systems, smart contracts, programming languages, and database theory. This section surveys five families of related work, each illuminating a different facet of the design space.
+
 ### 2.1 Smart-Contract Reference Patterns
 
-[**v0.2:** ERC-721 token references, ERC-1155 multi-token references, ERC-4907 rental references. All app-level; chain checks the hash but not the type.]
+Ethereum smart contracts reference each other's state and tokens via opaque hashes plus interface conventions. ERC-721 token references identify NFTs by `(contract_addr, token_id)`; the consumer contract calls `ownerOf(token_id)` and trusts the call's return value. ERC-1155 generalizes to multi-token references; ERC-4907 layers rental semantics on top. In each case, the chain checks that the call targets the declared contract address (a structural check) but does not check that the contract at that address implements the right interface (a type check). A consumer that calls `ownerOf` on a contract that does not implement ERC-721 gets whatever the contract returns at the same function selector, or a revert, depending on the implementation.
+
+This is application-level typing. It works because (i) Solidity developers are conditioned to check interface support before calling, and (ii) tools like OpenZeppelin's safe-call patterns codify the check. But the chain itself has no opinion: a contract pointing at any other contract is valid, and the consumer is responsible for catching mismatches. Compositional bugs across ERC-721 + ERC-1155 + ERC-4907 are routine in audit reports.
+
+**What ERC patterns offer that this paper does not.** Arbitrary contract logic at the consumer side. A consumer can implement arbitrarily sophisticated interface detection or fallback patterns.
+
+**What this paper offers that ERC patterns do not.** Chain-level type enforcement at attestation-time. The consumer doesn't need to implement interface detection; the chain rejects mismatches at admission.
 
 ### 2.2 EAS Schema Graph
 
-[**v0.2:** Ethereum Attestation Service has a similar graph structure, with schemas referencing schemas via UID. Type-check is application-level. Closest existing analog to what this paper specifies, but missing the chain-enforced typing.]
+Ethereum Attestation Service (EAS) is the closest existing analog to what this paper specifies. EAS supports cross-schema references via the `refUID` field in each attestation: a 32-byte identifier pointing to a referenced attestation. Schemas are first-class on-chain entities; the `refUID` points to an attestation of some schema.
+
+EAS's type-check is **application-level**, not chain-level. The schema declaration specifies the expected payload structure, but it does not enforce a typed input set. A consumer schema that wants to reference a specific type of input attestation has to validate the input's schema-ID in its own attestation logic, off-chain or in a downstream contract.
+
+EAS's slashing-cascade is also **application-level**: there is no native machinery for "if the input is revoked, the consumer becomes invalid." Revocation is a per-attestation flag readable by anyone; downstream contracts that care must check it themselves.
+
+**What EAS offers that this paper does not.** Production deployment on Ethereum mainnet since 2022. Stable interfaces, well-known to the Ethereum developer community.
+
+**What this paper offers that EAS does not.** Chain-enforced typing (the `refUID` must be of the declared input schema) and chain-enforced slashing cascade (dependents transition automatically per the registered cascade rule). EAS users implementing these by hand at the application layer pay engineering cost and audit cost; this paper moves both to the chain.
 
 ### 2.3 Capability-Secure Systems
 
-[**v0.2:** Capability-based programming languages (E, Pony, Joe-E) provide compile-time enforcement of "object A can only invoke object B if it holds a capability." Conceptual ancestor for "schema A can only reference schema B if dependency edge declared at registration."]
+Capability-based programming languages (E, Pony, Joe-E, Caja) provide compile-time enforcement of "object A can only invoke object B if it holds a capability for B." A capability is an unforgeable token granting specific authority. The compiler verifies, at type-check time, that every cross-object reference is mediated by a capability declared in the program's authority graph.
+
+The intuition transfers to chain-level typing: a schema can only reference another schema if the dependency edge is declared at registration time. The "compile-time check" in capability languages corresponds to the "registration-time check" in this paper. Both prevent ad-hoc reference to other objects (or schemas) outside the explicitly-declared authority graph.
+
+**The conceptual ancestor argument.** Capability-secure languages establish that authority-graph declaration plus compile-time enforcement is a clean way to bound cross-object reference. This paper applies the same architecture at chain-runtime granularity.
+
+**What capability languages offer that this paper does not.** Full programming-language type systems (objects, methods, full structural typing). This paper specifies only the schema-to-schema edge, not richer in-schema typing.
+
+**What this paper offers that capability languages do not.** Slashing-cascade semantics. Capability languages do not model the case where one object's authority is revoked and dependents must respond. This paper specifies the cascade explicitly (§5).
 
 ### 2.4 Dependent Types in Programming Languages
 
-[**v0.2:** Coq, Agda, Idris, Lean. Provide arbitrarily expressive types but require proof-search at type-check time. Inappropriate for a chain runtime; included for design-space context.]
+Dependent type systems (Coq, Agda, Idris, Lean) provide arbitrarily expressive types: a type can depend on a value. A vector of length $n$ is a different type from a vector of length $n + 1$. Type-checking requires the compiler to *prove* that types align; for non-trivial programs, this is undecidable in general and requires programmer-provided proof terms.
+
+The relevance to this paper: dependent types are the gold standard for type safety. If the chain were a Coq runtime, every type contract would be machine-checkable. The cost is impractical: proof terms are large, proof search is expensive (sometimes undecidable), and the developer experience requires expertise.
+
+**Design-space role.** Dependent types define the upper bound of what's possible. This paper picks a much weaker point in the design space: structural types over schemas, deterministic bounded-compute predicates over payloads, no full proof-search. The trade-off is type expressiveness against runtime cost. Section 8 shows that the weaker design still prevents the practical attacks (type confusion, slash amplification, cycle DoS); full dependent typing would prevent strictly more, but at engineering cost the chain cannot afford.
 
 ### 2.5 Recursive Invalidation in Distributed Systems
 
-[**v0.2:** Cache invalidation, cascading deletes in relational databases, transaction rollback in WAL systems. Each is a different point in the tradeoff space. The slashing-cascade design draws on cascading-delete semantics.]
+Cascading invalidation is a recurring problem across distributed systems and database theory. Three relevant patterns:
+
+**Cascading deletes in relational databases.** SQL's `ON DELETE CASCADE` propagates a row deletion to dependent rows through foreign-key edges. Termination is guaranteed by foreign-key acyclicity (most schemas enforce this); the cascade is depth-first by default with explicit transaction boundaries. This paper's strict cascade (§5.2) is close in spirit to `ON DELETE CASCADE`: both propagate deletion-style state changes through declared edges, both bound termination through structural constraints.
+
+**Cache invalidation in distributed key-value stores.** A write to a cached value triggers invalidation messages to dependents (other caches holding the same key or computed derivatives). Termination and consistency are managed through versioning (each cache entry carries a version; invalidation messages reference the version) and timeouts. This paper's per-dependent deduplication (§5.7) borrows the versioning intuition: each dependent is invalidated at most once per cascade.
+
+**Transaction rollback in WAL (write-ahead-log) systems.** Aborting a transaction propagates undo records through the WAL, undoing dependent operations in reverse-commit order. Strict serializability is preserved by ensuring the undo order is the inverse of the do order. This paper's BFS-based cascade is not WAL-style (no undo records), but the determinism-via-canonical-ordering principle (§5.7) is the same: a deterministic schedule prevents inconsistent observations across the system.
+
+**What this paper takes.** Acyclicity-by-default for termination (from relational DBs), versioning-based deduplication (from cache invalidation), deterministic ordering (from WAL). The synthesis is the §5 mechanism: BFS cascade over declared edges with per-dependent deduplication and canonical-ID ordering.
 
 ---
 
@@ -408,27 +503,122 @@ Two slash events can occur in the same block. Consider: attestation $a$ slashed 
 
 ---
 
-## 6. Use Cases (Design-Partner-Validated)
+## 6. Use Cases and the Validation Gate
 
 ### 6.1 The Use-Case-Validation Gate
 
-[**v0.2:** This section is **the gate** for v0.2 authoring. Cross-schema composition is theoretically nice but practically expensive. v0.2 ships only when 2-3 design partners have asked for it specifically and submitted concrete use-case descriptions matching this section's template.]
+This section is the gate for engineering work on cross-schema composition. The mechanism specified in §3-§5 is, we believe, correct and useful. But correctness is not the same as fit. The engineering cost of shipping cross-schema composition on Ligate Chain is non-trivial: §4.4 admission-time checks add latency to every attestation submission; §5 cascade machinery adds state-tree complexity; §7.4 light-client verification requires a graph-walk per dependent. The cost is paid by every workload on the chain, not just the workloads that compose.
+
+We will not pay this cost on speculation. The engineering cycle for cross-schema composition begins only when at least 2-3 design partners have submitted concrete use-case descriptions matching the §6.2 template, with each description identifying:
+
+- a real workload (existing or planned) that requires cross-schema references
+- a concrete failure mode if the references remain application-level (not chain-enforced)
+- a willingness to integrate against the v2 protocol during the early-stage pilot
+
+Until then, this paper documents the design space, the security analysis, and the comparison with prior art. The mechanism is specification-only.
+
+This is a deliberate process choice. "Schemas as composable Lego" is a vibe; concrete workflow X needing schemas A, B, C to compose under chain-enforced typing is a use case. The paper exists so that, when the second category materializes, the design is captured and ready. Until it does, the chain ships with single-schema attestations only and the four flagship products at v1 (Themisra, Mneme, Iris, Kleidon) operate without this primitive.
 
 ### 6.2 Use Case Template
 
-[**v0.2:** For each use case: (a) what the consumer schema produces, (b) which input schema is required, (c) why the type contract must be chain-enforced (not application-enforced), (d) what slashing-cascade behavior is needed, (e) failure mode if the chain doesn't enforce.]
+For a design partner to validate the use case, they should submit a description in this form:
 
-### 6.3 Hypothetical Use Cases (Pre-Validation)
+**Field 1: Consumer workflow.** A one-paragraph description of the application or product layer that needs to produce attestations referencing other attestations. Avoid abstractions; describe the actual product behavior.
 
-[**v0.2:** Three hypotheticals, marked clearly as not-yet-validated:
-1. AI attribution: "this output was produced from this prompt" requires reference to prompt attestation; type-confusion attack would be a major safety issue
-2. Multi-party signing: "all parties consented" requires references to individual party attestations; slash on any party invalidates the multi
-3. Proof of audit: "this RWA reserve was audited" references the auditor's qualified attestation; auditor-slash invalidates pending audit-claims
-]
+**Field 2: Input schemas required.** Which existing or planned Ligate Chain schemas does the consumer reference? Be specific: schema name, version, and which fields of the input payload the consumer's predicate depends on.
 
-### 6.4 What This Section Looks Like at v0.2
+**Field 3: Why chain-enforced typing is required.** A specific failure mode that arises if the typing remains application-level. Two acceptable answers: (a) the failure mode is a security risk (type confusion, slash bypass, etc.) that the chain-level check would prevent, or (b) the failure mode is a cross-app correctness issue (one consumer's check disagrees with another's) that chain-level consistency would prevent.
 
-[**v0.2:** Three real use cases from real partners. Without them, this section stays placeholder and v0.2 does not ship. Authoring is gated.]
+**Field 4: Slashing-cascade preference.** Strict, lazy, or "we need both for different consumer schemas." With reasoning. If strict: what is the value of the dependent attestation if the input is invalid? If lazy: how does the application handle the partial-validity case at the read API?
+
+**Field 5: Failure mode if the chain doesn't enforce.** What does the partner do today, in the absence of this mechanism? Either (a) work around it at the application layer (with effort estimate) or (b) avoid the use case entirely (with cost estimate of the lost use case).
+
+**Field 6: Integration commitment.** Does the partner agree to integrate against the v2 protocol during the early-stage pilot? With which timeline?
+
+A use-case description that does not address fields 3 and 5 is not enough. The gate is about *whether the mechanism is justified*, not just whether someone could imagine using it. Fields 3 and 5 force the partner to articulate the case for chain-enforcement vs application-enforcement, which is the harder question.
+
+### 6.3 Hypothetical Use Cases (Not Yet Validated)
+
+The following three hypotheticals are *not* validated use cases. They illustrate the kinds of workflows the mechanism is designed for. They are not commitments to ship until at least 2-3 design partners submit §6.2 descriptions for them or similar.
+
+**Hypothetical 1: AI provenance attribution.**
+
+Consumer schema: a Themisra `proof-of-attribution` schema at v1 produces "AI output O was generated by model M from prompt P."
+
+Inputs: a Themisra `proof-of-prompt` schema at v1 (the prompt attestation) and a Themisra `model-registration` schema at v1 (the model registration).
+
+Why chain-enforced: §1.3 worked this through. A type-confusion attack on attribution attestations would let an adversary substitute arbitrary chain state for a prompt attestation, creating attribution claims that are structurally bogus but parseable by downstream readers. Type confusion at the attribution layer is a safety issue for any application that consumes attribution attestations to assign responsibility.
+
+Cascade preference: Strict. If a prompt attestation is slashed (e.g., the prompt's claimed timestamp is forged), all attribution attestations referencing it are no longer evidence of provenance and should be flagged immediately.
+
+Validation status: hypothetical. Themisra's product roadmap includes attribution attestations but does not currently require cross-schema composition; the v1 product ships with single-schema proof-of-prompt only.
+
+**Hypothetical 2: Multi-party consent.**
+
+Consumer schema: `multi-party-consent/v1` produces "parties P1, P2, P3 all consented to action A."
+
+Inputs: $k$ instances of `individual-consent/v1`, one per party.
+
+Why chain-enforced: a multi-party-consent attestation is only meaningful if each input is a valid individual-consent attestation. Application-level checks could miss one of the inputs, producing a multi-party-consent attestation that claims unanimous consent when only some parties consented. Type-confusion would be a privilege escalation in any workflow that gates actions on unanimous consent.
+
+Cascade preference: Strict. If any individual consent is revoked (e.g., a party retracts), the multi-party-consent attestation is no longer valid evidence of unanimity.
+
+Validation status: hypothetical. No design partner has asked for this specific composition. Multi-party consent flows on Ligate Chain at v1 use single-schema attestations with an off-chain aggregation step.
+
+**Hypothetical 3: Proof of audit.**
+
+Consumer schema: `proof-of-audit/v1` produces "this RWA reserve was audited by this licensed auditor on this date."
+
+Inputs: an `auditor-license` schema at v1 (the auditor's qualified-attestor credential) and a `reserve-snapshot` schema at v1 (the audited document attestation).
+
+Why chain-enforced: an audit attestation is only meaningful if (a) the auditor's license is valid at audit-time and (b) the reserve snapshot is a legitimate attestation, not a forgery. Type confusion on either input lets an adversary produce bogus audit claims that downstream applications (regulators, counterparties) might rely on for compliance decisions.
+
+Cascade preference: Strict. If the auditor is later slashed for misbehavior on any prior audit, pending audit attestations referencing the auditor's license should transition to DEPENDENT-INVALID. Regulators reading the chain see the invalidation and can re-request audit from a different licensed auditor.
+
+Validation status: hypothetical. Discussions with compliance-focused design partners are at an early stage; no concrete §6.2 description has been submitted.
+
+### 6.4 What Section 6 Looks Like at v0.2.x
+
+When 2-3 design partners submit §6.2 descriptions, §6.3 expands to include the validated use cases with explicit partner attribution, integration timelines, and any deviations from the v0.2 mechanism that the partners require. At that point the §6.1 gate is satisfied and the engineering cycle for v2 cross-schema composition begins.
+
+Until then, §6.3 hypotheticals are illustrative, not prescriptive. The paper is design-space documentation; the chain ships with single-schema attestations.
+
+---
+
+## 7. Comparison with Prior Systems
+
+Cross-schema composition with chain-enforced typing occupies a distinct point in the design space against the comparators surveyed in §2. This section compares them on the axes that matter for application correctness, security, and engineering cost.
+
+\begin{landscape}
+\begingroup
+\renewcommand{\arraystretch}{1.35}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}p{3.2cm} >{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}p{3.4cm}}
+\rowcolor{tableheaderbg}
+\textbf{Axis} & \textbf{Ethereum smart-contract refs} & \textbf{EAS schema graph} & \textbf{Capability-secure languages} & \textbf{Dependent types (Coq/Agda)} & \textbf{Cross-schema composition (this paper)} \\
+\midrule
+\endhead
+\textbf{Where typing is enforced} & Application (consumer contract) & Application (consumer logic) & Compiler (compile time) & Compiler (proof-search) & Chain runtime (admission) \\
+\rowcolor{tablerowalt}
+\textbf{Type expressiveness} & High (EVM logic) & Medium (structural) & High (full PL types) & Maximum (dependent) & Medium-high (structural + predicate) \\
+\textbf{Type-check cost} & Per-call gas & Application-level & Compile-time (once) & Compile-time (undecidable) & Mempool check, $O(|\text{refs}|)$ \\
+\rowcolor{tablerowalt}
+\textbf{Slash propagation} & Application-level & Application-level & N/A & N/A (compile-time) & Chain runtime, BFS cascade $O(d)$ (§5.5) \\
+\textbf{Cycle handling} & Application choice & Application choice & Acyclicity via authority graph & Acyclicity via well-founded recursion & Static rejection by default (§5.6); dynamic mode v1+ \\
+\rowcolor{tablerowalt}
+\textbf{Light-client verifiability} & Hard (per-contract logic) & Hard (must replay app logic) & N/A (off-chain) & N/A (off-chain) & Easy ($O(1)$ per cascade level) \\
+\textbf{Production status} & Live (Ethereum mainnet) & Live (Ethereum mainnet, 2022+) & Live (research languages + Caja) & Live (research community) & v2 specification (this paper) \\
+\bottomrule
+\end{longtable}
+\endgroup
+\end{landscape}
+
+The four comparators each solve a different subset of the problem. **Ethereum smart-contract references** and **EAS** push typing to the application layer; the cost is repeated implementation and audit per consumer. **Capability-secure languages** push typing to the compiler; the cost is they live off-chain and have no model for revocation or runtime invalidation. **Dependent types** push typing to maximum expressiveness; the cost is they require proof-search at type-check time, which is impractical for a chain runtime.
+
+**Cross-schema composition** occupies a different design point: typing is enforced at the chain runtime, at mempool admission, with bounded compute per attestation. The trade-off is that type expressiveness is constrained: schemas declare structural payload schemas plus a bounded-compute predicate, not arbitrary contract logic. Section 1.3 argued this constraint is the right one for an attestation-native chain: chain-level typing is provable (§5.5 theorem), the type contract is part of consensus, and the §8 security analysis is tractable.
+
+The unique value-add of this paper's design is the **slashing-cascade machinery**. None of the four comparators model revocation propagation through references. EAS has revocation flags but no cascade. Capability languages have no revocation concept. Dependent types operate at compile time and have no runtime invalidation. This paper specifies the cascade explicitly (§5), proves termination (§5.5), and handles concurrent invalidation races (§5.7) with deterministic ordering. The cascade machinery is what makes cross-schema composition safe in a production chain.
 
 ---
 
