@@ -1,32 +1,24 @@
----
-title: "Cross-Schema Composition for Attestation-Native Chains"
-author: "Ligate Labs"
-date: "2026-05-03"
----
+# Cross-Schema Composition for Attestation-Native Chains
 
-## Cross-Schema Composition: Typed Attestation References with Slashing-Aware Proof Propagation
+## Typed Attestation References with Slashing-Aware Proof Propagation
 
-**Ligate Labs Research, Working Paper v0.1 (outline)**
+**Ligate Labs Research, Working Paper v0.2**
 
-**Date:** 2026-05-03
-
-**Status:** **Outline only.** Section headings with intent annotations; no formal content yet. Authoring is **deferred until 2-3 design-partner use cases validate the demand**. See [`README.md`](README.md) for the v0.2 milestone scope.
+**Date:** 2026-05-22
 
 **Contact:** hello@ligate.io
-
-**Version history:** v0.1 (outline scaffold).
 
 \newpage
 
 ## Abstract
 
-Ethereum smart contracts can reference arbitrary chain state by hash. The reference is well-typed if and only if the consumer contract enforces the type, which it does as application logic. There is no chain-level guarantee that a Solidity contract is consuming the right kind of input. Slashing propagation through references is also entirely application-level: contract A may invalidate state that contract B reads, and contract B has no native machinery to learn this.
+Ethereum smart contracts can reference arbitrary chain state by hash. The reference is well-typed if and only if the consumer contract enforces the type, which it does as application logic. There is no chain-level guarantee that a Solidity contract is consuming the right kind of input. Slashing propagation through references is also entirely application-level: contract A may invalidate state that contract B reads, and contract B has no native machinery to learn this. The result, across the EVM ecosystem, is a steady stream of integration bugs and a high cost of audit for any contract that composes with another contract's state.
 
-This paper specifies **chain-enforced typing** for attestation references and **slashing-aware proof propagation** through the schema dependency graph. A schema declares its input dependencies as part of its registration; the runtime rejects attestations that reference inputs of the wrong type or invalid status. When a referenced attestation is revoked or its signer is slashed, dependent attestations are automatically marked dependent-invalid and their own slashing-cascade rules fire deterministically.
+This paper specifies **chain-enforced typing** for attestation references and **slashing-aware proof propagation** through the schema dependency graph as a runtime primitive on Ligate Chain. A schema declares its input dependencies as part of its registration: which schemas it may reference, at which version constraints, with which predicate over the input payloads. The runtime rejects, at mempool admission, any attestation that references an input of the wrong type, the wrong version, or invalid status. When a referenced attestation transitions to REVOKED, SLASHED, or DEPENDENT-INVALID, the runtime propagates the transition through the dependency graph according to each schema's declared cascade rule (strict or lazy), and the §5.5 termination theorem guarantees the cascade completes in bounded time.
 
-The mechanism is positioned as a **v2 protocol feature**. v1 of Ligate Chain ships with single-schema attestations only; cross-schema composition lands when 2-3 design partners have asked for it. This paper exists so the design space is captured before then, not as a roadmap commitment to ship.
+Three contributions. First, we specify the protocol-level mechanism (§3 and §4): the schema-as-typed-graph model, the input-type-set with semver-constrained edges, the deterministic type predicate, and the runtime type check at mempool admission. Second, we prove the **slashing-cascade termination theorem (§5.5)**: under acyclic dependency graphs with depth $d$, the cascade triggered by one slash event terminates in $O(d)$ deterministic steps with bounded per-step compute, with explicit per-edge deduplication that prevents re-cascading through the same edge twice. Third, we analyze three attack families (type confusion, slash amplification, cycle-induced DoS) and bound the damage each can inflict (§8).
 
-[**v0.2 will fill in:** the type-system formalism, the slashing-cascade theorem, the cycle-detection algorithm, the comparison table, the design-partner use cases, and the security analysis under three attack families.]
+The mechanism is positioned as a **v2 protocol feature**. v1 of Ligate Chain ships with single-schema attestations only; cross-schema composition lands when 2-3 design partners have asked for it with concrete use-case descriptions matching the §6.2 template. This paper exists so the design space is captured before then, not as a roadmap commitment to ship. §6 is explicit about the use-case-validation gate: without validated design-partner demand, the mechanism remains specification-only.
 
 ---
 
@@ -154,9 +146,9 @@ where:
 Attestations live in a **validity state machine** with four states:
 
 ```
-VALID → REVOKED          (revocation by signer or attestor-set)
-VALID → SLASHED          (proposer-side or attestor-set slashing event)
-VALID → DEPENDENT-INVALID (cascade from a referenced attestation transitioning out of VALID)
+VALID -> REVOKED            (revocation by signer or attestor-set)
+VALID -> SLASHED            (PoUA-side slashing event)
+VALID -> DEPENDENT-INVALID  (cascade from a non-VALID input)
 ```
 
 **State transitions.**
@@ -182,16 +174,18 @@ Schema registration submits a **schema-declaration object**:
 
 ```
 SchemaDeclaration = {
-  name: string,                    // canonical schema-id (e.g. "themisra.proof-of-prompt/v1")
-  version: int,                    // monotonic version counter
-  payload_schema: PayloadType,     // structural schema (JSON Schema or equivalent)
-  input_type_set: List<(SchemaId, VersionConstraint)>,
-  predicate: PredicateBytecode,    // deterministic boolean function
-  attestor_set_id: AttestorSetId,  // existing PoUA primitive
-  cascade_rule: enum {STRICT, LAZY},
-  predicate_gas_limit: int         // bounded compute cost (default 1000)
+  name:                string,   // canonical schema-id
+  version:             int,      // monotonic version counter
+  payload_schema:      Type,     // structural schema
+  input_type_set:      List<(SchemaId, VersionConstraint)>,
+  predicate:           Bytecode, // deterministic boolean function
+  attestor_set_id:     Id,       // existing PoUA primitive
+  cascade_rule:        enum {STRICT, LAZY},
+  predicate_gas_limit: int,      // bounded compute cost (default 1000)
 }
 ```
+
+Field notes: `name` is the canonical schema-id (e.g. a `themisra.proof-of-prompt` schema at version `v1`); `payload_schema` is a structural type (JSON Schema or equivalent); `predicate` is a bytecode-encoded deterministic boolean function; `attestor_set_id` references the existing PoUA primitive.
 
 **Validation at registration time.**
 
@@ -202,7 +196,7 @@ SchemaDeclaration = {
 5. `attestor_set_id` exists.
 6. `cascade_rule` is one of the two enum values.
 
-Failure of any check rejects the registration; partial registration is not allowed. Registration fees in $LGT$ apply per PoUA §3.
+Failure of any check rejects the registration; partial registration is not allowed. Registration fees in `$AVOW` apply per PoUA §3.
 
 ### 4.2 Input Type Set
 
@@ -290,33 +284,127 @@ When a schema upgrades from $V = k$ to $V = k+1$, the chain must decide what hap
 
 ## 5. Slashing Propagation
 
+The §3.4 validity state machine introduced DEPENDENT-INVALID as the cascade state. This section specifies the cascade mechanics: what fires when an attestation transitions out of VALID, how dependents respond, how the runtime keeps termination bounded under arbitrary graph shapes, and how concurrent slash events interleave.
+
 ### 5.1 The Cascade Question
 
-[**v0.2:** When a referenced attestation transitions to REVOKED or SLASHED, what happens to dependents? Three candidate behaviors. Each is correct under a different threat model.]
+When a referenced attestation $a$ transitions to REVOKED, SLASHED, or DEPENDENT-INVALID, the chain has three candidate behaviors for $a$'s dependents:
+
+1. **Strict cascade**: every dependent immediately transitions to DEPENDENT-INVALID at the slash root's transition block.
+2. **Lazy cascade**: dependents stay in VALID; the read API exposes the input's invalid status; application logic decides what to do.
+3. **Hybrid**: per-schema declaration at registration picks strict or lazy.
+
+None of the three is universally correct. Strict is right when the dependent's claim *relies on* the input's truth and any reader of the dependent should see invalidation propagate (e.g., a financial attestation referencing a sovereign-identity proof). Lazy is right when the dependent's claim is *informationally* dependent but functionally autonomous (e.g., an audit-trail attestation that references a parent event but is itself a standalone receipt of "I observed this"). The hybrid is what we ship: schemas declare their cascade preference at registration (§4.1's `cascade_rule` field), and the runtime enforces it deterministically per-schema.
+
+This section formalizes each candidate, specifies how the cascade algorithm runs, proves the termination theorem (§5.5), and bounds adversarial behavior under concurrent slashes (§5.7).
 
 ### 5.2 Strict Cascade
 
-[**v0.2:** Dependents transition to DEPENDENT-INVALID immediately. Reads of dependent attestations return invalid status. Application layer can choose to re-attest with corrected references. Strongest correctness guarantee; highest write amplification.]
+Under strict cascade, when an attestation $a$ transitions to a non-VALID state at block $t$, every attestation $b$ such that $a \in \text{refs}_b$ transitions to DEPENDENT-INVALID at block $t+1$ (or at $t$ if the runtime processes the cascade in the same block; see §5.7 for ordering semantics). The transition is automatic: no on-chain action by the dependent's submitter is required.
+
+**Semantics for readers.** A read of $b$ after the cascade returns `state = DEPENDENT_INVALID` with metadata `caused_by = a` and `caused_at = t`. Light clients can verify the cascade by re-evaluating: was $a$ a referenced input of $b$ at attestation time, and is $a$'s current state non-VALID? If both yes, $b$'s state is correctly DEPENDENT-INVALID. This is one extra state-tree lookup per cascade depth, $O(1)$ per verification.
+
+**Recovery.** A dependent submitter cannot un-invalidate $b$. The recovery path is to submit a new attestation $b'$ with corrected references (pointing to a still-VALID equivalent of $a$, or omitting the broken reference entirely). $b$ remains DEPENDENT-INVALID forever; $b'$ is a fresh attestation that, if valid, supersedes $b$ for downstream consumers.
+
+**Cost.** Per slash root, the chain pays for re-evaluating each dependent's state. With strict cascade, this is $O(|\text{descendants}|)$ state-tree writes per slash root, where descendants are the transitive set of attestations reachable through dependency edges from the slash root. §5.5 bounds this in terms of dependency depth.
+
+**Use cases.** Schemas where the dependent's claim is meaningless if any input is invalid:
+
+- Financial conservation-of-value attestations (the total field depends on all input amounts; if any input is slashed, the total is unverified)
+- Identity composition: "this DAO membership references this identity proof"; if the identity is revoked, the membership is no longer evidence-backed
+- Multi-party signature: "all parties consented" via references; any party-slash invalidates the multi
 
 ### 5.3 Lazy Cascade
 
-[**v0.2:** Dependents are not transitioned at slash-time; the read API returns "valid but with invalid input." Application layer must check transitively. Lower write amplification; weaker default-correctness guarantee.]
+Under lazy cascade, when an input $a$ transitions to a non-VALID state, dependents stay in VALID. The chain records the slash root's transition but does not propagate. The read API returns `state = VALID`, with metadata listing each input's current state. Application code decides what to do with the information.
+
+**Semantics for readers.** A read of $b$ returns `state = VALID` plus `inputs = [(a, state_a, block_a), ...]`. A reader who wants strict semantics must walk the input states themselves: if any input is non-VALID, treat $b$ as application-layer-invalid. Readers who want lazy semantics ignore the input states and trust $b$'s standalone payload.
+
+**Recovery.** Not required at the chain level. The dependent submitter may choose to re-submit with corrected references, but the chain does not force it. $b$ remains VALID indefinitely even if every input is slashed.
+
+**Cost.** Per slash root, the chain pays for the slash root's own transition only. No cascade-induced writes. State-tree footprint is minimal.
+
+**Use cases.** Schemas where the dependent's claim is independently meaningful and the references are informational:
+
+- Audit-trail attestations: "I observed event X" with X as input; if X is slashed, my observation is still a true record of what I observed
+- Bulk AI-provenance attestations: a Themisra session-end attestation that references each turn's individual attestations; if one turn is slashed, the session-end is still a valid record of the session
+- Reputation summaries: "this validator did X, Y, Z" where X, Y, Z reference individual events; one event invalidation does not change the summary's accuracy
 
 ### 5.4 Configurable Per-Schema
 
-[**v0.2:** Each schema declares its cascade preference at registration. Strict for safety-critical (e.g., financial attestations referencing identity proofs); lazy for performance-critical (e.g., bulk AI prompt attestations).]
+The schema-declaration object (§4.1) carries a `cascade_rule` field with two values: `STRICT` or `LAZY`. The choice is made by the schema author at registration and applies to all attestations of that schema.
+
+**Why per-schema and not per-attestation.** Per-attestation cascade rules would require the runtime to read each attestation's rule at cascade time, doubling state-lookup cost. Per-schema rules are read once at schema lookup; subsequent attestations of the schema inherit. The trade-off: less flexibility, more efficiency. A schema author who wants both behaviors registers two schemas (e.g., `themisra.attribution.strict/v1` and `themisra.attribution.lazy/v1`).
+
+**Default for new schemas.** `STRICT`. This errs on the side of safety: a schema author who has not thought carefully about cascade semantics gets the stronger correctness guarantee. To opt into LAZY, the author must explicitly declare it.
+
+**Governance bound.** Cascade rule is immutable post-registration; changing it would invalidate the type contract for existing dependents. A schema that wants to switch must register a new schema (with a new schema-id) and let consumers migrate.
+
+**Interaction with §4.5 versioning.** A schema upgrade may not change cascade rule; the upgrade is rejected if it tries. This is a stricter rule than payload subtyping: cascade rule is a structural property of the schema's economic semantics and cannot be retrofitted.
 
 ### 5.5 Slashing-Cascade Termination Theorem
 
-[**v0.2:** Under acyclic dependency graphs and bounded cascade depth, the slash-propagation algorithm terminates in $O(d)$ steps where $d$ is the depth of the dependency tree from the slashed root. Formal statement and proof in v0.2.]
+**Claim (Theorem 1).** Under any acyclic dependency graph $\mathcal{G}$, when a single attestation $a$ transitions from VALID to non-VALID at block $t$, the strict-cascade algorithm terminates in $O(d)$ deterministic steps, where $d$ is the maximum depth of any descendant of $a$ in $\mathcal{G}$.
+
+**Setup.** Define the **descendant set** $D(a) = \{b : a \to^* b \text{ in the dependency graph}\}$ (transitive closure of "references" through strict-cascade edges). The cascade algorithm processes $D(a)$ in BFS order from $a$:
+
+```
+Q := [a]
+visited := {a}
+while Q non-empty:
+    x := Q.dequeue()
+    for each y such that x in refs(y) and y.cascade_rule = STRICT:
+        if y not in visited:
+            transition y to DEPENDENT_INVALID
+            visited.add(y)
+            Q.enqueue(y)
+return |visited|  # total number of cascaded transitions
+```
+
+**Proof.**
+
+*Termination.* Each iteration of the while loop removes one element from $Q$ and may add some new elements. An element $y$ is added to $Q$ at most once, because the `if y not in visited` guard prevents re-enqueueing. The total number of enqueue operations is therefore $|D(a)|$, which is finite (the chain has finitely many attestations). The loop terminates.
+
+*Bounded steps.* The BFS visits $D(a)$ in layer order. Each layer corresponds to a depth-level in $\mathcal{G}$ rooted at $a$. The maximum number of layers is $d$ by definition. Within each layer, the work per element is $O(\text{outdegree})$ for edge enumeration plus $O(1)$ for the state transition. Summing over layers gives total work $O(|D(a)| \cdot \bar{\text{outdegree}})$. For the BFS depth itself (the number of sequential dependency layers traversed), the bound is exactly $d$.
+
+*Determinism.* The BFS order is deterministic given a canonical ordering of attestation ids (by hash). The cascade transitions for the same slash root, processed in the same block, produce identical chain states.
+
+*Acyclicity is necessary.* Without acyclicity, the BFS could revisit an attestation through a different path. The `visited` set prevents this, but the termination guarantee would still depend on per-edge deduplication; §5.6 addresses the dynamic-cyclic case explicitly.
+
+**Corollary (depth bound).** At v0, the chain enforces a maximum dependency depth $d_{\max} = 8$ at schema-registration time (cycle-detection in §4.4 already requires walking the graph; depth-bound is computed in the same walk). This bounds any cascade to $\leq |D(a)|$ transitions, with $|D(a)| \leq \text{outdegree}_{\max}^{d_{\max}}$. At typical scale (outdegree $\leq 3$, depth $\leq 8$), $|D(a)| \leq 6561$ attestations per slash root.
+
+**Corollary (cost amortization).** The cascade gas cost is charged to the slash root's submitter (the party whose attestation was slashed), not to dependent submitters. This is the §8.3 economic defense against slash-amplification attacks: an adversary who can slash a heavily-referenced attestation faces the cost of cascading all its descendants, even though the descendants are unrelated to the adversary's goal. The cost ratio scales with $|D(a)|$ and the per-attestation transition cost.
 
 ### 5.6 Cycle Handling
 
-[**v0.2:** Static-by-default: cyclic dependency edges rejected at schema-registration. Opt-in dynamic mode: cycles allowed at registration, with mandatory bounded cascade depth and explicit cycle-break rule (typically "do not re-cascade through the same edge twice"). Recommended default: static-only for v1; dynamic deferred to v2.]
+§5.5's termination guarantee assumes the dependency graph is acyclic. Two cycle-handling modes are specified.
+
+**Static mode (v0 default).** Schema registration rejects edges that would close a cycle. Cycle detection is computed at registration time via DFS over the existing graph $\mathcal{G}$ extended with the proposed new edges. The check is $O(|E|)$ time per registration, where $|E|$ is the number of existing edges. At v0 scale ($|E| \leq 1000$), this is microseconds.
+
+A registrant who wants a cyclic dependency must use the dynamic mode (below) or restructure their schemas to break the cycle. The default rejection is the safer choice: cycles are rare in practice and introduce significant complexity in cascade semantics.
+
+**Dynamic mode (opt-in, v1+).** Cycles are permitted at registration, but each schema must declare additional parameters:
+
+- `cycle_break_rule`: enum `{NO_REVISIT_EDGE, NO_REVISIT_NODE}`. The runtime uses the rule to prevent infinite cascades.
+- `max_cascade_depth`: integer in $[1, 100]$. Hard cap on cascade BFS depth, even if the graph allows deeper traversal.
+
+Under `NO_REVISIT_EDGE`, the cascade BFS does not traverse the same edge twice; under `NO_REVISIT_NODE`, it does not visit the same attestation twice. Both prevent infinite loops; `NO_REVISIT_NODE` is stricter and is the recommended default for dynamic-mode schemas.
+
+**Why dynamic mode is deferred to v1+.** Dynamic cycles complicate the §5.5 termination proof (the depth $d$ becomes the `max_cascade_depth` parameter, not a graph property) and introduce edge cases in concurrent cascades (§5.7). Production use cases for cyclic schemas are rare; v0 ships without dynamic mode and waits for design-partner demand before enabling it.
 
 ### 5.7 Concurrent Invalidation Races
 
-[**v0.2:** Two slash events on attestations $a, b$ in the same block, both referenced by attestation $c$. Order-of-operations: deterministic by attestation-ID ordering; cascade fires once per slash root with deduplication on dependents.]
+Two slash events can occur in the same block. Consider: attestation $a$ slashed for misbehavior; attestation $b$ revoked by the schema's attestor set; both $a$ and $b$ are referenced by attestation $c$. What state does $c$ end up in?
+
+**Deterministic ordering.** Cascade events within a block are processed in canonical attestation-id order (by hash). The runtime sorts the slash roots and processes their cascades sequentially within the block. The order is fully determined by chain state and the block contents; no validator-discretion is introduced.
+
+**Deduplication on dependents.** When $c$ is reached during the cascade for $a$, it transitions to DEPENDENT-INVALID with `caused_by = a`. When $c$ is reached again during the cascade for $b$, the runtime detects $c$ is already DEPENDENT-INVALID (terminal state per §3.4) and skips. The cascade for $b$ continues with $c$'s descendants but does not re-transition $c$.
+
+**Race semantics.** The "caused_by" field reflects the first slash root that reached $c$ in canonical order, not necessarily the "logical" root of the invalidation chain. This is a deliberate design choice: chains derive truth from the canonical block ordering, not from external semantics. Applications that need richer attribution can read the full input-state list (the `inputs` metadata from §5.3's lazy-cascade read) to reconstruct the full invalidation pattern.
+
+**Gas accounting.** Each slash root pays gas for its own cascade traversal. If $a$ and $b$ both reach $c$, $a$ pays for the transition of $c$ (it gets there first in canonical order); $b$ pays only for its own subtree minus the intersection with $a$'s subtree. This is the §8.3 amplification defense: the second slasher gets a partial discount, but does not get a free ride.
+
+**Cross-block races.** If $a$ and $b$ are slashed in different blocks, the cascades are sequential by block order. The earlier block's cascade completes (within its block) before the later block's cascade begins. No interleaving between blocks; chain finality enforces the order.
 
 ---
 
