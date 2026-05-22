@@ -4,10 +4,10 @@ Per-schema EIP-1559-style fee dynamics for attestation-native chains.
 
 ## Latest
 
-- **Working paper**: [`per-schema-fees.md`](per-schema-fees.md) (markdown source), PDF to be generated when v0.2 substantive content lands across §3 + §4 + §5 + §6
-- **Version**: v0.1.1
-- **Status**: **Outline + mechanism section substantive.** §4 (per-schema fee mechanism) is now substantive prose with formal definitions, integration with PoUA τ_burn rebase, and sponsored-gas (paymaster) accounting. §1, §2, §3, §5+ remain v0.1 outline.
-- **Date**: 2026-05-04 (updated; original v0.1 scaffold 2026-05-02)
+- **Working paper**: [`per-schema-fees.md`](per-schema-fees.md) (source) + [`per-schema-fees.pdf`](per-schema-fees.pdf) (13 pages, ~96 KB)
+- **Version**: v0.2 (Block 1 of v0.2 cycle landed)
+- **Status**: **§3 + §4 substantive.** Block 1 (this PR) landed the Abstract (formal proposition + three contributions), §3 System Model (fee-market state per schema, validator income decomposition, demand profile taxonomy), and full title-page metadata. §4 was already substantive (per-schema base-fee adjustment + tip mechanism + burn split + PoUA integration). §1, §2, §5, §6, §7, §8, §9, §10, §11 remain v0.1 outline; subsequent blocks of the v0.2 cycle cover them.
+- **Date**: 2026-05-22
 
 ## Abstract (placeholder)
 
