@@ -4,10 +4,14 @@ Typed attestation references with slashing-aware proof propagation. Schemas decl
 
 ## Latest
 
-- **Working paper**: [`cross-schema-composition.md`](cross-schema-composition.md) (markdown source). PDF to be generated when v0.2 substantive content lands across §3 + §4 + §5 + §6.
-- **Version**: v0.1.1
-- **Status**: **Outline + system model and type system substantive.** §3 (system model: schemas as typed graphs, dependency graph, attestation as witness, validity states) and §4 (type system: schema declaration, input types, predicates, runtime check, versioning) are now substantive prose with formal definitions. §1, §2, §5+ remain v0.1 outline. v0.2 ships when 2-3 design-partner use cases validate the demand.
-- **Date**: 2026-05-04 (updated; original v0.1 scaffold 2026-05-03)
+- **Working paper**: [`cross-schema-composition.md`](cross-schema-composition.md) (source) + [`cross-schema-composition.pdf`](cross-schema-composition.pdf) (16 pages, ~104 KB)
+- **Version**: v0.2 (Block 1 of v0.2 cycle landed)
+- **Status**: **§3 + §4 + §5 substantive.** Block 1 (this PR) finalized the Abstract (formal contribution outline + use-case-validation gate framing) and landed §5 Slashing Propagation: §5.1 the cascade question, §5.2 strict cascade, §5.3 lazy cascade, §5.4 configurable per-schema, §5.5 slashing-cascade termination theorem (BFS over descendants, $O(d)$ deterministic steps), §5.6 cycle handling (static v0 + dynamic-mode v1+), §5.7 concurrent invalidation races (canonical ordering + per-dependent deduplication). §3 and §4 were already substantive from v0.1.1. §1, §2, §6, §7, §8, §9, §10 remain v0.1 outline.
+- **Date**: 2026-05-22
+
+## Stance still applies
+
+This is **v2 protocol territory**, explicitly. v0.2 of this paper specifies the design but the engineering cycle is gated on 2-3 design-partner use cases validating the demand (see §6). The paper exists so the design space is captured before the engineering cycle starts, not as a roadmap commitment to ship.
 
 ## Abstract (placeholder)
 
