@@ -12,11 +12,11 @@ from __future__ import annotations
 def test_package_imports() -> None:
     import per_schema_fees_sim
 
-    assert per_schema_fees_sim.__version__ == "0.1.0"
+    assert per_schema_fees_sim.__version__ == "0.2.0"
 
 
-def test_public_api_matches_m1_scope() -> None:
-    """v0.1 (M1) scope: fee-market primitives + §5.1 security."""
+def test_public_api_matches_m2_scope() -> None:
+    """v0.2 (M2) scope: M1 + stochastic-arrival adversary model (§5.5)."""
     import per_schema_fees_sim
 
     expected = {
@@ -29,5 +29,10 @@ def test_public_api_matches_m1_scope() -> None:
         # M1 security primitives (§5.1)
         "cost_to_grind",
         "verify_cost_to_grind_preservation",
+        # M2 stochastic-arrival adversary model (§5.5)
+        "PoissonArrival",
+        "SimulationResult",
+        "simulate_with_arrivals",
+        "estimate_pattern_b_attack_cost",
     }
     assert set(per_schema_fees_sim.__all__) == expected

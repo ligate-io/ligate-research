@@ -1,28 +1,32 @@
 """Reference simulator for Per-Schema Fee Markets on Ligate Chain.
 
-Implements the §4.1 EIP-1559-style per-schema base-fee adjustment dynamics
-and the §5.1 cost-to-grind preservation theorem from the per-schema-fees v0.2
+Implements the §4.1 EIP-1559-style per-schema base-fee adjustment dynamics,
+the §5.1 cost-to-grind preservation theorem, and the §5.5 stochastic-arrival
+adversary model for sponsored-gas patterns from the per-schema-fees v0.2
 paper at ``papers/per-schema-fees/``.
 
-M1 (this release) covers:
+M2 (this release, v0.2.0) extends M1 with:
 
-- :class:`FeeMarketState`: the per-schema fee-market state tuple from §3.1
-- :func:`adjust_base_fee`: the §4.1 base-fee update step
-- :func:`burn_split`: the §4.4 burn-and-routing distribution
-- :func:`validator_income`: the §3.2 validator income decomposition
-- :func:`cost_to_grind`: the §5.1 PoUA Lemma 1 floor per-schema
-- :func:`simulate_trajectory`: deterministic multi-block trajectory under a
-  given utilization sequence
+- :class:`PoissonArrival`: per-block attestation arrival model
+- :func:`simulate_with_arrivals`: stochastic multi-block simulation
+- :func:`estimate_pattern_b_attack_cost`: §5.5 Pattern B (base-fee surge
+  exploitation) attack-cost quantification
 
-M2+ (future) will extend to:
+M1 (v0.1.0) shipped:
 
-- Stochastic-arrival adversary model for the §5.5 sponsored-gas patterns
-- Cross-schema slot-allocation dynamics
-- Multi-resource within-schema pricing
+- :class:`FeeMarketState`, :func:`adjust_base_fee`, :func:`burn_split`,
+  :func:`validator_income`, :func:`simulate_trajectory`
+- :func:`cost_to_grind`, :func:`verify_cost_to_grind_preservation`
 
 Reference paper section numbers in this docstring refer to per-schema-fees v0.2.
 """
 
+from per_schema_fees_sim.adversary import (
+    PoissonArrival,
+    SimulationResult,
+    estimate_pattern_b_attack_cost,
+    simulate_with_arrivals,
+)
 from per_schema_fees_sim.fee_market import (
     FeeMarketState,
     adjust_base_fee,
@@ -35,7 +39,7 @@ from per_schema_fees_sim.security import (
     verify_cost_to_grind_preservation,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     # M1 fee-market primitives
@@ -47,4 +51,9 @@ __all__ = [
     # M1 security primitives
     "cost_to_grind",
     "verify_cost_to_grind_preservation",
+    # M2 stochastic adversary
+    "PoissonArrival",
+    "SimulationResult",
+    "simulate_with_arrivals",
+    "estimate_pattern_b_attack_cost",
 ]
