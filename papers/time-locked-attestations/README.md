@@ -4,9 +4,9 @@ A two-phase attestation primitive: commit phase publishes a binding commitment t
 
 ## Latest
 
-- **Working paper**: [`time-locked-attestations.md`](time-locked-attestations.md) (source) + [`time-locked-attestations.pdf`](time-locked-attestations.pdf) (18 pages, ~99 KB)
-- **Version**: v0.2 (Block 1 of v0.2 cycle landed)
-- **Status**: **§3 + §4 + §5 + §6 + §7 substantive.** Block 1 (this PR) finalized the Abstract (three-contributions + v1.5 framing + use-case-validation gate), and landed §3 System Model (commitment, reveal, validity state machine, hash function choice), §5 Cryptographic Security (binding, hiding, nonce entropy bound, time-lock security, hash function choice), §6 Use Cases and the Validation Gate (gate + template + 3 hypotheticals), and §7 Comparison (landscape table across off-chain commit-reveal / smart-contract auctions / Drand+VDF / embargoed storage / this paper). §4 was already substantive from v0.1.1. §1, §2, §8, §9, §10 remain v0.1 outline; Block 2 covers them.
+- **Working paper**: [`time-locked-attestations.md`](time-locked-attestations.md) (source) + [`time-locked-attestations.pdf`](time-locked-attestations.pdf) (27 pages, ~147 KB)
+- **Version**: v0.2 (substantive draft complete)
+- **Status**: **All ten sections substantive.** Block 1 (PR #114) landed Abstract + §3 + §5 + §6 + §7. Block 2 (this PR) lands §1 Introduction (1.1-1.8 + 1.6.1 status panel), §2 Background (5 subsections: cryptographic commitments, on-chain auctions, off-chain commit-reveal protocols, time-locked encryption, embargoed-document storage), §8 Failure Modes (6 subsections with bounded-damage arguments), §9 Limitations and Future Work (4 subsections), §10 Conclusion (5 paragraphs in conditional voice befitting v1.5-territory positioning), References (5 categories), Appendix A (simulator validation plan, gated on §6), Appendix B (formal definitions). §4 was already substantive from v0.1.1.
 - **Date**: 2026-05-22
 
 ## Abstract (placeholder)
