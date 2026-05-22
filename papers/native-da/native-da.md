@@ -1,32 +1,24 @@
----
-title: "Attestation-Optimized Data Availability"
-author: "Ligate Labs"
-date: "2026-05-03"
----
+# Attestation-Optimized Data Availability
 
-## Attestation-Optimized Data Availability: A Native DA Layer Specialized for the Attestation Workload
+## A Native DA Layer Specialized for the Attestation Workload
 
-**Ligate Labs Research, Working Paper v0.1 (outline)**
+**Ligate Labs Research, Working Paper v0.2**
 
-**Date:** 2026-05-03
-
-**Status:** **Outline only.** Section headings with intent annotations; no formal content yet. Authoring begins when [#36](https://github.com/ligate-io/ligate-research/issues/36) gets pulled into a focused work cycle. See [`README.md`](README.md) for the v0.2 milestone scope and authoring trigger.
+**Date:** 2026-05-22
 
 **Contact:** hello@ligate.io
-
-**Version history:** v0.1 (outline scaffold).
 
 \newpage
 
 ## Abstract
 
-General-purpose data availability layers (Celestia, EigenDA, Avail, Walrus, 0G) are tuned for blob-shaped workloads: shares of 4 KB or larger, periodic high-throughput windows, clients that want raw data back. The attestation workload has a different shape. Records are 200 to 800 bytes. Throughput is sustained, not bursty. Records are signature-heavy: a typical attestation is 5 to 15 percent payload and 85 to 95 percent signature. Light clients want history-aware queries ("did attestor $X$ sign in epoch $Y$"), not raw byte retrieval.
+General-purpose data availability layers (Celestia, EigenDA, Avail, Walrus, 0G) are tuned for blob-shaped workloads: shares of 4 KB or larger, periodic high-throughput windows, clients that want raw data back. The attestation workload has a different shape. Records are 200 to 800 bytes. Throughput is sustained, not bursty. Records are signature-heavy: a typical attestation is 5 to 15 percent payload and 85 to 95 percent signature. Light clients want history-aware queries ("did attestor $X$ sign in epoch $Y$"), not raw byte retrieval. Forcing one workload onto infrastructure tuned for the other is doable; whether it is optimal is a different question.
 
-This paper specifies an attestation-optimized DA layer with three departures from the general-purpose baseline: per-schema indexed commitments for cheap attestor-history queries, signature aggregation within commitment trees for bandwidth amortization, and a fee market integrated with PoUA's adaptive τ_burn rebase (§4.4.2 + v0.8 §4.4.3) so that DA-side and consensus-side fee dynamics co-calibrate.
+This paper specifies an attestation-optimized DA layer with three departures from the general-purpose baseline: **per-schema indexed commitments** for cheap attestor-history queries, **signature aggregation within commitment trees** for bandwidth amortization, and a **fee market integrated with PoUA's adaptive $\tau_{\text{burn}}$ rebase** (PoUA §4.4.2 + v0.8 §4.4.3) so that DA-side and consensus-side fee dynamics co-calibrate.
 
-The paper is positioned as a long-horizon migration target, not a near-term replacement. Ligate Chain stays on Celestia through v1; this work exists so a future migration decision can be made deliberately, not reactively.
+Three contributions. First, a workload-model characterization (§3): measurements of attestation size distribution, throughput profile, ordering requirements, retention requirements, and query patterns under Themisra / Iris / Mneme workloads, sized against Celestia's blob-shape assumptions. Second, the protocol specification (§5-§9): the DA validator set, the per-schema commitment-tree data structure, the consensus and sampling protocol, the light-client query API, and the integrated fee market. Third, migration-decision criteria (§12): explicit thresholds (sustained throughput, light-client growth, fee-cost ratio) that would justify the engineering investment of a Ligate-native DA layer over staying on Celestia.
 
-[**v0.2 will fill in:** workload-model measurements from devnet, the formal commitment-tree specification, the security theorem under the chosen sampling protocol, the comparison table across the five DA incumbents, and the migration-decision criteria.]
+The paper is positioned as a **long-horizon migration target**, not a near-term replacement. Ligate Chain stays on Celestia through v1; this work exists so a future migration decision can be made deliberately, not reactively. §1.9 makes this stance explicit; §12 specifies the criteria under which the migration becomes justified.
 
 ---
 
@@ -34,75 +26,168 @@ The paper is positioned as a long-horizon migration target, not a near-term repl
 
 ### 1.1 The Workload-Mismatch Thesis
 
-[**v0.2:** General-purpose DA layers were designed for the rollup-blob shape: a rollup posts a single multi-MB blob per block, recoverable as raw bytes by light clients running data-availability sampling. This workload favors large shares (4 KB+), periodic uploads, and bandwidth-amortized erasure coding. The attestation workload looks nothing like that: small records, sustained throughput, signature-heavy, queryable by attestor-history. Forcing the latter onto infrastructure tuned for the former is doable; whether it is optimal is a different question.]
+General-purpose data availability layers were designed for the rollup-blob shape. A typical rollup posts a single multi-megabyte blob to the DA layer per block, recoverable as raw bytes by light clients running data-availability sampling. This workload favors large shares (4 KB or more), periodic uploads, and bandwidth-amortized erasure coding. Celestia's 4 KB share size, namespace Merkle trees, and target throughput at the multi-MB/s level are all calibrated to this shape.
+
+The attestation workload looks nothing like a rollup blob. A single attestation is 200 to 800 bytes (less than a fifth of a Celestia share). Attestations arrive continuously rather than in periodic bursts (one per Themisra session-end, one per Iris agent action, one per Mneme transfer). The bytes are signature-heavy: a typical attestation is 5 to 15 percent application payload and 85 to 95 percent threshold-signature plus framing. Light-client query patterns are history-aware: "did this attestor sign anything in epoch Y" matters more than "show me the raw bytes of attestation X."
+
+The thesis of this paper: **for an attestation-native chain, a DA layer specialized for the attestation workload would outperform a general-purpose DA layer on the three axes that matter (per-attestation cost, light-client query latency, fee-market sovereignty), but the engineering cost is non-trivial and the migration trade-off is not yet justified at Ligate's current scale**. The paper specifies what specialization would look like and identifies the criteria under which migration becomes worth it.
 
 ### 1.2 Why Now
 
-[**v0.2:** Ligate is currently on Celestia and intends to stay through v1. This paper is not an advocacy piece for migration. It exists because (1) understanding what we would build if we built our own is the right way to evaluate Celestia's fit, (2) Celestia governance and fee changes are out of our control, and (3) the workload-mismatch question gets sharper as devnet traffic accumulates. The right time to design a fallback is before you need one.]
+Ligate is currently on Celestia and intends to stay through v1. This paper is not advocacy for migration. It exists for three reasons.
+
+First, **understanding what we would build if we built our own is the right way to evaluate Celestia's fit**. The Celestia-fit question is hard to answer in the abstract; concrete specification of an alternative provides the contrast that makes the comparison meaningful.
+
+Second, **Celestia governance and fee changes are out of our control**. Celestia could raise blob fees, change share format, deprioritize attestation-shaped workloads, or face network-level disruption. Having a designed-fallback (even a fallback we never deploy) reduces strategic risk.
+
+Third, **the workload-mismatch question gets sharper as devnet traffic accumulates**. Themisra's attestation volume, Iris's per-second throughput requirements, Mneme's light-client query patterns will all be empirically measurable at devnet scale. A specification that anticipates the measurements lets us evaluate Celestia's fit against concrete numbers rather than hand-waved estimates.
+
+The right time to design a fallback is before you need one. This paper is the design.
 
 ### 1.3 The Workload-Mismatch Problem
 
-[**v0.2:** Three quantifiable mismatches:
-1. Share size: attestations are 200-800 bytes; Celestia shares are 4 KB+. Either we pad (wasted bytes) or we batch (latency hit).
-2. Throughput shape: attestations arrive continuously; Celestia is tuned for bursty rollup posts. Sustained-throughput regimes add overhead.
-3. Query shape: attestation light clients want "did $X$ sign in $\sigma$ at $t$"; namespace Merkle proofs answer "show me bytes in this namespace at this height." Bridging these is doable but adds an indexing layer.
-]
+Three quantifiable mismatches between the attestation workload and Celestia's blob-shape baseline:
+
+**Mismatch 1: Share size.** Attestations are 200-800 bytes; Celestia shares are 4 KB or more. Either we pad each attestation to a share (wasting ~80% of share bandwidth) or we batch attestations into shares (adding inclusion latency proportional to batch size). Neither option is bad, but both are paying a cost the design was not built to handle.
+
+**Mismatch 2: Throughput shape.** Attestations arrive continuously, one or a few per block (or per sub-block timing window if the chain ships fast confirmation). Celestia is tuned for bursty rollup posts (one large blob per block, possibly skipped blocks). Sustained-low-rate-many-records is a different operating point than bursty-high-rate-few-records; overheads (mempool churn, gossip patterns, fee dynamics) compound differently.
+
+**Mismatch 3: Query shape.** Attestation light clients want "did attestor $X$ sign anything in schema $\sigma$ at epoch $t$." Celestia answers "show me bytes in this namespace at this height." Bridging requires an indexing layer that translates query-by-attestor-history into query-by-bytes-in-namespace. The indexing layer is cheap to build but adds operational overhead (state to keep, queries to serve, freshness guarantees to maintain).
+
+Each mismatch is doable. The question §12 asks: under what conditions does the cumulative cost of accommodating these mismatches exceed the cost of specialization?
 
 ### 1.4 The Central Question
 
-> [**v0.2:** What does an attestation-optimized DA layer look like, what does it cost to build relative to staying on Celestia, and under what conditions does the cost justify itself?]
+> **What does an attestation-optimized DA layer look like, what does it cost to build relative to staying on Celestia, and under what conditions does the cost justify itself?**
+
+This paper answers the first by specifying the mechanism in §5-§9. The second by quantifying the engineering cost in §11.3. The third by stating the migration-decision criteria in §12 explicitly.
 
 ### 1.5 Approach in Brief
 
-[**v0.2:** Three-sentence preview. Per-schema indexed commitment trees (Verkle or namespace-aware Merkle, TBD) replace the flat byte-array model. BLS signature aggregation within commitment trees amortizes the signature-heavy payload. Fee market integrates with PoUA's τ_burn rebase so DA pricing and protocol pricing track the same security floor.]
+The specialized DA layer makes three departures from the general-purpose baseline.
+
+**Per-schema indexed commitment trees** (§6.1) replace the flat byte-array share model. Each schema gets its own Merkle (or Verkle) subtree, indexed by attestor identity. A query "did attestor $X$ sign in schema $\sigma$ at epoch $t$" resolves in $O(\log n)$ proof checks against the schema's subtree at the epoch's root, rather than $O(\text{namespace-shares})$ blob-retrieval-and-parse work.
+
+**BLS signature aggregation within commitment trees** (§6.3) amortizes the signature-heavy payload. Where a single attestation might be 200B payload + 600B signature, a batch of 100 attestations from the same attestor set under the same schema can share a single 600B aggregated signature, dropping per-attestation overhead to ~210B. Across realistic schema-mix distributions, this is a 2-3x bandwidth improvement.
+
+**Fee market integrated with PoUA's $\tau_{\text{burn}}$** (§9) ensures DA-side and consensus-side fee dynamics co-calibrate. A unified-fee chain that runs its own DA layer can route DA fees through the same chain-wide burn fraction that PoUA §4.4.2 maintains, so the cost-to-grind floor includes DA fees. On Celestia, DA fees are separate from Ligate's protocol fees; the cost-to-grind floor calibrates against only one side.
 
 ### 1.6 Contributions
 
-[**v0.2:** Workload model with devnet measurements, mechanism specification, security argument under the chosen sampling protocol, formal comparison with five DA incumbents, migration-decision criteria, simulator validation plan.]
+The paper makes four contributions.
+
+A **workload-model characterization (§3)**: explicit measurements (or modeled projections, where devnet data is not yet available) of the attestation workload's size distribution, throughput profile, ordering requirements, retention requirements, and query patterns. The section serves as the empirical foundation for the §4 specialization argument.
+
+A **protocol specification (§5-§9)**: validator set, share-and-chunk format with erasure coding, per-schema commitment trees with signature aggregation, consensus and sampling protocol, light-client query API, fee market integration with PoUA $\tau_{\text{burn}}$.
+
+A **security analysis (§10)**: DA security under standard sampling assumptions, bandwidth bounds for honest validators, comparison of adversary cost-to-attack across Celestia / EigenDA / native-DA under a unified threat model.
+
+**Migration-decision criteria (§12)**: explicit thresholds (sustained attestation throughput, light-client population growth, observed DA cost as fraction of protocol fees) that would justify the engineering investment of switching from Celestia to a Ligate-native DA layer.
 
 #### 1.6.1 Status of Claims
 
-[**v0.2:** Same panel as PoUA v0.7 §1.6.1: proven, bounded-under-stated-assumptions, empirical-or-heuristic. Workload measurements are empirical; sampling-protocol security is bounded-under-stated-assumptions; comparison-table claims about competitors are empirical (drawn from each system's published spec).]
+**Empirical or heuristic, requiring devnet validation:**
+
+- §3 workload-model numbers (size distribution, throughput, query mix) are *projected* based on the product roadmap; devnet measurements will refine them.
+- §11 comparison-table claims about competitors are drawn from each system's published specifications; we cite the source and version.
+
+**Bounded under stated assumptions:**
+
+- §10.1 DA security holds under standard data-availability-sampling assumptions plus honest-majority of DA validator set (matching Celestia's assumptions).
+- §10.2 bandwidth bounds assume honest validators serve light-client requests at the configured rate; partial denial-of-service is bounded but not zero.
+- §9.3 burn-share interaction theorem holds under PoUA's chain-wide $\tau_{\text{burn}}$ being adaptive (per PoUA §4.4.2); a static $\tau_{\text{burn}}$ would weaken the calibration.
+
+**Proven** (formal mathematical argument under standard cryptographic and BFT assumptions):
+
+- §10 BFT safety under honest-majority validator set: standard Tendermint-style argument; documented for completeness.
+- §6 commitment-tree structure: per-schema Merkle tree with signature-aggregation is well-formed under standard cryptographic hash assumptions.
 
 ### 1.7 Scope and Non-Goals
 
-[**v0.2:** In scope: attestation-shaped DA, per-schema indexing, light-client query optimization, fee market integration with PoUA. Out of scope: alternative consensus protocols for the DA layer (we adopt CometBFT-style consensus by default), execution-layer DA (we are not building a rollup framework), cross-DA bridging (separate paper if needed).]
+**In scope:**
+
+- Attestation-shaped DA: small records, sustained throughput, signature-heavy, attestor-history queries
+- Per-schema indexing for cheap light-client queries
+- Signature aggregation for bandwidth amortization
+- Fee market integrated with PoUA $\tau_{\text{burn}}$
+- Migration-decision criteria
+
+**Explicitly out of scope:**
+
+- **Alternative consensus protocols.** This paper adopts CometBFT-style consensus by default (proven, audited, well-understood). Investigating HotStuff variants, Ethereum-style proposer-builder separation, or async-BFT is separate work.
+- **Execution-layer DA.** Ligate is not a rollup framework. This DA layer serves Ligate's own consensus-layer needs; rollups that want to post to it can do so but the design is not optimized for rollup-blob workloads.
+- **Cross-DA bridging.** A future paper could specify mechanisms to bridge attestations from this DA layer to other DA layers (Celestia, EigenDA). Out of scope for v0.2.
+- **Generic Tendermint-replacement.** The specialization is for attestation-shape; we are not redesigning consensus from scratch.
 
 ### 1.8 Document Structure
 
-[**v0.2:** TOC walkthrough.]
+Section 1.6.1 separates proven, bounded, and empirical claims. Section 2 surveys five general-purpose DA layers (Celestia, EigenDA, Avail, Walrus, 0G) plus permanent storage networks. Section 3 characterizes the attestation workload empirically. Section 4 argues why specialization is justified (and where it is not). Sections 5-9 specify the protocol (validators, data structure, consensus, light-client, fee market). Section 10 analyzes security. Section 11 compares against Celestia and hybrid mode. Section 12 names the migration-decision criteria. Section 13 lists limitations; section 14 concludes.
 
-### 1.9 Stance
+### 1.9 Stance: Not Advocacy
 
-[**v0.2:** Explicit non-advocacy disclaimer. Ligate stays on Celestia through v1. This paper is about what we would build if we built our own; the migration decision is a separate question discussed in §12.]
+This paper is not advocacy for migration off Celestia. Ligate Chain stays on Celestia through v1. The four flagship products at v1 (Themisra, Mneme, Iris, Kleidon) operate on Celestia DA without disruption.
+
+The paper exists because designing a specialized fallback before you need one is the right discipline. The §12 criteria explicitly state the thresholds (sustained throughput, light-client growth, fee-cost ratio) under which a future migration decision becomes worth considering; until those criteria are met, this paper is reference material, not a roadmap.
+
+Three explicit non-claims:
+
+1. **Celestia is not failing.** Celestia is production-grade and well-suited for many workloads. It is not optimally suited for an attestation-only chain, but "not optimally suited" is not the same as "broken."
+2. **Migration is not imminent.** Even if §12 criteria become satisfied, migration would be a multi-quarter engineering project. We would not start until the criteria are clearly met.
+3. **This paper does not commit Ligate to building a DA layer.** It documents what we would build if we did. Future organizational decisions are separate from this paper.
 
 ---
 
 ## 2. Background and Related Work
 
+This section surveys the six families of DA infrastructure that an attestation-native chain could plausibly use: five general-purpose DA layers (Celestia, EigenDA, Avail, Walrus, 0G) and two permanent-storage networks (Filecoin, Arweave). For each, we name what it does well and where the workload mismatch with attestations bites.
+
 ### 2.1 Celestia
 
-[**v0.2:** 2D Reed-Solomon erasure coding, namespace Merkle trees, data-availability sampling, share size 4 KB or larger, block size 64 MB target. Strengths: production-grade, well-audited, decentralized validator set. Limitations for attestation: share-size mismatch, namespace queries do not index by attestor history.]
+Celestia (Al-Bassam et al., 2019; live since 2023) is a modular data availability layer using 2D Reed-Solomon erasure coding, namespace Merkle trees, and data-availability sampling. Block size targets 64 MB; share size is 4 KB or more. Validator set is decentralized (~150 validators at launch, growing). Light clients sample shares pseudo-randomly to confirm the data was published; under 50%-honest sampler assumptions, sampling 64 shares per block gives ~$2^{-32}$ false-acceptance probability.
+
+**What Celestia does well.** Production-grade engineering. Well-audited cryptography. Decentralized validator set. Light-client UX that works (Celestia's sampling clients are deployable). Reasonable throughput at multi-MB/s.
+
+**What Celestia does not do well for attestations.** Share size (4 KB+ versus attestation-size 200-800B): forces padding or batching. Namespace queries answer "show me bytes in this namespace at height H" but not "did attestor X sign in schema $\sigma$ at epoch t"; the latter requires an off-DA indexing layer. Fee market is denominated in TIA and adjusts to Celestia's chain-wide congestion, not Ligate's per-schema dynamics; cost-to-grind floor calibrates only against Celestia, not Ligate.
+
+Ligate Chain v0 currently uses Celestia as its DA layer (specifically, Mocha-testnet for `ligate-devnet-1`). The plan for v1 is to remain on Celestia; this paper specifies the fallback target.
 
 ### 2.2 EigenDA
 
-[**v0.2:** Restaking-based DA on EigenLayer. Operator-set sized to slashing-budget, throughput target around 10 MB/s. Strengths: Ethereum-anchored security, integrated with Ethereum L2 ecosystem. Limitations for attestation: ETH-denominated economic security does not align with LGT-denominated PoUA reputation; operator-set is shared with other AVS workloads.]
+EigenDA (EigenLayer Labs, 2024) is a restaking-based DA layer on EigenLayer. Operator set is sized to a slashing budget (in restaked ETH); throughput target is ~10 MB/s per the public specifications. Adopted by several Ethereum L2 rollups.
+
+**What EigenDA does well.** Ethereum-anchored economic security. Operators inherit slashing from EigenLayer's restaking primitive. Integrates cleanly with Ethereum L2 ecosystem (deposit on Ethereum, post to EigenDA, settle on Ethereum).
+
+**What EigenDA does not do well for Ligate.** ETH-denominated economic security does not align with `$AVOW`-denominated PoUA reputation; the security models live in different economic stacks. Operator set is shared with other AVS workloads (operators serve EigenDA plus other restaking-based services); not Ligate-dedicated. Operator-set governance is EigenLayer's, not Ligate's. Fee market is ETH-denominated, exchange-rate risk to anyone billing in `$AVOW` or USD.
 
 ### 2.3 Avail
 
-[**v0.2:** Polkadot-spinout DA layer, KZG commitments, validity proofs. Strengths: KZG enables succinct commitments. Limitations: similar share-size and query-shape mismatch as Celestia.]
+Avail (Polkadot ecosystem spinout, live 2024) is a DA layer using KZG polynomial commitments and validity proofs. KZG commitments are succinct (constant-size regardless of data size), enabling cheap light-client verification.
+
+**What Avail does well.** KZG succinctness: light clients verify with constant proof size. Validity-proof model: no fraud proofs needed at the DA layer. Polkadot-ecosystem integration.
+
+**What Avail does not do well for Ligate.** Same share-size and query-shape mismatch as Celestia. Light-client benefit of KZG over Merkle is modest when the workload is small records (KZG proof verification cost exceeds the saved bandwidth at attestation sizes). DOT-ecosystem-coupled; bridging to Ligate requires its own infrastructure.
 
 ### 2.4 Walrus
 
-[**v0.2:** Sui-ecosystem blob storage with erasure coding. Designed for general object storage, not real-time attestation flow.]
+Walrus (Sui Foundation, 2024) is a blob-storage layer in the Sui ecosystem with erasure coding and a Sui-anchored economic model. Designed for general object storage (NFT assets, file backups) more than real-time DA.
+
+**What Walrus does well.** Object-storage UX. Sui-ecosystem integration.
+
+**What Walrus does not do well for Ligate.** Not designed for real-time attestation throughput. Sui-ecosystem-coupled. The throughput-latency-cost profile is tuned for storing-objects-occasionally, not for stream-of-small-records. Brief mention; not a serious candidate for attestation DA.
 
 ### 2.5 0G
 
-[**v0.2:** AI-focused DA layer with high-throughput claims. Closest peer in workload-targeting; v0.2 will compare directly. Caveat: 0G's technical details are still evolving as of mid-2026.]
+0G (live 2024) markets itself as an AI-focused DA layer with high-throughput claims (50 GB/s targets in marketing, though achieved throughput at production scale is the more conservative number). Claims attestation-friendliness via per-application namespace optimization.
+
+**What 0G does well.** Workload-targeted marketing; closest peer in design philosophy to what this paper specifies. High-throughput claims if they hold up.
+
+**What 0G does not do well (or is unclear about).** 0G's technical specification is still evolving as of mid-2026; published details are limited. Validator-set decentralization, light-client protocol details, and fee-market specifics are not fully public. We track 0G as a peer and reference, but the comparison in §11 is based on what's specified publicly, which may be incomplete.
 
 ### 2.6 Other Storage Networks (Filecoin, Arweave)
 
-[**v0.2:** Permanent storage networks, not real-time DA. Useful for archival of historical attestations but not for the hot path. Brief mention; not a direct competitor.]
+Filecoin and Arweave are permanent-storage networks, not real-time DA. Filecoin's storage providers commit to long-term storage with proofs-of-replication; Arweave aims for permanent storage via a Proof of Access mechanism. Useful for **archival of historical attestations** (a Ligate node could pin old commitment-tree roots to Arweave for very-long-retention guarantees) but not for the hot DA path.
+
+Mentioned here for completeness. The §6.5 tiered-retention design references these networks as the cold-storage tier; the hot DA tier is the work of this paper.
 
 ---
 
@@ -134,15 +219,27 @@ The signature is the dominant size term. Ed25519 threshold signatures at thresho
 
 **Expected values per flagship schema.**
 
-| Schema | Median (B) | p99 (B) | Driver of size |
-|---|---|---|---|
-| `themisra.proof-of-prompt/v1` | 240 | 480 | Hash + threshold signature; payload is a single prompt-digest |
-| `mneme.tx/v1` | 300 | 600 | Tx receipt: amount, recipient, signatures |
-| `iris.agent-action/v1` | 450 | 1100 | Action descriptor + provenance refs |
-| `kleidon.subscription-event/v1` | 250 | 500 | Subscription state-change |
-| `kleidon.asset-mint/v1` | 380 | 900 | Mint event: token-id, owner, metadata-uri-hash |
-| `kleidon.token-deploy/v1` | 600 | 1500 | Deployment: full token configuration digest |
-| `kleidon.marketplace-sale/v1` | 320 | 700 | Sale event: tokens, price, buyer, seller |
+\begingroup
+\renewcommand{\arraystretch}{1.25}
+\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{5.2cm} >{\raggedleft\arraybackslash}p{1.5cm} >{\raggedleft\arraybackslash}p{1.5cm} >{\raggedright\arraybackslash}p{4.7cm}}
+\rowcolor{tableheaderbg}
+\textbf{Schema} & \textbf{Median (B)} & \textbf{p99 (B)} & \textbf{Driver of size} \\
+\midrule
+\endhead
+\texttt{themisra.proof-of-prompt/v1} & 240 & 480 & Threshold sig + prompt digest \\
+\rowcolor{tablerowalt}
+\texttt{mneme.tx/v1} & 300 & 600 & Tx receipt: amount, recipient, sigs \\
+\texttt{iris.agent-action/v1} & 450 & 1100 & Action + provenance refs \\
+\rowcolor{tablerowalt}
+\texttt{kleidon.subscription/v1} & 250 & 500 & Subscription state-change \\
+\texttt{kleidon.asset-mint/v1} & 380 & 900 & Mint: token-id, owner, metadata hash \\
+\rowcolor{tablerowalt}
+\texttt{kleidon.token-deploy/v1} & 600 & 1500 & Full token configuration digest \\
+\texttt{kleidon.marketplace-sale/v1} & 320 & 700 & Sale: tokens, price, buyer, seller \\
+\bottomrule
+\end{longtable}
+\endgroup
 
 [**Measured at v0.2.5+:** these are the v0.1 expected values from architectural analysis. v0.2.5 will replace them with measured devnet medians and p99s after the first quarter of devnet attestation traffic. The schema registration mechanism will lock in per-schema p99 caps based on measured 99.5th percentiles plus a 50% margin.]
 
@@ -277,7 +374,7 @@ Three dominant queries account for the bulk of light-client load:
 
 ### 4.3 Fee-Market Sovereignty
 
-[**v0.2:** Celestia's per-byte fees are governance-controlled and have moved twice in the last 18 months. A workload-specialized chain is exposed to that volatility. Native DA controls the full fee curve, which composes cleanly with PoUA's τ_burn rebase.]
+[**v0.2:** Celestia's per-byte fees are governance-controlled and have moved twice in the last 18 months. A workload-specialized chain is exposed to that volatility. Native DA controls the full fee curve, which composes cleanly with PoUA's $\tau_{\text{burn}}$ rebase.]
 
 ### 4.4 Counter-Arguments (Why Not Specialize)
 
@@ -373,7 +470,7 @@ Three dominant queries account for the bulk of light-client load:
 
 ### 9.1 Pricing Model
 
-[**v0.2:** Hybrid: per-byte cost (storage) + per-attestation cost (validator reward). Per-byte cost recovers DA-layer expenses (bandwidth, sampling, light-client servicing). Per-attestation cost is the protocol fee that funds validator rewards and τ_burn.]
+[**v0.2:** Hybrid: per-byte cost (storage) + per-attestation cost (validator reward). Per-byte cost recovers DA-layer expenses (bandwidth, sampling, light-client servicing). Per-attestation cost is the protocol fee that funds validator rewards and $\tau_{\text{burn}}$.]
 
 ### 9.2 Schema-Priced or Uniform
 
@@ -381,11 +478,11 @@ Three dominant queries account for the bulk of light-client load:
 
 ### 9.3 Burn-Share Interaction
 
-[**v0.2:** τ_burn from PoUA §4.4.2 (and v0.8 §4.4.3 from #28) operates on protocol fees. Native DA storage costs are not burned; they are payment for service rendered. This separation matters for the rebase mechanism: the cost-to-grind floor (Lemma 1) is bounded by burned protocol fees, not by DA storage costs.]
+[**v0.2:** $\tau_{\text{burn}}$ from PoUA §4.4.2 (and v0.8 §4.4.3 from #28) operates on protocol fees. Native DA storage costs are not burned; they are payment for service rendered. This separation matters for the rebase mechanism: the cost-to-grind floor (Lemma 1) is bounded by burned protocol fees, not by DA storage costs.]
 
 ### 9.4 Validator Reward Split
 
-[**v0.2:** Validator reward = per-attestation-fee × (1 - τ_burn) × validator weight share. Identical to PoUA v0.7 §6.1 income decomposition. The native DA layer does not change protocol-fee accounting.]
+[**v0.2:** Validator reward = per-attestation-fee × (1 - $\tau_{\text{burn}}$) × validator weight share. Identical to PoUA v0.7 §6.1 income decomposition. The native DA layer does not change protocol-fee accounting.]
 
 ---
 
@@ -493,7 +590,7 @@ Three dominant queries account for the bulk of light-client load:
 
 ## Appendix A: Simulator Validation Plan
 
-[**v0.2:** What `prototypes/native-da-sim/` will contain. Workload generator (synthetic attestation traffic at devnet-realistic rates), sampling-protocol harness, light-client query benchmarks, fee-market interaction tests against the τ_burn rebase from `prototypes/poua-sim/src/poua_sim/rebase.py`.]
+[**v0.2:** What `prototypes/native-da-sim/` will contain. Workload generator (synthetic attestation traffic at devnet-realistic rates), sampling-protocol harness, light-client query benchmarks, fee-market interaction tests against the $\tau_{\text{burn}}$ rebase from the PoUA sim's `rebase.py` module.]
 
 ## Appendix B: Comparison Methodology
 
