@@ -4,10 +4,10 @@ A two-phase attestation primitive: commit phase publishes a binding commitment t
 
 ## Latest
 
-- **Working paper**: [`time-locked-attestations.md`](time-locked-attestations.md) (markdown source). PDF to be generated when v0.2 substantive content lands across §3 + §4 + §5 + §6.
-- **Version**: v0.1.1
-- **Status**: **Outline + mechanism substantive.** §4 (mechanism: commit / reveal / cleanup tx schemas, deposit-on-commit, front-running defense via batched-reveal sequencing) is now substantive prose with formal definitions. §1, §2, §3, §5+ remain v0.1 outline. v0.2 ships when at least one design-partner use case per category (auction, embargo, regulatory) is in hand.
-- **Date**: 2026-05-04 (updated; original v0.1 scaffold 2026-05-03)
+- **Working paper**: [`time-locked-attestations.md`](time-locked-attestations.md) (source) + [`time-locked-attestations.pdf`](time-locked-attestations.pdf) (18 pages, ~99 KB)
+- **Version**: v0.2 (Block 1 of v0.2 cycle landed)
+- **Status**: **§3 + §4 + §5 + §6 + §7 substantive.** Block 1 (this PR) finalized the Abstract (three-contributions + v1.5 framing + use-case-validation gate), and landed §3 System Model (commitment, reveal, validity state machine, hash function choice), §5 Cryptographic Security (binding, hiding, nonce entropy bound, time-lock security, hash function choice), §6 Use Cases and the Validation Gate (gate + template + 3 hypotheticals), and §7 Comparison (landscape table across off-chain commit-reveal / smart-contract auctions / Drand+VDF / embargoed storage / this paper). §4 was already substantive from v0.1.1. §1, §2, §8, §9, §10 remain v0.1 outline; Block 2 covers them.
+- **Date**: 2026-05-22
 
 ## Abstract (placeholder)
 
