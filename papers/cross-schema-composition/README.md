@@ -4,9 +4,9 @@ Typed attestation references with slashing-aware proof propagation. Schemas decl
 
 ## Latest
 
-- **Working paper**: [`cross-schema-composition.md`](cross-schema-composition.md) (source) + [`cross-schema-composition.pdf`](cross-schema-composition.pdf) (25 pages, ~138 KB)
-- **Version**: v0.2 (Blocks 1 + 2 of v0.2 cycle landed)
-- **Status**: **§1 + §2 + §3 + §4 + §5 + §6 + §7 substantive.** Block 1 landed Abstract + §5 Slashing Propagation. Block 2 (this PR) landed §1 Introduction (1.1-1.8 + 1.6.1 status panel), §2 Background (5 subsections), §6 Use Cases + the validation gate, §7 Comparison (landscape table). §3 + §4 were already substantive from v0.1.1. §8, §9, §10 remain v0.1 outline.
+- **Working paper**: [`cross-schema-composition.md`](cross-schema-composition.md) (source) + [`cross-schema-composition.pdf`](cross-schema-composition.pdf) (32 pages, ~174 KB)
+- **Version**: v0.2 (substantive draft complete)
+- **Status**: **All ten sections substantive.** v0.2 specifies the typed-schema-graph model (§3), the type system (§4), the slashing-cascade mechanism with termination theorem (§5.5), the use-case-validation gate (§6), the comparison with EVM smart-contract refs / EAS / capability languages / dependent types (§7), the three-attack-family security analysis (§8), forward-looking extensions (§9), and the conditional-voice conclusion (§10). References + Appendix A (simulator plan) + Appendix B (formal definitions) complete.
 - **Date**: 2026-05-22
 
 ## Stance still applies

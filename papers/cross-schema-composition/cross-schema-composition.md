@@ -644,25 +644,217 @@ The unique value-add of this paper's design is the **slashing-cascade machinery*
 
 ## 8. Security Analysis
 
+We analyze cross-schema composition against three attack families. Each family bounds an adversary's behavior under the mechanism's runtime checks and economic guarantees. The §5.1 cost-to-grind argument from PoUA carries over; this section focuses on the attacks that are unique to cross-schema composition.
+
 ### 8.1 Threat Models
 
-[**v0.2:** Three attack families:
-1. Type-confusion attacks: adversary references wrong-type attestation; expects acceptance from buggy consumer
-2. Slash-amplification attacks: adversary triggers slash on a heavily-referenced attestation; expects cascade to disrupt unrelated workflows
-3. Cycle-induced DoS: adversary registers cyclic schema graph; expects cascade to stall or loop
-]
+Three attack families exhaust the surface that cross-schema composition introduces beyond single-schema attestations:
+
+1. **Type-confusion attacks**: adversary submits an attestation that references an input of the wrong type, hoping a consumer or downstream reader will accept the malformed claim.
+2. **Slash-amplification attacks**: adversary triggers a slash on a heavily-referenced attestation, hoping the cascade disrupts unrelated workflows that happened to reference the slashed attestation.
+3. **Cycle-induced DoS**: adversary registers a cyclic dependency graph (under dynamic mode) or constructs cascade interleaving (under concurrent invalidation) hoping the cascade stalls, loops, or exhausts resources.
+
+For each family, we specify the defense, bound the attack cost, and identify the residual risk.
 
 ### 8.2 Type-Confusion Defense
 
-[**v0.2:** Chain-enforced typing rejects at attestation-time per §4.4. Defense is structural; no economic exposure.]
+**Attack.** An adversary submits attestation $a$ of schema $\sigma$ with $\text{refs}_a = (\text{att-id})$, where `att-id` points to an attestation of a different schema $\sigma'$ that is not in $I_\sigma$. The adversary hopes the consumer's predicate $P_\sigma$ will parse the wrong-type input "well enough" to return `true`, accepting the bogus attestation. Or, alternatively, that downstream readers will trust the chain's acceptance and use the bogus attestation as canonical.
+
+**Defense (structural, in-protocol).** §4.4 step 3 (input-type check) rejects $a$ at mempool admission. The runtime resolves `att-id` to its schema $\sigma'$ and tests $(\sigma', V_{\sigma'}) \in I_\sigma$. If not, admission is denied; $a$ never lands. The attacker pays the mempool-admission cost (small, bounded by the chain's spam-protection mechanism) and gets nothing.
+
+**Bound.** Type-confusion is fully prevented at admission. There is no economic exposure beyond the admission-attempt cost. The defense is structural: no parameter calibration, no adversary-cost analysis required.
+
+**Residual risk: schema author error.** If the schema author registers $I_\sigma$ with an entry that admits the "wrong" schema (e.g., declares `*` wildcard version constraint, or includes a schema with overlapping payload structure), the defense weakens. The chain accepts inputs the author intended to exclude. This is the schema author's responsibility; the chain offers the `exact` and semver-range constraints to make tight typing easy.
+
+**Residual risk: predicate weakness.** Even with tight `input_type_set`, a poorly-written predicate $P_\sigma$ might return `true` for inputs that semantically should not validate. This is application-correctness, not protocol-correctness. The chain enforces type contracts but not predicate-content correctness.
 
 ### 8.3 Slash-Amplification Defense
 
-[**v0.2:** Slashing-cascade depth bounded; slash root pays the cascade cost (gas), not dependents. Defense is economic.]
+**Attack.** An adversary identifies a heavily-referenced attestation $a$ (one with many descendants $|D(a)| \gg 1$ under the §5.5 BFS). The adversary triggers a slash on $a$ via misbehavior they orchestrate (e.g., they control or compromise $a$'s attestor set, or they detect a slashable violation $a$ has committed). The cascade fires through $D(a)$, transitioning every descendant to DEPENDENT-INVALID. The adversary's goal is not the slash itself but the disruption: legitimate users of dependent schemas find their attestations invalidated through no fault of their own.
+
+**Defense (economic).** Per §5.7's gas accounting, the slash root pays the cascade cost. An adversary who triggers a slash on $a$ pays gas proportional to $|D(a)|$ for the cascade. Heavily-referenced attestations are expensive to slash. The economic bound:
+
+$$\text{cost}_{\text{slash}}(a) = c_{\text{base-slash}} + c_{\text{per-cascade-step}} \cdot |D(a)|$$
+
+where $c_{\text{per-cascade-step}}$ is the chain's per-cascade-transition gas cost. For an adversary's attack to be net-positive, the value the adversary extracts (from disrupting dependent workflows) must exceed the cascade gas cost they pay. At v0 calibration ($c_{\text{per-cascade-step}} \sim 10^3$ gas-units, $|D(a)| \leq 6561$ at $d_{\max} = 8$, max outdegree 3), the worst-case slash payment is on the order of $7 \times 10^6$ gas-units, comparable to a moderate contract deployment. Disrupting unrelated workflows that don't pay the adversary back is bad business.
+
+**Defense (structural).** $d_{\max} = 8$ at v0 (§5.5 corollary) caps cascade depth regardless of graph shape. Even an adversary who carefully crafts a deep-dependency-chain attack is limited.
+
+**Bound.** Per-slash adversary cost is linear in $|D(a)|$, which is bounded by depth and outdegree. The mechanism makes deep-graph slash attacks expensive enough to deter most adversaries; the defense is economic, not structural.
+
+**Residual risk: free-rider slashes.** If the adversary detects a slashable violation on $a$ that someone else would have reported anyway (or that the chain would have caught automatically), they get the cascade-disruption "free." The chain's slashing protocol rewards the reporter (per PoUA §4.5) but does not require the reporter to pay the cascade cost. v0.2 of this paper accepts this asymmetry: it's a feature, not a bug, that legitimate slash-reporting is incentivized even when the cascade fires.
 
 ### 8.4 Cycle-DoS Defense
 
-[**v0.2:** Static-by-default cycle rejection at registration. Even in dynamic mode, bounded cascade depth + per-edge deduplication prevent infinite loops.]
+**Attack.** Two sub-attacks under this family.
+
+*Sub-attack A: static-cycle attempted at registration.* Adversary registers schemas $A$, $B$, $C$ with $A \to B \to C \to A$ dependency cycle. If the chain accepts the registration, cascades through any of $A$, $B$, $C$ could loop indefinitely (each invalidation triggers the next, which triggers the next, which retriggers the first).
+
+*Sub-attack B: dynamic-mode cascade overload.* Under dynamic mode (§5.6), an adversary registers schemas with `cycle_break_rule = NO_REVISIT_NODE` but constructs a cascade chain that interleaves cycles in a way that maximizes cascade computation (e.g., diamond patterns where the BFS still visits many edges before deduplication).
+
+**Defense (structural, sub-attack A).** §5.6's static cycle detection at registration runs DFS over $\mathcal{G}$ extended with the proposed edges. Any cycle is detected before the registration commits; the registration is rejected. Cost: $O(|E|)$ per registration, microseconds at v0 scale.
+
+**Defense (structural + economic, sub-attack B).** Under dynamic mode, `max_cascade_depth` caps the BFS regardless of graph shape. `cycle_break_rule` prevents revisits. Worst-case cascade work is $O(\text{outdegree}_{\max}^{\text{max\_cascade\_depth}})$ which is bounded by the schema author's declared depth limit. The chain charges gas per cascade step (§8.3), so even a maximal-cost cascade costs the slash root real money.
+
+**Bound.** Static mode: cycle attacks are fully prevented at registration. Dynamic mode (v1+): cascade attacks are bounded by `max_cascade_depth` and economically deterred by per-step gas.
+
+**Residual risk: design choice in dynamic mode.** A schema author who picks an aggressive `max_cascade_depth` (e.g., 100, the protocol-bound maximum) makes cascades expensive for the entire chain when they fire. Other dependents of the same root could pay the inflated cost. v0.2 keeps dynamic mode out of v0; v1+ specifies governance bounds for `max_cascade_depth` based on operational experience.
+
+### 8.5 Composition with Other Threat Models
+
+Three observations on how cross-schema composition interacts with the threat models from companion papers.
+
+**With native-delegation:** a hot-key compromise on a schema with cross-schema dependencies inherits the §8.2-§8.4 bounds. The native-delegation paper §8.5 scope-predicate defense already bounds the hot key's authority to enumerated schemas; combined with this paper's typing, the cross-schema attack surface from a compromised hot key is the intersection of the grant scope and the schema's declared input-type set. Both layers must agree; the more restrictive bound wins.
+
+**With per-schema fees:** §5.5's cascade cost is charged to the slash root at the slash root's schema's base fee. A schema with high $b_\sigma$ (heavy traffic, congested) is expensive to slash and therefore expensive to cascade-attack. This creates an emergent property: high-volume schemas are more cascade-resistant than low-volume ones, because attacker cost scales with the slash root's $b_\sigma$. We do not consider this a security feature (it should not be relied upon), but it is a side effect worth flagging.
+
+**With PoUA reputation:** cascade-disrupted dependents' submitters do not have their reputation slashed for the disruption. The §4.3 reputation update is per-attestation at admission time; an attestation that subsequently becomes DEPENDENT-INVALID via cascade does not retroactively penalize the submitter. Reputation is for behavior at submission time; cascade is for state after submission. The two are independent surfaces.
+
+---
+
+## 9. Limitations and Future Work
+
+The v0.2 mechanism specifies single-chain, structural-typing-plus-bounded-predicate, BFS-cascade composition. Four extensions remain out of scope.
+
+### 9.1 Cross-Chain Composition
+
+References across IBC-connected chains require light-client proofs of the input attestation's state on the source chain. The mechanics: IBC packet carrying the input attestation, its Merkle proof against the source chain header, and a freshness commitment. The complications: IBC update latency makes cross-chain state stale by the round-trip; revocation on the source chain is not immediately visible to dependents on the counterparty chain; cascade semantics need re-validation when state crosses chain boundaries. Each is a separable problem; together they constitute a follow-up paper.
+
+For v0.2, the recommendation is to compose at the application layer: an off-chain coordinator can stitch attestations from multiple chains, paying the trust cost of the coordinator. The unified primitive is future work.
+
+### 9.2 Predicate Expressiveness
+
+Type predicates $P_\sigma$ are deterministic, bounded-compute boolean functions. More expressive predicates would unlock new use cases:
+
+- **Recursive predicates.** A predicate that walks the dependency graph two hops deep ("the input's input has property X"). v0.2 disallows; future work could add bounded recursion with explicit depth limits.
+- **Zero-knowledge predicates.** A predicate that verifies a SNARK or STARK proof about the input. v0.2 disallows for compute-cost reasons (proof verification at admission time is too expensive); future work with proof-aggregation could reduce per-attestation cost.
+- **Probabilistic predicates.** A predicate that samples from a randomness source. v0.2 disallows because determinism is a hard requirement; future work could specify deterministic-randomness sources (chain-block-hash beacons) and bounded sampling.
+
+### 9.3 Proof-Carrying Attestations
+
+Rather than reference inputs by attestation-id and re-evaluate the predicate, an attestation could carry a SNARK proof that "the inputs satisfied the predicate." Light clients verify the SNARK; the chain stores the proof. This trades on-chain state (the ref-list) for proof size and verification cost. Different design point with different tradeoffs; deferred to future work.
+
+### 9.4 Privacy-Preserving References
+
+Public chain state reveals the dependency graph: anyone can read which schemas reference which. For use cases requiring private references (e.g., a competitive-intelligence audit attestation that does not want to disclose which data sources it consulted), the mechanism needs a privacy layer. Two paths: commit-reveal (the consumer commits to the input-id before knowing the input is correct, then reveals later), or zero-knowledge composition (the consumer proves it has *some* valid input without disclosing which one). Both are research-grade; not a v0.2 commitment.
+
+### 9.5 Schema-Author Reputation
+
+A schema with high $\rho_\sigma$ (per the per-schema fees paper) extracts more fee revenue from dependents. A malicious schema author could register a popular schema, attract dependents, then start producing low-quality attestations to capture fees. This is a schema-author reputation problem orthogonal to cross-schema composition: PoUA tracks per-validator reputation, not per-schema-author. A follow-up paper could specify schema-author reputation that tracks attestation correctness over time; v0.2 of cross-schema composition does not include it.
+
+---
+
+## 10. Conclusion
+
+Cross-schema composition with chain-enforced typing and slashing-aware proof propagation is the right primitive for an attestation-native chain that wants to scale beyond single-schema workloads. The §1.1 composition thesis is the central motivation: attestations are claims about things, and at production scale, many natural claims are claims about other claims. The §1.3 type-confusion problem is the central justification: without chain-level typing, every consumer re-implements the type check, errors compound, and audit costs scale linearly in composition depth.
+
+The paper's four contributions resolve the design space. (1) **Mechanism (§3 + §4)**: schemas as typed-graph nodes with declared input-type sets, semver-constrained edges, bounded-compute type predicates, and admission-time runtime type checks. (2) **Slashing-cascade termination theorem (§5.5)**: under acyclic graphs, the BFS cascade terminates in $O(d)$ deterministic steps with per-dependent deduplication and gas charged to the slash root. (3) **Security analysis (§8)**: three attack families (type confusion, slash amplification, cycle DoS) bounded by structural and economic defenses, with composition properties documented against native delegation, per-schema fees, and PoUA reputation. (4) **Use-case validation gate (§6)**: explicit framing that engineering work begins only when 2-3 design partners submit concrete use-case descriptions matching the §6.2 template.
+
+The mechanism is positioned as a **v2 protocol feature**, not v1 day-1. Ligate Chain v0 ships with single-schema attestations; the four flagship products at v1 (Themisra, Mneme, Iris, Kleidon) operate on single-schema attestations only. Cross-schema composition lands when the §6.1 gate is satisfied. This paper documents the design space and the security argument so that, when the gate opens, engineering work has a target to ship against.
+
+**What this paper does not do.** It does not advocate for shipping cross-schema composition on day one. It does not claim that workflows currently using single-schema attestations should switch. It does not commit Ligate Chain to a v2 release date. It documents what the mechanism would look like, why the mechanism would be correct, and what the security argument would be, in the conditional voice the v2 status warrants.
+
+**What this paper does do.** Capture the design space at the point in time when the trade-offs are fresh, the comparison with prior art is current, and the integration with companion primitives (native delegation, per-schema fees, PoUA) is concrete. The mechanism is small, the theorem is tight, and the composition with adjacent primitives is orthogonal. If and when design-partner demand validates the use cases, the engineering cycle has a reference document to start from.
+
+**Invitations.** The paper is open to external review. The §6.2 use-case template is open to design-partner submissions: cold-asks for use-case descriptions are open through `hello@ligate.io`. Feedback on the §5.5 theorem (especially edge cases around cycle handling in dynamic mode) is welcome from researchers in distributed systems and capability-secure systems.
+
+The §1.4 central question was: what is the minimum typing and slashing-propagation primitive that makes cross-schema composition safe to use in production, while remaining cheap enough to ship in a runtime, and gated cleanly enough that workloads which do not need it pay no overhead? This paper answers: structural typing with bounded-compute predicates, BFS cascade with deterministic ordering, static-by-default cycle handling, and an explicit use-case validation gate. The first three are mechanism; the fourth is discipline. Both matter.
+
+---
+
+## References
+
+**Account-abstraction and smart-contract reference patterns.**
+
+- Ethereum community (2018+). *ERC-721: Non-Fungible Token Standard*. <https://eips.ethereum.org/EIPS/eip-721>
+- Ethereum community (2018+). *ERC-1155: Multi Token Standard*. <https://eips.ethereum.org/EIPS/eip-1155>
+- Ethereum community (2022+). *ERC-4907: Rental NFT Standard*. <https://eips.ethereum.org/EIPS/eip-4907>
+
+**Attestation systems.**
+
+- Ethereum Attestation Service (EAS). Documentation and contracts. <https://attest.org/>
+- Ceramic Network. <https://ceramic.network/>
+
+**Capability-secure programming languages.**
+
+- Miller, M. (2006). *Robust Composition: Towards a Unified Approach to Access Control and Concurrency Control*. PhD thesis, Johns Hopkins University. (E language)
+- Pony language. <https://www.ponylang.io/>
+- Mettler, A., Wagner, D. (2008). *The Joe-E Language Specification (Version 1.0)*. UC Berkeley Tech Report. Available from the Berkeley Computer Security Group archive.
+
+**Dependent types.**
+
+- Bertot, Y., Castéran, P. (2004). *Interactive Theorem Proving and Program Development: Coq'Art: The Calculus of Inductive Constructions*. Springer.
+- Norell, U. (2007). *Towards a practical programming language based on dependent type theory*. PhD thesis, Chalmers. (Agda)
+- Brady, E. (2017). *Type-Driven Development with Idris*. Manning Publications.
+- de Moura, L. et al. (2015). *The Lean Theorem Prover (system description)*. CADE 2015.
+
+**Distributed-systems invalidation patterns.**
+
+- Mohan, C., et al. (1992). *ARIES: A transaction recovery method supporting fine-granularity locking and partial rollbacks using write-ahead logging*. ACM TODS.
+- SQL Standard: `ON DELETE CASCADE` semantics. ISO/IEC 9075.
+
+**Companion Ligate Labs research.**
+
+- Ligate Labs (2026). *Proof of Useful Attestation: Consensus-Weighting Primitive for Attestation-Native Chains*. Working paper v0.8.
+- Ligate Labs (2026). *Native Delegation as a Runtime Primitive*. Working paper v0.2.
+- Ligate Labs (2026). *Per-Schema Fee Markets for Attestation-Native Chains*. Working paper v0.2.
+- Ligate Labs (2026). *Schema-Bound Tokens: AttestorSet as Mint Authority*. Working paper v0.1.
+
+**Chain stack.**
+
+- Sovereign Labs (2024). *Sovereign SDK*. <https://github.com/Sovereign-Labs/sovereign-sdk>
+- Celestia Labs (2023). *Celestia: Modular Data Availability*. <https://celestia.org/learn/>
+- Inter-Blockchain Communication (IBC) protocol specification. <https://github.com/cosmos/ibc>
+
+---
+
+## Appendix A: Simulator Validation Plan
+
+A reference simulator under `prototypes/cross-schema-composition-sim/` (planned milestone M1, after this paper lands and the §6 gate is satisfied) will provide cross-language test vectors for the canonical mechanisms in this paper. The simulator follows the v0.7-PoUA + v0.2 native-delegation + v0.2 per-schema-fees discipline: every numerical claim and every theorem in this paper gets a corresponding simulator test.
+
+**Planned modules under `src/cross_schema_composition_sim/`:**
+
+- `schema.py`: the §3.1 typed-schema model (`Schema`, `InputTypeEntry`, `SchemaDeclaration`).
+- `graph.py`: the §3.2 dependency graph with cycle detection (DFS for static mode, plus dynamic-mode utilities).
+- `attestation.py`: the §3.3 attestation tuple with the §3.4 validity state machine.
+- `typecheck.py`: the §4.4 runtime type check (schema lookup, reference resolution, input-type check, validity check, predicate evaluation).
+- `cascade.py`: the §5 BFS cascade with per-dependent deduplication and the §5.7 deterministic ordering.
+- `security.py`: the §8 attack-cost analysis (type-confusion attempt cost, slash-amplification cost as a function of $|D(a)|$, cycle-DoS bound under static/dynamic mode).
+
+**Planned test coverage:**
+
+- §3.4 validity state machine transitions
+- §4.4 admission-time type check correctness (positive + negative cases)
+- §5.5 termination theorem at canonical graph shapes (linear, tree, diamond)
+- §5.6 cycle detection at registration (static mode), `max_cascade_depth` enforcement (dynamic mode)
+- §5.7 concurrent-invalidation race deduplication and gas accounting
+- §8.3 slash-amplification cost as a function of descendant set size
+
+**Cross-language test vectors** as JSON files under the simulator's `test_vectors/` directory, matching the format used by `per-schema-fees-sim`: each vector has `input`, `expected`, and `tolerance` fields. Any future Rust or TypeScript implementation can verify identical outputs.
+
+The simulator is **not** part of v0.2 of this paper. It is named in this appendix so the §6 gate's engineering scope is clear: when the use-case-validation gate is satisfied, the M1 simulator milestone is the first deliverable, before the chain implementation work.
+
+---
+
+## Appendix B: Formal Definitions
+
+We collect the formal definitions used throughout the paper in one place.
+
+**Definition (Schema).** A tuple $\sigma = (I_\sigma, O_\sigma, P_\sigma, \mathcal{A}_\sigma, V_\sigma)$ where $I_\sigma$ is the input-type set (finite list of (schema-id, version-constraint) pairs), $O_\sigma$ is the structural payload schema, $P_\sigma$ is the deterministic type predicate, $\mathcal{A}_\sigma$ is the attestor set, and $V_\sigma$ is the schema version.
+
+**Definition (Dependency graph).** $\mathcal{G} = (\Sigma, E)$ where $\Sigma$ is the set of registered schemas and $E \subseteq \Sigma \times \Sigma$ is the set of dependency edges with $\sigma_a \to \sigma_b \in E$ iff $(\sigma_b, v) \in I_{\sigma_a}$ for some $v$ that admits $V_{\sigma_b}$.
+
+**Definition (Attestation).** A tuple $a = (\sigma, K^{\text{signer}}, \text{payload}_a, \text{refs}_a, t_a, s_a)$ where $\sigma$ is the schema-id, $K^{\text{signer}}$ is the signing key, $\text{payload}_a$ conforms to $O_\sigma$, $\text{refs}_a$ is the reference list, $t_a$ is the inclusion height, and $s_a$ is the threshold signature.
+
+**Definition (Validity state).** For each attestation $a$, $\text{state}(a)$ is one of: VALID, REVOKED, SLASHED, or DEPENDENT-INVALID. State transitions follow §3.4. Terminal states (no further transitions): REVOKED, SLASHED, DEPENDENT-INVALID.
+
+**Definition (Descendant set).** For an attestation $a$ and a dependency graph $\mathcal{G}$, $D(a) = \{b : a \to^* b\}$ is the set of attestations reachable through `refs` edges from $a$.
+
+**Definition (Cascade BFS).** The §5.5 algorithm: enqueue $a$; while queue non-empty, dequeue $x$, for each $y$ with $x \in \text{refs}(y) \land \text{cascade-rule}(y) = \text{STRICT} \land y \notin \text{visited}$: transition $y$ to DEPENDENT-INVALID, add $y$ to `visited`, enqueue $y$. Termination guaranteed under acyclic $\mathcal{G}$ in $|D(a)|$ enqueue operations bounded by $\text{outdegree}_{\max}^{d_{\max}}$.
+
+**Definition (Cycle-break rule).** For dynamic-mode schemas (§5.6), one of `NO_REVISIT_EDGE` or `NO_REVISIT_NODE`. The runtime tracks edge or node visits during the cascade and skips revisits per the rule.
+
+**Definition (Slashing-cascade termination theorem).** Under acyclic dependency graph $\mathcal{G}$, the strict-cascade algorithm initiated at attestation $a$ terminates in $O(d)$ deterministic steps where $d$ is the maximum depth of any descendant of $a$ in $\mathcal{G}$. Proof: §5.5.
 
 ---
 
