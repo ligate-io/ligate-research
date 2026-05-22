@@ -462,17 +462,128 @@ The chain-wide formula $F_{\text{net}} \geq \tau_{\text{burn}} \cdot \Delta r / 
 
 ## 6. Incentive Analysis
 
-### 6.1 Validator-Side
+Section 5 established that the per-schema fee market does not weaken the chain's protocol-level security (cost-to-grind floor preserved, cross-schema attacks bounded). This section turns to the *behavioral* layer: under the mechanism, when is honest participation the rational choice for each party? We analyze three party types: validators (who include attestations), builders (where separated, who bundle and propose blocks), and sponsors (Iris-style relayers paying gas on behalf of agents). The PoUA §6 incentive analysis covers the validator-as-attestor relationship; this section focuses on the per-schema-fee-specific incentives.
 
-[**v0.2:** Per-schema fee revenue diversification. Reputation accumulation is schema-agnostic, so validators are not punished for inclusion preferences (within §A.1 bounds).]
+### 6.1 Validator Incentive to Honor All Schemas
 
-### 6.2 Builder-Side (Block Builders, MEV)
+**Question.** Under the per-schema fee market, does a validator have any incentive to systematically prefer high-fee schemas in their inclusion choices, even at the cost of violating PoUA §A.1's KL-divergence detector tolerance?
 
-[**v0.2:** Cross-schema bundling, ordering preferences, MEV implications. Defer detailed treatment to a separate paper if needed.]
+**Setup.** A validator's per-block income (§3.2) depends on the schema mix in the block. Within slot allocation $w_\sigma$ per schema, the validator can choose which attestations to include. The naive maximizer picks attestations with the highest $b_\sigma \cdot (1 - \rho_\sigma) \cdot (1 - \tau_{\text{burn}}) + \tau_\alpha$ per slot. This biases toward high-fee, low-routing schemas.
 
-### 6.3 Sponsor-Side (Iris and Other Relayers)
+**Answer.** No, not in equilibrium. Two arguments.
 
-[**v0.2:** Sponsored-gas economics. Pre-committed fee curves, retroactive reimbursement, pricing-cap models.]
+First, the **PoUA §A.1 detector** flags persistent schema-mix deviation from the chain-wide null. A validator who consistently underweights low-fee schemas (beyond the slot-allocation cap and beyond honest fee-driven preference) triggers the detector. The penalty (per PoUA §A.4) is a reputation slash; the magnitude is calibrated to make sustained deviation strictly negative-EV against expected fee gain. From §5.2, the v0 tolerance permits $\sim 3$x null-weight headroom, which is wider than honest fee-driven preference under typical schema distributions. A rational validator stays within tolerance.
+
+Second, **PoUA reputation accumulates schema-agnostically**. A validator who specializes in high-fee schemas accumulates reputation no faster than one who serves the full schema distribution (PoUA §4.3 reputation update is fee-weighted by total fee, not validator-share-of-fee). The validator's reputation, which is a forward-revenue stream (PoUA §6.3), grows at the same rate regardless of inclusion preference. Selecting high-fee schemas trades transient per-block income against detector risk without compounding reputation upside.
+
+**Equilibrium.** Validators include attestations from all schemas roughly in proportion to the chain-wide arrival distribution (the §A.1 null). Honest fee-driven preference within tolerance is permitted and expected; systematic cross-schema censorship is dominated by honest behavior.
+
+**Sensitivity to slot allocation.** The per-block slot allocation $w_\sigma$ determines how much room validators have for inclusion preference. With strict per-schema slot caps, the validator has no choice within a schema's slots; with loose caps (or no caps), the validator has more freedom. v0 ships strict caps (each schema gets exactly its allocated slots, no overflow), which makes the §A.1 detector mostly redundant for cross-schema preference. Future relaxation is governance-tunable.
+
+### 6.2 Builder Incentive (Where Proposer and Builder Are Separated)
+
+**Question.** In an architecture where block proposing and block building are separated (e.g., MEV-Boost on Ethereum, where proposers receive blocks from external builders), how do builders order attestations across schemas, and does this affect per-schema base-fee dynamics?
+
+**Setup.** A builder constructs a block to maximize the value extractable from MEV (sandwiching, arbitrage, sniping) and from tips. They submit the block to a proposer in exchange for a bid. The proposer accepts the highest bid. Under per-schema fees, the builder's optimization includes schema mix: which attestations to include, in what order, to maximize tips + MEV - paid base fees.
+
+**v0 architecture.** Ligate Chain v0 does not separate proposer and builder; the proposer constructs their own blocks. Builder incentives are not directly relevant. The §6.1 analysis covers the unified-actor case.
+
+**Future architectures (v1+).** When (or if) Ligate Chain adopts a separated-proposer-builder architecture, three considerations arise. (1) The builder's incentive to censor attestations from low-fee schemas is the same as the validator's; the §A.1 detector mechanism extends to the builder by tracking builder-submitted blocks' schema mix against the null. (2) MEV opportunities specific to attestation chains (e.g., attestation reordering for time-sensitive proofs, schema-spanning bundles) are not well-studied; a separate paper would treat them. (3) Builder bids interact with per-schema base fees: a builder bidding for inclusion of high-fee attestations effectively pays the validator a portion of the base fee that would otherwise burn. This is a slow leak in the cost-to-grind floor (the burned fraction shrinks by the builder's share); §5.1's theorem assumes proposer = builder and would need adjustment under separation.
+
+We defer detailed treatment of MEV and separated-builder architectures to a follow-up paper; v0.2 establishes that the mechanism is well-defined in the unified-actor architecture Ligate Chain v0 ships.
+
+### 6.3 Sponsor Incentive (Iris and Other Relayers)
+
+**Question.** When is sponsored gas (a third party paying base fee and tip on behalf of an attestor) economically rational for the sponsor under per-schema fees?
+
+**Setup.** Iris pays gas for autonomous agents under bounded-time grants (companion paper §3.4). Iris bills the user in USD monthly. The Iris pricing model needs three things to work: (i) the USD-per-month covers the expected per-attestation `$AVOW` cost over the billing period plus operating margin; (ii) the variance in per-attestation cost is small enough that Iris's margin absorbs typical fluctuation; (iii) the worst-case fee surge has a clip mechanism so Iris is not exposed to unbounded loss.
+
+**Per-schema fees make Iris's pricing model better, not worse.** Under a unified fee market, Iris's per-attestation cost varies with chain-wide congestion, which is volatile and uncorrelated with the user's behavior. Under per-schema fees, Iris's per-attestation cost varies with the schema the user is attesting under, which is *correlated* with the user's behavior (the user picks the schema; the fee tracks demand on that schema). Iris can offer per-schema pricing tiers: Themisra-only subscription at $X/month, multi-schema at $Y/month, identity-proof passthrough at $Z/month.
+
+**Sponsor margin model.**
+
+$$\pi_{\text{Iris}} = R_{\text{sub}} - \mathbb{E}\left[\sum_{\alpha \in \text{user's attestations}} (b_{\sigma(\alpha)} + \tau_\alpha)\right] - C_{\text{ops}}$$
+
+where $R_{\text{sub}}$ is monthly subscription revenue, the expectation is over attestation volume and per-schema base-fee dynamics, and $C_{\text{ops}}$ is Iris's infrastructure cost. Per-schema fees let Iris partition this expectation per-schema, hedge each component separately, and price subscription tiers accordingly.
+
+**Pre-committed fee curve and surge buffer.** Iris's subscription pricing locks the customer to a $/month rate. The implied per-attestation rate is fixed at subscription start. If $b_\sigma$ surges during the billing period (e.g., a Themisra spike), Iris absorbs the cost. The §5.5 analysis bounded the worst-case surge cost; in practice, Iris prices the buffer at $\sim 25\%$ above the 90th-percentile observed $b_\sigma$ over the prior 30-day window. The buffer is the margin Iris collects; it eats some buffer during surges and accumulates the rest as profit.
+
+**Equilibrium.** Iris's economic existence depends on the buffer being large enough to absorb realistic surges. Per-schema isolation reduces the magnitude of surges relative to a unified fee market (surges are bounded to one schema, not chain-wide), which improves the economics of the buffer. Iris is therefore *more viable* on a per-schema fee chain than on a unified-fee chain at the same chain-wide demand level.
+
+**Alternative sponsorship models.** Beyond Iris, other sponsor models could exist: pay-per-attestation (no subscription, sponsor pays per-event with possible client-side limit), retroactive reimbursement (user pays first, sponsor reimburses based on usage tier), schema-author sponsorship (the schema author subsidizes their own schema's fees to bootstrap adoption). Each has different incentive properties under per-schema fees; v0.2 documents Iris's subscription model as the canonical case and notes that the mechanism does not preclude alternatives.
+
+### 6.4 Schema-Author Incentive to Set $\rho_\sigma$ Correctly
+
+**Question.** When does a schema author set $\rho_\sigma$ to maximize their schema's success?
+
+**Setup.** $\rho_\sigma \in [0, 0.5]$ is set at schema registration. Higher $\rho_\sigma$ means more fee revenue flows to the registrant (the schema author); lower $\rho_\sigma$ means more flows to validators including the attestations. The registrant's income from $\sigma$ is $(1 - \tau_{\text{burn}}) \cdot \rho_\sigma \cdot \mathbb{E}[\text{volume} \cdot b_\sigma]$.
+
+**Trade-off.** High $\rho_\sigma$ extracts more per-attestation revenue but disincentivizes validators from including the schema's attestations (their take per attestation is lower; they prefer schemas with lower $\rho_\sigma$ given equal $b_\sigma$). Low $\rho_\sigma$ gives validators stronger inclusion preference but leaves money on the table for the schema author.
+
+**Equilibrium.** Schema authors set $\rho_\sigma$ to balance per-attestation extraction against expected volume. For high-volume low-margin schemas (Themisra), the optimal $\rho_\sigma$ is modest (0.1-0.3): the schema author wants volume more than per-attestation share, and high $\rho_\sigma$ would slow inclusion. For low-volume high-value schemas (sovereign identity), the optimal $\rho_\sigma$ is higher (0.3-0.5): the schema author can afford to extract more because validators have less leverage over low-volume schemas (the slot allocation is small; inclusion preference matters less).
+
+The §4.2 calibration table makes this recommendation explicit. Schema authors who deviate from the recommendation are not penalized at the protocol level (within the $[0, 0.5]$ bound), but the recommendation is governance guidance based on the trade-off above.
+
+### 6.5 Equilibrium Summary
+
+Across the four parties:
+
+- **Validators** include attestations from all schemas roughly in proportion to the chain-wide null, with honest fee-driven preference within PoUA §A.1 tolerance. Systematic cross-schema censorship is dominated.
+- **Builders** (where separated) inherit the same incentive structure as validators in v0; the §A.1 detector extends to builder-submitted blocks. v1+ architectures may need a separate paper.
+- **Sponsors** (Iris) find sponsored gas economically rational on per-schema fees because per-schema isolation reduces fee variance compared to a unified fee market. Iris's pricing model improves under this paper's mechanism.
+- **Schema authors** set $\rho_\sigma$ to balance per-attestation extraction against volume, with the §4.2 calibration table providing governance guidance.
+
+The §5 security theorems ensure that no party can extract value by violating the protocol; this section verifies that no party gains by deviating from the recommended behavior. The Nash equilibrium is honest fee-driven participation with reputation-aware inclusion, sustained by the asymmetric incentive structures above.
+
+---
+
+## 7. Implementation in Ligate Chain
+
+### 7.1 Sovereign SDK Integration Points
+
+Per-schema fees integrate with Ligate Chain's Sovereign SDK rollup at three specific extension points. We describe each as it would land in the `ligate-chain` repository.
+
+**Extension 1: schema record carries fee-market state.** The schema record in the attestation crate's `state.rs` (or equivalent) extends to hold a `FeeMarketState` struct with the fields enumerated in §3.1 (`base_fee`, `observed_utilization`, `target_utilization`, `routing_fraction`, `tip_floor`, `fee_min`, `fee_max`, `adjustment_rate`). The state is initialized at `RegisterSchema` time with registrant-declared values subject to protocol bounds. State-tree update on registration is unchanged in shape, just larger payload.
+
+**Extension 2: per-block base-fee update hook.** A new state-transition hook runs at end-of-block, after attestation admission and before block finalization. The hook iterates over all schemas that had attestations in the block, computes the observed utilization $u_\sigma$, and applies the §4.1 adjustment formula. The hook is deterministic from block contents and the prior state; light-client verification is straightforward. Implementation: ~80 lines of Rust in a new `fee_market.rs` module under the attestation crate.
+
+**Extension 3: tip accounting in proposer income.** The block proposer's reward calculation extends to sum per-attestation tips and per-attestation base-fee shares. The accounting hook runs in the same block-finalization sweep, accumulating into the proposer's bank-module balance. Implementation: ~40 lines, modifying the existing reward-accumulation path.
+
+**State-tree cost.** ~64B per schema (§3.1). At 1,000 registered schemas, $\sim 64$ KB. Negligible.
+
+**Compute cost per block.** $O(|\Sigma_{\text{block}}|)$ where $|\Sigma_{\text{block}}|$ is the number of distinct schemas in the block. At a v0 cap of $\sim 50$ schemas per block, the per-block compute is dominated by the per-attestation work; the fee-market update is a small constant multiple of schema count.
+
+**Light-client verification.** A light client wanting to verify that $b_\sigma$ at block $t$ is consistent with chain state reads the schema's FeeMarketState (one state-tree lookup) and the prior block's state (one more lookup), then evaluates the §4.1 adjustment formula locally. $O(1)$ verification per schema per block.
+
+### 7.2 Recommended v0 Parameters
+
+The v0 launch parameters, subject to governance adjustment as devnet data refines them:
+
+| Parameter | Default | Range | Source |
+|---|---|---|---|
+| Adjustment rate $\xi$ | $1/8$ | $[1/16, 1/4]$ | §4.1, matches EIP-1559 |
+| Target utilization $T_\sigma$ default | $0.5$ | $[0.1, 0.9]$ | §4.2, matches EIP-1559 |
+| Routing fraction $\rho_\sigma$ default | $0$ | $[0, 0.5]$ | §4.4 |
+| Tip floor $\tau_\sigma^{\min}$ default | $0$ | $\geq 0$ | §4.3, open by default |
+| Base-fee min $b_\sigma^{\min}$ | $1$ uavow | governance | §4.1 |
+| Base-fee max $b_\sigma^{\max}$ | $10^{12}$ uavow | governance | §4.1 |
+| Slot allocation $w_\sigma$ | proportional to volume | governance | §4.1 |
+
+Schema authors declare per-schema overrides at registration within these bounds.
+
+**Profile-aware defaults.** Per §4.2 calibration table, the chain offers three pre-configured target-utilization profiles at registration: `high-volume` ($T_\sigma = 0.5, \rho_\sigma = 0.2$), `high-value` ($T_\sigma = 0.7, \rho_\sigma = 0.4$), and `bursty` ($T_\sigma = 0.3, \rho_\sigma = 0.1$). The schema author picks one or specifies custom parameters within bounds.
+
+### 7.3 Migration from Unified Fee Market
+
+Ligate Chain v0 ships per-schema fees from genesis. There is no migration from a unified fee market because the chain has not had a unified fee market at any prior phase. The transition is internal-only: the protocol designs the fee market as per-schema from the start.
+
+For chains that adopt this mechanism after running a unified fee market, a governance-mediated migration would (1) introduce per-schema state initialized at the chain-wide base fee for every schema, (2) freeze the global base-fee adjustment for one epoch while per-schema adjustments warm up, (3) cut over to per-schema after warmup. This is a known pattern from EIP-1559's introduction on Ethereum. Detailed migration mechanics are out of scope for v0.2 since Ligate Chain does not need them.
+
+### 7.4 Test Vectors and Reference Simulator
+
+A reference simulator under `prototypes/per-schema-fees-sim/` (planned milestone M1, after this paper lands) will provide cross-language test vectors for the §4.1 base-fee adjustment formula at canonical inputs. The simulator follows the v0.7-PoUA discipline: every numerical claim in this paper that involves per-schema dynamics ($\xi = 1/8$ convergence rate, $\rho_\sigma \leq 0.5$ cost-to-grind preservation, §5.4 attack-cost ratio of $\sim 800$) gets a corresponding simulator test.
+
+Test vectors are written in the same JSON format as `prototypes/poua-sim/test_vectors/`: input `(b_t, u_t, T_sigma, xi)` produces expected output `b_{t+1}` to a fixed precision. A Rust implementation in `ligate-chain` re-validates the same algebra at a different precision and language, catching subtle floating-point drift.
 
 ---
 
