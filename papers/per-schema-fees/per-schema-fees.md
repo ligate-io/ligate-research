@@ -375,21 +375,88 @@ where $R_b$ is the protocol block reward, $\tau_\alpha$ is the per-attestation t
 
 ## 5. Security Analysis
 
-### 5.1 Cross-Schema Arbitrage
+We analyze the per-schema fee market against five threat models. The first (§5.1) is the central theorem: PoUA's cost-to-grind floor is preserved under per-schema isolation. The remaining four (§5.2-§5.5) analyze concrete cross-schema attack patterns and their defenses.
 
-[**v0.2:** Adversary registers a high-fee schema, induces the chain to allocate it disproportionate proposer attention. Defended by PoUA's §A.1 KL-divergence censorship detector and by per-schema target utilization.]
+### 5.1 Cost-to-Grind Preservation Theorem
 
-### 5.2 Base-Fee Manipulation by Validator Coalition
+**Claim.** Under the per-schema fee market specified in §4, with arbitrary registered schema set $\Sigma$ and per-schema routing fractions $\{\rho_\sigma\}_{\sigma \in \Sigma}$ bounded by $\rho_\sigma \in [0, 0.5]$, PoUA's §5.5.3 Lemma 1 cost-to-grind floor holds with the same constants:
 
-[**v0.2:** Coalition selectively includes / excludes attestations from a schema to manipulate its base fee. Bounded by schema-level demand (price discovery happens in mempool regardless of inclusion choice) and §A.1 detection.]
+$$F_{\text{net}}(\sigma) \geq \tau_{\text{burn}} \cdot \frac{\Delta r}{\eta \cdot \alpha_{\text{eff}}}$$
 
-### 5.3 Fee-Griefing Across Schemas
+for every schema $\sigma$, where $F_{\text{net}}(\sigma)$ is the non-recoverable cost an adversary pays per unit of reputation gained through attestations of schema $\sigma$.
 
-[**v0.2:** Adversary submits high-tip attestations to a target schema to inflate its base fee, causing legitimate users to pay more. Bounded by the EIP-1559 max-change-per-epoch parameter.]
+**Setup.** PoUA Lemma 1 bounds the cost an adversary must pay to inflate their reputation by $\Delta r$ through legitimate-looking attestation work. The bound assumes a per-attestation fee floor that is partly burned (non-recoverable to the adversary) and partly paid out (potentially recoverable if the adversary's coalition includes both attestors and validators). The relevant constants:
 
-### 5.4 Sponsored-Gas Adversarial Patterns
+- $\tau_{\text{burn}}$: chain-wide burn fraction (PoUA §4.4.2, adaptively rebased)
+- $\Delta r$: target reputation gain
+- $\eta$: adversary's coalition share of validator power
+- $\alpha_{\text{eff}}$: effective reputation-per-fee ratio under coalition's attestation pattern
 
-[**v0.2:** Iris-style sponsored gas: Iris pays for an autonomous agent's attestation. Adversary patterns: agent submits floods of attestations, exhausting Iris's budget; Iris pre-commits to a fee curve, adversary causes that curve to exceed real base fee. Mitigations.]
+Lemma 1 establishes $F_{\text{net}} \geq \tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha_{\text{eff}})$ in the chain-wide setting where every paid base fee contributes $\tau_{\text{burn}}$ to burn and $(1 - \tau_{\text{burn}})$ to validator income.
+
+**The challenge of per-schema routing.** Under per-schema fees, a fraction $(1 - \tau_{\text{burn}}) \cdot \rho_\sigma$ of every paid base fee flows to the schema registrant rather than to the validator. From an adversary's perspective, this fraction is "potentially recoverable" if the adversary controls the schema registrant address (which they would, if they registered the schema being attacked). The naive concern: routing reduces the non-recoverable share, weakening the cost-to-grind floor.
+
+**Proof of the bound.** The burned fraction per paid base fee is exactly $\tau_{\text{burn}}$, independent of $\rho_\sigma$. The routing fraction $\rho_\sigma$ partitions the *non-burned* share between validator and schema registrant; it does not touch the burned share. Substituting into Lemma 1:
+
+$$F_{\text{net}}(\sigma) = \tau_{\text{burn}} \cdot b_\sigma \cdot (\text{attestations submitted to gain } \Delta r)$$
+
+The chain-wide formula $F_{\text{net}} \geq \tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha_{\text{eff}})$ holds per-schema with the *same* $\tau_{\text{burn}}$. Per-schema base fees $b_\sigma$ may differ from a hypothetical chain-wide base fee, but the proportionality between fee and reputation gained ($\alpha_{\text{eff}}$) absorbs that difference. The adversary cannot reduce their cost-to-grind by registering a schema with their preferred $\rho_\sigma$: routing flows the *post-burn* amount, never the burned amount.
+
+**Corollary (worst case $\rho_\sigma = 0.5$ for every schema).** Even if every registered schema sets $\rho_\sigma = 0.5$, half of the non-burned base fee flows to the schema registrant. The burned fraction is still $\tau_{\text{burn}}$ per attestation, the cost-to-grind floor is still $F_{\text{net}} \geq \tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha_{\text{eff}})$.
+
+**Discussion.** The mechanism design choice that makes this work is keeping $\tau_{\text{burn}}$ chain-wide rather than per-schema. A per-schema burn fraction $\tau_{\text{burn},\sigma}$ would let the schema registrant trade burn for routing on their own schema, breaking the floor. The composition is: chain-wide $\tau_{\text{burn}}$ (PoUA §4.4.2 adaptive, tracking economic-security drift), per-schema $\rho_\sigma$ (set at registration, tracking schema-builder economics). The two parameters live at different layers of the protocol and do not interfere.
+
+### 5.2 Cross-Schema Arbitrage by Validator Inclusion Preference
+
+**Setup.** A validator's per-block income (§3.2) depends on the schema mix in the block, because schemas have different $b_\sigma$ and different $\rho_\sigma$. A profit-maximizing validator prefers to include attestations from schemas with the highest $(1 - \tau_{\text{burn}}) \cdot (1 - \rho_\sigma) \cdot b_\sigma$ per unit of block capacity. Left unchecked, this preference could turn into censorship of low-fee schemas: a validator might consistently exclude low-fee attestations even when they offer competitive tips.
+
+**Defense (per-schema slot allocation).** The mechanism (§4.1) allocates per-block attestation slots per schema, $\lfloor C_{\text{block}} \cdot w_\sigma \rfloor$ with $\sum w_\sigma = 1$. A validator cannot fill an entire block with high-fee attestations from one schema; they must respect the per-schema slot allocation. This caps the magnitude of inclusion preference at the slot-allocation granularity.
+
+**Defense (PoUA §A.1 KL-divergence detector).** Within the per-schema slot allocation, a validator might still prefer high-fee schemas at the margin. PoUA's §A.1 detector tracks each validator's empirical schema-mix distribution against the chain-wide null. A validator who consistently underweights low-fee schemas (beyond what the slot allocation permits) is flagged. The default tolerance from PoUA v0.7 §A.4 was calibrated against a unified fee market; per-schema fees do not require recalibration because the null distribution is the chain-wide observed arrival distribution, which already incorporates per-schema fee dynamics.
+
+**Bound.** A validator deviating from the null by more than $\delta$ in KL divergence triggers the §A.1 detector. From PoUA §A.4, $\delta = 0.5$ at the v0 calibration. This permits substantial honest fee-driven preference (a validator can favor high-fee schemas at 2-3x the null weight without triggering) while flagging coordinated cross-schema censorship.
+
+**Worst-case attack.** An adversary controlling enough validator power could selectively exclude one schema entirely (drop its slot-allocated bandwidth). This is the classic single-schema censorship attack; PoUA §5.2 already covers it (safety inheritance plus the force-include path in ligate-chain). Per-schema fees do not introduce a new censorship surface; they inherit PoUA's existing defenses against single-schema censorship.
+
+### 5.3 Base-Fee Manipulation by Validator Coalition
+
+**Setup.** A validator coalition with control over a fraction $\eta$ of proposer slots could selectively pump or suppress a target schema's base fee. Including high-tip attestations from schema $\sigma$ artificially inflates $u_\sigma$, climbing $b_\sigma$; excluding attestations from $\sigma$ artificially deflates $u_\sigma$, dropping $b_\sigma$. Either direction could be used to grief legitimate users of $\sigma$ or to extract surplus value for the coalition.
+
+**Bound (max-change-per-block).** The §4.1 adjustment formula clips per-block changes to $\pm \xi$ (default $\xi = 1/8$, max 12.5% swing). A coalition can move $b_\sigma$ by at most $\xi$ per block they propose. Even with $\eta = 0.3$ (an adversary cartel), the expected swing per block is $0.3 \cdot \xi = 3.75\%$. Over an epoch of 6 blocks (12-second block time, 72-second epoch), the maximum cumulative swing is $\sim 25\%$ from the coalition's contribution. Bounded enough that legitimate users see a transient surge, not a permanent dislocation.
+
+**Bound (mempool transparency).** $b_\sigma$ adjustment is deterministic from observed utilization. An adversary cannot fabricate utilization out of thin air; they must actually include or exclude real attestations. Mempool observability means the manipulation is *visible* to honest validators: a sudden spike of high-tip attestations from one address pattern, included only by one validator cartel, is detectable by the §A.1 detector and by ad-hoc analysis of the mempool.
+
+**Bound (economic counterweight from tips).** A coalition extracting surplus value through base-fee manipulation must absorb the cost of including high-tip attestations they themselves submit. The tip flows to *some* validator (the proposer); if the coalition is the proposer, they earn the tip back, but they also paid the base fee that gets burned. Net: the coalition pays $\tau_{\text{burn}}$ to burn for every attestation they use to manipulate the base fee, just like any other adversary running on a PoUA chain.
+
+### 5.4 Fee-Griefing Across Schemas
+
+**Setup.** An adversary submits high-tip attestations to a target schema $\sigma_{\text{target}}$ to inflate $u_{\sigma_{\text{target}}}$ and drive up $b_{\sigma_{\text{target}}}$. Legitimate users of $\sigma_{\text{target}}$ then face elevated fees. The attack cost is the adversary's tips (paid to proposers); the attack benefit is making the target schema expensive for legitimate users.
+
+**Defense (per-schema isolation).** This attack pattern is contained within $\sigma_{\text{target}}$. Other schemas' base fees are unaffected. The blast radius of the attack is limited to the target schema's users, not the entire chain. Compared to the same attack pattern under a unified fee market (where griefing one workload climbs the chain-wide base fee), per-schema fees *reduce* the attack's blast radius.
+
+**Defense (max-change rate-limit).** The same $\xi = 1/8$ bound applies. The adversary cannot move $b_{\sigma_{\text{target}}}$ faster than $12.5\%$ per block. To sustain elevated $b_{\sigma_{\text{target}}}$, the adversary must keep submitting high-tip attestations indefinitely; the attack has linear cost in attack duration.
+
+**Defense (cost-to-grief vs cost-to-grieved).** Each attack-attestation costs the adversary $b_\sigma + \tau_\alpha$. The legitimate user's price increase from one attack-attestation is small (one increment of $\xi / |B|$ in the next base fee). The cost ratio of attacker-spend to victim-cost-increase is on the order of $|B|/\xi$ per attestation, which under v0 parameters ($|B| \sim 100$, $\xi = 1/8$) is about 800. Each $1 the attacker spends raises legitimate-user cost by $0.0012 per attestation. The attack scales poorly.
+
+**Worst case.** A well-resourced adversary running sustained griefing against a low-volume schema could double its base fee for hours. The legitimate users of that schema either pay the elevated fee, wait it out, or migrate to a different schema. The attack is unpleasant but bounded; the chain does not lose money (most of the attacker spend is burned), and the target schema's users have product-layer mitigations (longer time-bounds on grants, deferred submission, alternative schemas for the same use case).
+
+### 5.5 Sponsored-Gas Adversarial Patterns
+
+**Setup.** Iris pays base fees and tips on behalf of customer agents. The Iris pricing model is monthly USD subscription against expected per-attestation `$AVOW` cost over the billing period. An adversary running an Iris-customer agent could try to exhaust Iris's budget, or could cause Iris's pre-committed price curve to under-collect against actual costs.
+
+**Pattern A: budget exhaustion.** Adversary agent submits attestation floods, consuming Iris's budgeted gas faster than the subscription allows. Iris must either reject the agent (revoking the grant per native-delegation §4.2) or absorb the excess cost.
+
+**Defense.** Iris's monitoring layer rate-limits per-agent attestation volume against the customer's subscription tier. Native delegation grants (companion paper §3.4) carry a time-bound; Iris can include a per-grant attestation cap as part of the application-layer scope predicate (extending the protocol-level scope, which only includes schema set and action set). The combination of per-grant attestation cap + per-billing-period subscription cap limits adversary-customer impact to the customer's own subscription.
+
+**Pattern B: base-fee surge exploitation.** Adversary agent submits a flood of attestations to drive up $b_\sigma$, then continues normal usage at the elevated fee, forcing Iris to pay more per attestation than the pre-committed price curve assumed. This is fee-griefing (§5.4) applied to a sponsor rather than a direct user.
+
+**Defense.** Iris's pricing model includes a base-fee surge buffer: subscription tiers price against the 90th-percentile observed $b_\sigma$ over the prior 30-day window, with a clip if observed $b_\sigma$ exceeds a threshold. If the observed fee climbs beyond the clip, Iris reserves the right to throttle non-subscription-paying volume (e.g., the adversary agent gets de-prioritized while legitimate customers continue at the pre-committed rate). The product-layer pricing discipline handles base-fee surge variance.
+
+**Defense (in-protocol part).** The per-schema fee market's max-change-per-block ($\xi = 1/8$) caps how quickly an adversary can move $b_\sigma$. Iris's pricing buffer needs to absorb at most $\sim 12.5\% \times \text{(blocks per billing cycle)}$ in worst-case fee climb. At 30-day billing and 12-second block time, that is the theoretical maximum; in practice, fees decay back to equilibrium once the attack stops, so the worst-case is bounded by the attack duration.
+
+**Pattern C: routing-fraction exploitation.** An adversary registers a schema with $\rho_\sigma = 0.5$ (the maximum) and induces high traffic. They collect $(1 - \tau_{\text{burn}}) \cdot 0.5$ of every paid base fee. The "attack" here is just a successful schema launch with maximum routing; it is not really an attack, but it is worth noting that schema authors who set $\rho_\sigma = 0.5$ are economically equivalent to chain validators in their cut of fee revenue.
+
+**Mitigation.** None needed at protocol level; the $\rho_\sigma \leq 0.5$ bound is governance-set and prevents schema authors from extracting more than half of non-burned fees. Beyond that, schema authors who choose high $\rho_\sigma$ trade lower base-fee-validator-share for higher schema-revenue, which is a legitimate business choice. The cost-to-grind theorem (§5.1) ensures the chain's security floor is unaffected.
 
 ---
 
