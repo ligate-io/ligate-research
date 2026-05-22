@@ -144,13 +144,27 @@ Items the v0.1 draft surfaces explicitly. Each is potentially v0.2 or v1.0 work;
 
 ## 5. Comparison to existing patterns
 
-| Pattern | Mint authority | Issuance auditability | On-chain quorum verification | Reputation tie-in |
-|---|---|---|---|---|
-| Standard ERC-20 (admin role) | Single address | State diff only | None | None |
-| Safe / multisig wallet ERC-20 | M-of-N approval contract | State diff only | Contract executes; chain sees the result | None |
-| Threshold-signature issuance (e.g., FROST-based protocols) | Threshold of distributed keys | Signed transactions on the issuance chain | Yes, but bolted on per protocol | Varies by protocol |
-| EAS revocable attestations | Schema resolver contract | On-chain but each attestation is its own contract call | Resolver-dependent | None |
-| **Schema-bound token (Ligate)** | **`AttestorSetId`** | **Mint events ARE attestations under `chain.token-mint/v1`** | **Native chain primitive (consensus pipeline)** | **PoUA reputation flows to the attestor set + including validators** |
+\begin{landscape}
+\begingroup
+\renewcommand{\arraystretch}{1.35}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{3.6cm} >{\raggedright\arraybackslash}p{3.4cm} >{\raggedright\arraybackslash}p{4.0cm} >{\raggedright\arraybackslash}p{3.8cm} >{\raggedright\arraybackslash}p{4.2cm}}
+\rowcolor{tableheaderbg}
+\textbf{Pattern} & \textbf{Mint authority} & \textbf{Issuance auditability} & \textbf{Quorum verification} & \textbf{Reputation tie-in} \\
+\midrule
+\endhead
+Standard ERC-20 (admin role) & Single address & State diff only & None & None \\
+\rowcolor{tablerowalt}
+Safe / multisig wallet ERC-20 & M-of-N approval contract & State diff only & Contract execution & None \\
+Threshold-signature issuance (FROST-based) & Threshold of distributed keys & Signed txs on issuance chain & Bolted on per protocol & Varies by protocol \\
+\rowcolor{tablerowalt}
+EAS revocable attestations & Schema resolver contract & Per-attestation contract call & Resolver-dependent & None \\
+\textbf{Schema-bound (Ligate)} & \textbf{Attestor-set id} & \textbf{Mint = attestation under a system schema} & \textbf{Native chain primitive} & \textbf{PoUA reputation to attestor set + including validators} \\
+\bottomrule
+\end{longtable}
+\endgroup
+\end{landscape}
 
 The differentiators worth naming:
 
@@ -198,7 +212,7 @@ Sketch only. A regulator (e.g., a professional licensing board) issues licenses 
 
 ## 7. Where this lives in the canon
 
-Per [ligate-research#84](https://github.com/ligate-io/ligate-research/issues/84) §7, this note is a **standalone research note** in `papers/schema-bound-tokens/`. It is not absorbed into PoUA (which would expand PoUA's scope beyond consensus weighting) and not folded into Native Delegation (which has a different thematic focus on validator-attestor key separation).
+Per [ligate-research#84](https://github.com/ligate-io/ligate-research/issues/84) §7, this is a **standalone research note** living under its own paper directory in the research repo. It is not absorbed into PoUA (which would expand PoUA's scope beyond consensus weighting) and not folded into Native Delegation (which has a different thematic focus on validator-attestor key separation).
 
 The note cross-links to:
 
@@ -206,7 +220,7 @@ The note cross-links to:
 - [Per-Schema Fees v0.1.1](../per-schema-fees/) for the fee-market integration in §3.3
 - [Cross-Schema Composition v0.1.1](../cross-schema-composition/) for the typed-reference primitive that may extend to sublicensing (§4.5)
 - [ligate-chain#286](https://github.com/ligate-io/ligate-chain/issues/286) for the engineering RFC
-- [ligate-chain#258](https://github.com/ligate-io/ligate-chain/issues/258) for the $LGT economics
+- [ligate-chain#258](https://github.com/ligate-io/ligate-chain/issues/258) for the `$AVOW` economics
 - [ligate-chain#47](https://github.com/ligate-io/ligate-chain/issues/47) and [#48](https://github.com/ligate-io/ligate-chain/issues/48) for the standard token primitives
 
 ---
@@ -222,7 +236,7 @@ The note cross-links to:
 ## Out of scope for this note
 
 - Engineering design (lives in [ligate-chain#286](https://github.com/ligate-io/ligate-chain/issues/286))
-- `$LGT` economics around mint fees (lives in [ligate-chain#258](https://github.com/ligate-io/ligate-chain/issues/258))
+- `$AVOW` economics around mint fees (lives in [ligate-chain#258](https://github.com/ligate-io/ligate-chain/issues/258))
 - Token contract code (lives in [ligate-chain#47](https://github.com/ligate-io/ligate-chain/issues/47), [#48](https://github.com/ligate-io/ligate-chain/issues/48), follow-up implementation issues)
 - EVM-compatible ERC-20 wrapping (lives in `ligate-chain#52`)
 

@@ -40,12 +40,12 @@ This note adopts the v0.7-PoUA discipline from draft v0.1:
 - **[Per-Schema Fees](../per-schema-fees/) at v0.2+**. §3.3 of this note depends on the per-schema fee market being substantive in the supporting paper. v0.1 of this note flags the fee-market composition as an open question; v0.2 closes it.
 - **[Cross-Schema Composition](../cross-schema-composition/) at v0.2+**. §4.5 (sublicensing via meta-schemas) depends on the typed-reference primitive in the composition paper.
 - **[ligate-chain#286](https://github.com/ligate-io/ligate-chain/issues/286)**. The engineering design.
-- **[ligate-chain#258](https://github.com/ligate-io/ligate-chain/issues/258)**. `$LGT` economics, governance fee parameters for `chain.token-mint/v1`.
+- **[ligate-chain#258](https://github.com/ligate-io/ligate-chain/issues/258)**. `$AVOW` economics, governance fee parameters for `chain.token-mint/v1`.
 
 ## What this paper does NOT do
 
 - Engineering design (lives in [ligate-chain#286](https://github.com/ligate-io/ligate-chain/issues/286))
-- `$LGT` economics around mint fees (lives in [ligate-chain#258](https://github.com/ligate-io/ligate-chain/issues/258))
+- `$AVOW` economics around mint fees (lives in [ligate-chain#258](https://github.com/ligate-io/ligate-chain/issues/258))
 - Token contract code (lives in [ligate-chain#47](https://github.com/ligate-io/ligate-chain/issues/47), [#48](https://github.com/ligate-io/ligate-chain/issues/48), follow-up implementation issues)
 - EVM-compatible ERC-20 wrapping (lives in `ligate-chain#52`)
 - Calibration of slashing severity for "schema-bound-token cap exceedance" (lives in [ligate-chain#51](https://github.com/ligate-io/ligate-chain/issues/51) disputes module)
