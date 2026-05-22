@@ -4,9 +4,9 @@ Per-schema EIP-1559-style fee dynamics for attestation-native chains.
 
 ## Latest
 
-- **Working paper**: [`per-schema-fees.md`](per-schema-fees.md) (source) + [`per-schema-fees.pdf`](per-schema-fees.pdf) (17 pages, ~117 KB)
-- **Version**: v0.2 (Blocks 1 + 2 of v0.2 cycle landed)
-- **Status**: **§1 + §2 + §3 + §4 substantive.** Block 1 landed Abstract + §3 System Model + title cleanup. Block 2 (this PR) landed §1 Introduction (1.1-1.8 plus 1.6.1 status panel) and §2 Background (EIP-1559, multi-resource fee markets, attestation chains and schema heterogeneity). §4 was already substantive (per-schema base-fee adjustment + tip mechanism + burn split + PoUA integration). §5, §6, §7, §8, §9, §10, §11 remain v0.1 outline.
+- **Working paper**: [`per-schema-fees.md`](per-schema-fees.md) (source) + [`per-schema-fees.pdf`](per-schema-fees.pdf) (21 pages, ~135 KB)
+- **Version**: v0.2 (Blocks 1 + 2 + 3 of v0.2 cycle landed)
+- **Status**: **§1 + §2 + §3 + §4 + §5 substantive.** Block 1 landed Abstract + §3. Block 2 landed §1 + §2. Block 3 (this PR) landed §5 Security Analysis: §5.1 cost-to-grind preservation theorem (PoUA Lemma 1 floor holds under per-schema isolation with $\rho_\sigma \leq 0.5$), §5.2 cross-schema arbitrage by validator inclusion preference, §5.3 base-fee manipulation by validator coalition, §5.4 fee-griefing across schemas, §5.5 sponsored-gas adversarial patterns. §6, §7, §8, §9, §10, §11 remain v0.1 outline.
 - **Date**: 2026-05-22
 
 ## Abstract (placeholder)
