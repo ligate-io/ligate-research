@@ -1,0 +1,142 @@
+{
+  "version": "0.3.0",
+  "vectors": [
+    {
+      "name": "minimal_grant_master_only",
+      "section": "\u00a73.4 + Appendix B",
+      "input": {
+        "master_addr": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "hot_addr": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "nonce": 0,
+        "height_start": 0,
+        "height_end": 0,
+        "rule": "MASTER_ONLY",
+        "w_m": 1.0,
+        "w_h": 0.0,
+        "schemas": [],
+        "actions": []
+      },
+      "expected": {
+        "encoded_hex": "01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002710000000000000000000000000",
+        "encoded_length": 106
+      },
+      "tolerance": 1e-12
+    },
+    {
+      "name": "recommended_calibration",
+      "section": "\u00a73.4 + Appendix B",
+      "input": {
+        "master_addr": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "hot_addr": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "nonce": 42,
+        "height_start": 1000,
+        "height_end": 10000,
+        "rule": "BOTH_SLASHED",
+        "w_m": 0.7,
+        "w_h": 0.3,
+        "schemas": [
+          "0x0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+        ],
+        "actions": [
+          "0x4242424242424242424242424242424242424242424242424242424242424242"
+        ]
+      },
+      "expected": {
+        "encoded_hex": "01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb000000000000002a00000000000003e800000000000027100200001b5800000bb8000000010f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f000000014242424242424242424242424242424242424242424242424242424242424242",
+        "encoded_length": 170
+      },
+      "tolerance": 1e-12
+    },
+    {
+      "name": "hot_only_rule",
+      "section": "\u00a73.4 + Appendix B",
+      "input": {
+        "master_addr": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "hot_addr": "0x2222222222222222222222222222222222222222222222222222222222222222",
+        "nonce": 1,
+        "height_start": 100,
+        "height_end": 200,
+        "rule": "HOT_ONLY",
+        "w_m": 0.0,
+        "w_h": 1.0,
+        "schemas": [],
+        "actions": []
+      },
+      "expected": {
+        "encoded_hex": "01111111111111111111111111111111111111111111111111111111111111111122222222222222222222222222222222222222222222222222222222222222220000000000000001000000000000006400000000000000c80100000000000027100000000000000000",
+        "encoded_length": 106
+      },
+      "tolerance": 1e-12
+    },
+    {
+      "name": "multi_schema_unsorted_input",
+      "section": "\u00a73.4 + Appendix B",
+      "input": {
+        "master_addr": "0x3333333333333333333333333333333333333333333333333333333333333333",
+        "hot_addr": "0x4444444444444444444444444444444444444444444444444444444444444444",
+        "nonce": 7,
+        "height_start": 500,
+        "height_end": 1500,
+        "rule": "BOTH_SLASHED",
+        "w_m": 0.6,
+        "w_h": 0.4,
+        "schemas": [
+          "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ],
+        "actions": [
+          "0x9999999999999999999999999999999999999999999999999999999999999999",
+          "0x1111111111111111111111111111111111111111111111111111111111111111"
+        ]
+      },
+      "expected": {
+        "encoded_hex": "0133333333333333333333333333333333333333333333333333333333333333334444444444444444444444444444444444444444444444444444444444444444000000000000000700000000000001f400000000000005dc020000177000000fa000000003aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000211111111111111111111111111111111111111111111111111111111111111119999999999999999999999999999999999999999999999999999999999999999",
+        "encoded_length": 266
+      },
+      "tolerance": 1e-12
+    },
+    {
+      "name": "max_u64_boundary",
+      "section": "\u00a73.4 + Appendix B",
+      "input": {
+        "master_addr": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "hot_addr": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "nonce": 18446744073709551615,
+        "height_start": 18446744073709551614,
+        "height_end": 18446744073709551615,
+        "rule": "BOTH_SLASHED",
+        "w_m": 0.5,
+        "w_h": 0.5,
+        "schemas": [],
+        "actions": []
+      },
+      "expected": {
+        "encoded_hex": "01ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeefffffffffffffffffffffffffffffffeffffffffffffffff0200001388000013880000000000000000",
+        "encoded_length": 106
+      },
+      "tolerance": 1e-12
+    },
+    {
+      "name": "weight_min_granularity",
+      "section": "\u00a73.4 + Appendix B",
+      "input": {
+        "master_addr": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "hot_addr": "0x0101010101010101010101010101010101010101010101010101010101010101",
+        "nonce": 1,
+        "height_start": 0,
+        "height_end": 1,
+        "rule": "BOTH_SLASHED",
+        "w_m": 0.9999,
+        "w_h": 0.0001,
+        "schemas": [],
+        "actions": []
+      },
+      "expected": {
+        "encoded_hex": "0100000000000000000000000000000000000000000000000000000000000000000101010101010101010101010101010101010101010101010101010101010101000000000000000100000000000000000000000000000001020000270f000000010000000000000000",
+        "encoded_length": 106
+      },
+      "tolerance": 1e-12
+    }
+  ]
+}

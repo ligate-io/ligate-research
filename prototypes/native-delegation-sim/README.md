@@ -2,9 +2,22 @@
 
 Reference simulator for **Native Delegation**, the runtime primitive specified in [`papers/native-delegation`](../../papers/native-delegation/).
 
-**Latest**: v0.2.0 (2026-05-20). M2 closed: lifecycle state machine (paper §4.4) + Monte Carlo strategy search (§5.5) + Theorem 1 validation figure. 56 tests passing.
+**Latest**: v0.3.0 (2026-05-22). M3 closed: canonical grant encoding (paper §3.4 + Appendix B) with `GrantSpec`, `encode_grant_spec`, `decode_grant_spec`, full bound checks, and cross-language test vectors. 91 tests passing.
 
-**Status**: M1 + M2 substantive. M3 (cross-language test vectors + adversarial-strategy extension) is post-v0.2-paper-ship work.
+**Status**: M1 + M2 + M3 substantive. M4 (strategic-adversary extension where the hot key picks misbehavior actions to maximize $G_{\text{misbehave}} - w_h \cdot \Lambda$) is post-M3 work; M5 (full chain integration test against `ligate-chain`) is planned once the chain ships native delegation.
+
+## v0.3 (M3): canonical grant encoding
+
+The M3 milestone adds a byte-exact serialization of the paper's §3.4 grant tuple. Future Rust / TypeScript implementations of Ligate Chain can produce identical bytes by following the spec in `src/native_delegation_sim/encoding.py`.
+
+What ships:
+
+- `GrantSpec` dataclass with the full §3.4 + Appendix B tuple (master_addr, hot_addr, nonce, height_start, height_end, rule, w_m, w_h, schemas, actions) with all protocol-level bound checks
+- `encode_grant_spec()` -> `bytes`: deterministic v1 encoding with version tag, big-endian numeric fields, fixed-point weights at 10^-4 precision, ascending-sorted schemas/actions
+- `decode_grant_spec(bytes)` -> `GrantSpec`: roundtrip with bound-check enforcement on input
+- `test_vectors/grant_encoding.json`: 6 canonical test vectors with byte-exact `encoded_hex` outputs
+
+`scripts/regenerate_test_vectors.py` rebuilds the vectors from the Python reference. Cross-language conformance check: encode each vector's `input`, hex-encode the bytes, compare to `expected.encoded_hex` byte-by-byte.
 
 ## What this simulator validates
 
