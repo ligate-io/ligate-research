@@ -28,63 +28,170 @@ The mechanism is positioned as a **v1.5 protocol feature**, post-devnet but pre-
 
 ### 1.1 The Late-Disclosure Thesis
 
-[**v0.2:** Why some attestations should not be readable at submission time. Three use-case families: sealed-bid auctions (commit bid now, reveal after close), embargoed announcements (commit story now, publish at agreed time), regulatory time-locks (file now, public after retention period). Each has a different failure mode and time horizon, but the underlying primitive is the same.]
+A standard attestation publishes its payload at submission time. The chain knows what the attestor claimed; downstream consumers read the payload immediately. For most workloads this is the right design: PoUA reputation, content provenance, identity proofs, audit trails are all "we observed X and we want everyone to know now" patterns.
+
+A category of workloads breaks this. A bidder in a sealed-bid auction wants to commit to a bid value now and reveal it only after the auction closes; revealing early gives competitors information. A journalist embargoed on a story wants to commit to the article now and publish only at the agreed embargo time; publishing early breaches the embargo. A regulatory filer wants to submit a filing at the legal deadline but make it publicly readable only after a retention period; publishing immediately violates the regime.
+
+These workloads share a structural feature: the attestation must exist (be recorded, be binding, be auditable later) before the payload becomes public. The standard single-phase attestation cannot do this. Off-chain commit-reveal protocols handle these cases at the cost of trusting an intermediary (an auctioneer, a press agent, a regulator's portal) to hold the payload until reveal time. The intermediary is a single point of failure for confidentiality, integrity, and availability.
+
+The thesis of this paper: **for an attestation-native chain, time-locked commit-reveal should be a runtime primitive, not an off-chain protocol or an application-layer pattern**. Reasons in §1.2 and §1.3.
 
 ### 1.2 The Off-Chain Commit-Reveal Trust Problem
 
-[**v0.2:** Standard off-chain commit-reveal: bidder commits hash to a chain, reveals to an auctioneer at close. Auctioneer is trusted to (a) actually run the auction, (b) not reveal payloads early, (c) tally honestly. Each trust assumption is a real failure mode in production auctions. On-chain commit-reveal eliminates the auctioneer.]
+Standard off-chain commit-reveal: a bidder publishes $H(\text{bid} \| \text{nonce})$ to some channel (often a chain), then later sends $(\text{bid}, \text{nonce})$ to an auctioneer at close. The auctioneer collects reveals, tallies, declares a winner.
 
-### 1.3 Why Now (or Why v1.5 Not v1)
+This requires trusting the auctioneer to:
 
-[**v0.2:** v1 ships single-phase attestations because the four flagship products (Themisra, Mneme, Iris, Kleidon) do not need commit-reveal at launch. Time-locked attestations matter when use cases like auctions and regulatory filings ramp up. The v1.5 timing reflects this; the primitive is small enough to add post-launch without disruption.]
+- Actually run the auction (availability)
+- Not reveal payloads early to favored bidders (confidentiality)
+- Tally honestly (integrity)
+- Not censor reveals from disfavored bidders (censorship-resistance)
+
+Each is a real failure mode in production auctions. Auctioneers go offline; auctioneers leak; auctioneers cheat; auctioneers censor. Modern auction-design literature treats auctioneer-honesty as a thick assumption that needs separate mechanism to harden.
+
+**On-chain commit-reveal** removes the auctioneer entirely. The chain holds the commitment. The chain validates the reveal against the commitment. Validators provide availability (BFT chain liveness); the chain provides integrity (consensus on which reveals landed); censorship-resistance is the chain's standard property. The trust assumption shifts from "the auctioneer is honest" to "the chain consensus holds," which is a much weaker and more auditable assumption.
+
+The same argument applies to embargoed announcements (replace "auctioneer" with "embargo coordinator") and regulatory time-locks (replace "auctioneer" with "regulator's filing portal"). In each case, an on-chain primitive replaces a trusted intermediary with chain consensus.
+
+### 1.3 Why Now (or Why v1.5, Not v1)
+
+Ligate Chain v1 ships with single-phase attestations. The four flagship products (Themisra, Mneme, Iris, Kleidon) do not need commit-reveal at launch. v1 engineering cost is bounded by the minimum surface needed to ship.
+
+Time-locked attestations matter when use cases like sealed-bid auctions, embargoed press releases, and regulatory filings ramp up. The v1.5 timing reflects this: post-devnet, post-Mneme-launch, when at least one design partner per category (auction, embargo, regulatory) has submitted a concrete use-case description matching the §6.2 template. The §6.1 gate enforces this discipline.
+
+The primitive is small. The §4 mechanism is three transaction types (`MsgCommit`, `MsgReveal`, `MsgCleanup`) and a four-state lifecycle. The §5 cryptographic security argument is one page. The total runtime surface is comparable to native delegation: cleanly addable post-launch without disruption to existing schemas.
+
+**This paper does not advocate for shipping time-locked attestations on v1 day one.** It documents the design so when demand validates, engineering has a target.
 
 ### 1.4 The Central Question
 
-> [**v0.2:** What is the minimum on-chain commit-reveal primitive that handles the three use-case families (auction, embargo, regulatory), with adequate cryptographic security and explicit never-reveal cleanup, without re-introducing the trust assumptions of off-chain protocols?]
+> **What is the minimum on-chain commit-reveal primitive that handles the three use-case families (sealed-bid auction, embargoed announcement, regulatory time-lock), with adequate cryptographic security and explicit never-reveal cleanup, without re-introducing the trust assumptions of off-chain protocols?**
+
+This paper answers: `MsgCommit` + `MsgReveal` + `MsgCleanup` over a four-state lifecycle (COMMITTED → REVEALED or EXPIRED → CLEANED-UP), with hash-based commitments under collision-resistant H (default SHA-256, 128-bit nonce minimum), time-bounds enforced by validators reading chain height, and a configurable deposit-on-commit + cleanup-runner reward to fund the cleanup market.
 
 ### 1.5 Approach in Brief
 
-[**v0.2:** Three-sentence preview. Schema includes a `reveal_at` field. `MsgCommit` publishes $h = H(\text{payload} \| \text{nonce})$; `MsgReveal` publishes $(\text{payload}, \text{nonce})$ and the runtime validates the commitment match and the time-bound. TTL-based cleanup handles never-reveal commitments; deposit-on-commit handles economic incentive to reveal.]
+Each schema may declare a `reveal_at` field on its commitments. `MsgCommit` (§4.1) publishes $h = H(\text{payload} \| \text{nonce})$ along with the schema's chosen `reveal_at` and `ttl`. The chain records the commitment in state.
+
+After `reveal_at` (and within `ttl`), the schema's attestor set submits `MsgReveal` (§4.2) with $(\text{payload}, \text{nonce})$. The runtime checks $H(\text{payload} \| \text{nonce}) = h$ and the time-bound; if both pass, the commitment transitions to REVEALED and the payload becomes the canonical attestation.
+
+If `reveal_at + ttl` passes without reveal, the commitment transitions to EXPIRED. Anyone can submit `MsgCleanup` (§4.3) to permanently remove the EXPIRED commitment from active state, earning a small protocol fee from the schema's deposit (if any). This creates a permissionless cleanup market: independent operators monitor the chain for expired commitments and submit cleanup transactions.
+
+The mechanism composes with native delegation (a hot key with a grant scoped to schema $\sigma$ can submit commits and reveals on the master's behalf), with per-schema fees (commits and reveals pay base fee + tip per the schema's fee curve), and with cross-schema composition (a revealed attestation can be referenced as input by downstream schemas, with the §5 cascade firing if the reveal is later invalidated).
 
 ### 1.6 Contributions
 
-[**v0.2:** Mechanism specification, cryptographic security argument, failure-mode analysis, formal comparison with off-chain commit-reveal and on-chain auction protocols (Vickrey, EIP-7251 family).]
+The paper makes four contributions.
+
+A **mechanism specification** in §3 and §4: the commitment tuple, the validity state machine, the three transaction types, the deposit-on-commit and cleanup-runner economics, the front-running defense via batched-reveal sequencing.
+
+A **cryptographic security analysis** in §5: binding under collision-resistance of H, hiding under pre-image-resistance and 128-bit nonce floor, time-lock security under chain consensus. The arguments are standard but documented explicitly so an implementer or security reviewer has a single source.
+
+A **failure-mode analysis** in §8: six failure modes (never-reveal, late-reveal, front-running between commit and reveal, hash collisions, nonce reuse, reveal-DoS) with bounded-damage arguments for each.
+
+A **use-case validation gate** in §6: explicit framing that this paper is specification-only until 2-3 design partners across categories submit concrete use-case descriptions matching the §6.2 template.
 
 #### 1.6.1 Status of Claims
 
-[**v0.2:** Same panel as PoUA v0.7 §1.6.1. Cryptographic security claims are "proven" (under standard hash-function assumptions); never-reveal incentive claims are "bounded-under-stated-assumptions"; use-case fitness is "empirical-or-heuristic."]
+**Proven** (formal mathematical argument under standard cryptographic assumptions):
+
+- §5.1 binding: under SHA-256 collision-resistance, no committer can produce two valid reveals for the same commitment with different payloads. Standard hash-commitment argument; documented for completeness.
+- §5.2 hiding: under SHA-256 pre-image-resistance and 128-bit nonce floor, the payload cannot be recovered from the commitment without exhaustive enumeration.
+- §5.4 time-lock security: under chain BFT liveness, reveal-before-`reveal_at` is unambiguously rejected; reveal-after-`reveal_at + ttl` is unambiguously rejected.
+
+**Bounded under stated assumptions:**
+
+- §5.1 + §5.2 assume the chosen hash function is collision-and-pre-image-resistant at the 128-bit level. If a future cryptanalytic break weakens SHA-256, schemas must migrate via §3.4's hash-function-migration path.
+- §8.3 front-running defense assumes the §4.5 batched-reveal sequencing is enforced; an architecture that separates proposer from builder requires re-validation.
+- §8.6 reveal-DoS bound assumes the cleanup-runner economics (§4.3) actually attract independent operators; if no operator submits cleanup, expired commitments accumulate in state.
+
+**Empirical or heuristic, requiring devnet validation:**
+
+- §6 use-case fit: not a chain claim; a process claim. The mechanism is specified; whether real workloads need it depends on design-partner submission.
+- §3.4 nonce-length recommendation: 128-bit is the conservative floor; real-world workloads may inform whether 256 bits is needed for some payload-space distributions.
 
 ### 1.7 Scope and Non-Goals
 
-[**v0.2:** In scope: commit-reveal as a runtime primitive, three use-case families, never-reveal cleanup. Out of scope: zero-knowledge variants (deferred), Vickrey-specific auction protocols (build on top of this primitive), cross-chain time-locks (separate paper), generic privacy-preserving attestation (different paper).]
+**In scope:**
+
+- On-chain commit-reveal as a runtime primitive
+- Three transaction types (commit, reveal, cleanup) and the four-state lifecycle
+- Deposit-on-commit and cleanup-runner economics
+- Front-running defense via batched-reveal sequencing
+- Cryptographic security under standard hash-function assumptions
+- Six failure-mode bounds
+
+**Explicitly out of scope:**
+
+- **Zero-knowledge variants.** A reveal that proves "the committed payload satisfies predicate P" without disclosing the payload is a useful extension; v0.2 specifies the cleartext-reveal mechanism. ZK extension lives in a follow-up paper (§9.1).
+- **Vickrey-specific auction protocols.** Vickrey, Vickrey-Clarke-Groves, and other auction protocols build on top of the commit-reveal primitive but are application-layer; this paper specifies the primitive.
+- **Cross-chain time-locks.** A commitment on Ligate Chain that should reveal at a particular height on Ethereum (or any counterparty chain) is the cross-chain composition problem; out of scope.
+- **Time-lock encryption.** Drand timelock encryption / VDF-based time-locks complement commit-reveal at a different point in the design space (§7); not addressed here.
+- **General privacy-preserving attestation.** Time-locked attestation provides confidentiality until reveal; permanent confidentiality (zero-knowledge attestation) is a different problem.
 
 ### 1.8 Document Structure
 
-[**v0.2:** TOC walkthrough.]
+Section 1.6.1 separates the paper's claims into proven, bounded-under-stated-assumptions, and empirical-or-heuristic. Section 2 surveys cryptographic commitments, on-chain auctions, off-chain commit-reveal protocols, time-locked encryption, and embargoed-document storage networks as background. Section 3 fixes the system model: commitment, reveal, validity state machine, hash function choice. Section 4 specifies the mechanism: commit / reveal / cleanup transactions, deposit, front-running defense. Section 5 analyzes cryptographic security. Section 6 documents the use-case validation gate. Section 7 positions time-locked attestations against prior systems. Section 8 analyzes six failure modes. Section 9 lists limitations and future work. Section 10 concludes.
 
 ---
 
 ## 2. Background and Related Work
 
+This section surveys five families of related work, each illuminating a different facet of the design space.
+
 ### 2.1 Cryptographic Commitments
 
-[**v0.2:** Hash-based commitments: $H(\text{payload} \| \text{nonce})$. Pedersen commitments. Lamport one-way commitments. Tradeoff: hash-based is simple and chain-friendly; Pedersen is additively homomorphic; Lamport is post-quantum-friendly but bandwidth-heavy.]
+A **commitment scheme** is a cryptographic protocol where a committer publishes a binding fingerprint of a value (the commitment), then later reveals the value with a proof that it matches the commitment. The two properties commitment schemes must have are **binding** (the committer cannot change the value after commit) and **hiding** (the verifier cannot learn the value from the commitment alone).
+
+Three families dominate:
+
+- **Hash-based commitments.** Compute $h = H(\text{payload} \| \text{nonce})$. Binding under collision-resistance of H; hiding under pre-image-resistance of H plus nonce entropy. Used in Bitcoin Lightning, blockchain commit-reveal auctions, and countless off-chain protocols. Simple to implement; cheap to verify; bandwidth-efficient.
+- **Pedersen commitments.** Compute $h = g^r \cdot k^v$ in a discrete-log group. Binding under discrete-log hardness; hiding unconditional (statistical). Has the homomorphic property that $\text{Commit}(v_1) \cdot \text{Commit}(v_2) = \text{Commit}(v_1 + v_2)$. Used in confidential transactions (Monero ringCT, Bulletproofs) where homomorphic aggregation matters.
+- **Lamport one-way commitments.** Use a sequence of one-way function outputs. Post-quantum-resistant (relies on hash-function pre-image-resistance only, not on discrete-log hardness). Bandwidth-heavy: per-bit commitment overhead is significant.
+
+**What this paper picks.** Hash-based commitments. Three reasons: (1) simplest implementation, smallest commit-transaction size, fastest verification; (2) collision-resistance and pre-image-resistance assumptions are well-understood for SHA-256 and BLAKE3; (3) the homomorphic property of Pedersen commitments is not needed for the three use-case families this paper targets (auctions, embargos, regulatory filings).
+
+Future work (§9.1) covers the ZK-friendly path via Poseidon, which is hash-based but enables zero-knowledge reveal extensions.
 
 ### 2.2 On-Chain Auctions
 
-[**v0.2:** Vickrey (second-price sealed-bid), Vickrey-Clarke-Groves, English ascending. Each has different commit-reveal requirements. Existing implementations on Ethereum, with off-chain auctioneer or smart-contract auctioneer.]
+**Vickrey auction** (second-price sealed-bid): bidders commit bids, reveal at close, highest bidder wins and pays the second-highest bid. Vickrey's truth-telling property (it is dominant strategy to bid your true value) makes it the gold standard for sealed-bid auctions in mechanism-design theory. On Ethereum, Vickrey has been implemented as smart contracts with off-chain or on-chain auctioneers.
+
+**English ascending auction**: bidders publicly bid; the auction ends when no one outbids. Does not need commit-reveal; on-chain implementations are straightforward but lose the truth-telling property.
+
+**Vickrey-Clarke-Groves (VCG)** mechanisms: generalize Vickrey to multi-item auctions. Require commit-reveal per item plus a global tally; complexity grows quickly.
+
+**What this paper offers that on-chain auction contracts do not.** Per-contract auction implementations re-encode the commit-reveal mechanics in Solidity. Each contract is audited separately. Adversaries exploit subtle differences in commit-reveal implementations (timing, deposit handling, cleanup) across contracts. This paper's runtime primitive standardizes the mechanics: every schema gets the same chain-enforced commit-reveal, every auditor reviews the same protocol-level argument.
 
 ### 2.3 Off-Chain Commit-Reveal Protocols
 
-[**v0.2:** Verifiable Random Function (VRF) commit-reveal, RANDAO, Drand. Each solves a related but distinct problem; informs the cryptographic design.]
+**RANDAO** (Ethereum's beacon-chain randomness): validators commit hashes of their entropy contributions, then reveal at the end of the epoch. The reveal-window is enforced by the beacon chain. RANDAO's failure mode is last-revealer manipulation: a validator who is the last to reveal can choose whether to reveal (committing the entropy) or withhold (forcing a fallback that may or may not include their contribution).
+
+**Verifiable Random Functions (VRFs)**: a signer publishes a value $f(x)$ that they prove was computed deterministically from a secret key and a public input $x$. After commit-reveal of $x$, anyone can verify $f(x)$. Used in many on-chain random-beacon and committee-selection protocols.
+
+**Drand**: a distributed-randomness beacon with t-of-n threshold signing. Each round produces a verifiable random output. Drand's "timelock encryption" mode lets a sender encrypt a message such that it can only be decrypted after a specific round; this is a different design (cryptographic time-lock, not commit-reveal time-lock) that complements this paper's mechanism.
+
+**What this paper takes.** The RANDAO last-revealer-manipulation lesson (§4.5 front-running defense via batched-reveal sequencing prevents the analog attack). The VRF-determinism insight (the §4.4 deposit-on-commit gives an economic incentive to actually reveal). The Drand timelock encryption pattern (named in §7 as a complement, not a competitor).
 
 ### 2.4 Time-Locked Encryption
 
-[**v0.2:** Drand-based timelock encryption (Drand `quicknet`), VDF-based time-locks (Wesolowski VDF), proof-of-elapsed-time (Intel SGX). All complement on-chain commit-reveal with different threat models.]
+**Drand timelock encryption** (the `quicknet` mode launched in 2023): a sender encrypts a message under the threshold-signature key for a future Drand round. Only the Drand network's threshold signature for that round can decrypt it. The receiver can decrypt at or after the target round; nobody (including the sender) can decrypt earlier.
+
+**VDF-based time-locks** (Wesolowski VDF, Pietrzak VDF): a verifiable delay function takes T units of sequential computation to evaluate but is verifiable in $O(\log T)$. The sender commits a value; the verifier evaluates the VDF for T steps to recover the value. Time-lock is enforced by the inherent serial-compute requirement; no trusted beacon needed.
+
+**Proof-of-elapsed-time (Intel SGX)**: a TEE attests that a certain amount of time has elapsed since some event. Used in Intel's PoET consensus and some niche time-lock protocols.
+
+**What this paper takes.** Each of these is a different design point. Drand timelock relies on a trusted beacon network. VDFs rely on sequential-compute assumptions. SGX relies on hardware-attestation trust. This paper's chain-consensus time-lock is in a fourth category: enforced by the chain's BFT consensus reading chain height, no exotic cryptography, no trusted beacon. The §7 comparison table positions all four.
 
 ### 2.5 Embargoed-Document Storage Networks
 
-[**v0.2:** Filecoin retrieval markets, Arweave with retrieval delays, IPFS-with-encryption. Different from on-chain commit-reveal but adjacent in problem space.]
+**Filecoin retrieval markets**: a content provider stores data on Filecoin and configures retrieval to be available only after a certain time. The storage layer enforces the embargo (storage providers refuse to serve before the embargo time). Different problem (storage with delayed retrieval, not attestation with delayed disclosure); related in problem space.
+
+**Arweave with retrieval delays**: similar pattern. Arweave's permanent storage plus retrieval-policy layer can enforce embargoed disclosure.
+
+**IPFS with encryption**: a content provider encrypts data, distributes the ciphertext via IPFS, releases the key at the embargo time. Off-chain trust (the publisher controls the key release).
+
+**Why these are different from this paper.** Each addresses **embargoed retrieval of stored content**. This paper addresses **embargoed disclosure of an attestation**. The two compose: a long-document attestation could include a content-hash whose underlying document is stored on Filecoin/Arweave with retrieval delay matching the commit-reveal `reveal_at`. The composition is application-layer; this paper does not specify it but acknowledges the adjacent design space.
 
 ---
 
@@ -466,68 +573,205 @@ The unique value-add is **native cascade with attestations**. None of the four c
 
 ## 8. Failure Modes
 
+We enumerate six failure modes and bound the damage of each. The bounds rely on the §4 mechanism, the §5 cryptographic security, and standard PoUA assumptions; this section does not introduce new defenses, only documents how the existing surface bounds each attack.
+
 ### 8.1 Never-Reveal
 
-[**v0.2:** Committer commits and never reveals. Defenses: TTL forces cleanup; deposit-on-commit creates economic incentive to reveal; per-schema slash rule for committers exceeding never-reveal threshold.]
+**Setup.** A committer submits `MsgCommit` and never reveals. The chain holds the commitment until `reveal_at + ttl`, then it transitions to EXPIRED. The payload never becomes public.
+
+**Damage bound.** Three: (a) chain state holds the EXPIRED commitment until cleanup; (b) the schema's downstream consumers cannot reference the attestation (no payload to reference); (c) if the schema has a deposit, the committer loses it (per `deposit_destination`).
+
+**Defense.** TTL forces deterministic expiry. Cleanup is permissionless (§4.3): any operator submits `MsgCleanup` on expired commitments and earns a small fee. State accumulates only until cleanup runs; in practice, cleanup runs near-real-time because the cleanup-runner reward is non-zero.
+
+**Per-schema slashing.** A schema with a high never-reveal cost (sealed-bid auction where unrevealed bids disrupt the auction) can declare a slash rule at registration: never-revealed commits over a threshold (say, >10% of committer's commits in the prior 30-day window) trigger a PoUA-style reputation slash. The slash applies via PoUA §4.5, not as a new mechanism.
+
+**Economic incentive to reveal.** Per §4.4, the deposit is held in escrow and returns on reveal. Auction schemas typically set `deposit_floor` to a meaningful fraction of bid value; the committer loses the deposit if they don't reveal, which is sharply incentive-aligned.
 
 ### 8.2 Late-Reveal
 
-[**v0.2:** Committer reveals after $\text{reveal\_at}$ but before TTL. Default: accepted. Some use cases (auction with hard close) want strict deadline; specified per schema.]
+**Setup.** A committer attempts `MsgReveal` after `reveal_at + ttl`. The chain is in EXPIRED state; the reveal admission check rejects.
+
+**Damage bound.** None to the chain. The attempted reveal pays admission cost (small, bounded by mempool spam protection) and is rejected. From the application's perspective, the committer "missed the deadline" and the schema's downstream consumers proceed without the late attestation.
+
+**Application-layer recovery.** Some schemas may allow a "late reveal that doesn't count toward the original commitment" pattern, where the committer submits a fresh `MsgCommit` + `MsgReveal` with `reveal_at` in the past (so reveal is immediate). This is not a chain feature; it is application-layer behavior: the original commitment is gone, a new attestation under the same schema can land if the schema's application logic accepts late attestations.
+
+**Pre-TTL late-reveal.** A reveal after `reveal_at` but before `reveal_at + ttl` is *accepted* (this is the normal reveal window). Some application designs (auction with hard close) want a strict deadline at `reveal_at` itself, with no grace window; this is achieved by setting `ttl = 1` (reveal must land in the same block as `reveal_at`).
 
 ### 8.3 Front-Running Between Commit and Reveal
 
-[**v0.2:** Adversary observes reveal in mempool, submits competing commit using the now-known payload. Defense: batched-reveal sequencing per §4.5.]
+**Setup.** A reveal $(\text{payload}, \text{nonce})$ enters the mempool. An adversary observes it before block inclusion. The adversary submits their own `MsgCommit` with the now-known payload (or a derivative), hoping to commit-and-reveal in a way that beats the original committer.
+
+**Defense (§4.5 batched-reveal sequencing).** All reveals in a block are processed before any new commits in the same block. An adversary cannot commit-then-reveal in the same block as another committer's reveal, because the §4.5 ordering rule puts the reveal first. The adversary's commit lands in a later block, by which time the original reveal is already canonical.
+
+**Defense (per-schema attestor set).** Even if an adversary observes the payload, they cannot reveal it: the reveal carries the same threshold-signature from $\mathcal{A}_\sigma$ as the commit. Without the attestor-set's signature, the adversary's `MsgReveal` is rejected at admission.
+
+**What this defense leaves open.** An adversary with the payload but not the attestor-set signature can attempt a *new* commitment under a different schema (or under a schema where they control the attestor set). They cannot interfere with the original commitment; they can attempt a parallel attack with their own commitment. Whether that succeeds depends on the application-layer's response to multiple commits over the same underlying claim.
+
+**Bound.** The chain prevents front-running of the original commitment with high confidence. Application-layer concerns about parallel commitments are outside the chain's scope.
 
 ### 8.4 Hash Collisions
 
-[**v0.2:** SHA-256 collision resistance is computationally infeasible at 128-bit security. Defense: hash-function choice + nonce entropy bound.]
+**Setup.** An adversary finds two reveals $(\text{payload}_1, \text{nonce}_1)$ and $(\text{payload}_2, \text{nonce}_2)$ with $\text{payload}_1 \neq \text{payload}_2$ that both hash to the same commitment $h$. They commit, then reveal a different payload than they originally intended (e.g., bid amount low at commit, high at reveal if they "win" the auction).
+
+**Defense.** §5.1 binding under SHA-256 collision-resistance. Constructing a collision requires ~$2^{128}$ work; far beyond practical attack budgets.
+
+**Defense if SHA-256 is broken.** If a cryptanalytic break reduces SHA-256 below $2^{80}$ work, schemas migrate to BLAKE3 or Poseidon via the §3.4 hash-function migration path. The chain enforces the schema's declared hash; per-commitment hash flexibility is not allowed (preventing the adversary from down-grading to a weaker hash).
+
+**Bound.** Hash-collision attacks are infeasible at the 128-bit security level. The chain inherits hash-function security as an assumption; cryptanalytic monitoring is a community responsibility (not a chain mechanism).
 
 ### 8.5 Nonce Reuse
 
-[**v0.2:** Same nonce used across two commits with different payloads breaks hiding for an adversary who sees both. Defense: nonce-derivation from a deterministic per-commitment seed; specification in v0.2 §4.1.]
+**Setup.** A committer reuses the same nonce across two different commitments with different payloads. An adversary observing both commitments cannot directly recover the payloads, but they have two hashes computed from the same nonce against two payloads: if the payload space is small enough, they can correlate brute-force attempts across both hashes, reducing the effective security.
+
+**Defense (per-commitment nonce derivation).** §4.1 recommends nonces be derived as $\text{nonce} = H(\text{master\_secret} \| \text{commitment\_id}^*)$ where $\text{commitment\_id}^*$ is a deterministic counter (committer's per-schema submission count). Each commitment gets a unique nonce by construction; reuse is impossible if the derivation is followed.
+
+**Bound under correct nonce-derivation.** No degradation; nonce reuse cannot happen.
+
+**Bound under nonce reuse (committer error).** If a committer reuses a nonce across N commitments, the effective security degrades from $2^{|\text{nonce}|}$ to $2^{|\text{nonce}|} / N$ (the adversary can amortize the brute-force across N commitments). At 128-bit nonces and 100 reuses, effective security is $2^{121}$, still infeasible. At 64-bit nonces and 100 reuses, effective security is $2^{57}$, brute-forceable on a small cluster. The 128-bit nonce floor (§3.4) is the protocol-level safety margin against this error.
+
+**Application-layer guidance.** Schema implementations should derive nonces deterministically and never expose nonce-generation to user code. The chain does not enforce this; it is application discipline.
 
 ### 8.6 Reveal-DoS
 
-[**v0.2:** Adversary commits many commitments without intent to reveal, bloating chain state. Defense: TTL + cleanup-runner incentive + minimum deposit.]
+**Setup.** An adversary submits a flood of `MsgCommit` transactions with no intent to reveal. Each commitment occupies chain state until `reveal_at + ttl`. If `ttl_max` is large (e.g., 14 days), the adversary can occupy substantial chain state for an extended period.
+
+**Defense (cleanup-runner incentive).** §4.3's cleanup-runner economics ensure that expired commitments are pruned in near-real-time. The cleanup-runner reward is funded from the schema's per-commit fee, so even minimum-deposit commitments fund some cleanup.
+
+**Defense (deposit floor).** A schema with high adversary exposure (auction schemas, regulatory schemas) declares a non-zero `deposit_floor` at registration. The adversary must lock up `deposit_floor` per commit; flooding becomes economically expensive.
+
+**Defense (per-schema per-account commit rate limit).** Optional. A schema can declare a rate-limit at registration: maximum commits per account per epoch. Adversaries with many accounts circumvent per-account limits but at the cost of operating many addresses.
+
+**Defense (per-attestor-set spam protection).** The threshold-signature requirement on commits means only the attestor set can submit. An adversary outside the attestor set cannot flood commits at all. For schemas with small attestor sets, this is the dominant defense; for schemas with permissionless or large attestor sets, additional rate-limiting matters.
+
+**Bound.** Combination of cleanup-runner economics + deposit floor + rate limits + attestor-set bound makes reveal-DoS impractical at the protocol level. The residual risk is implementation: if a schema misconfigures (zero deposit, no rate limit, permissionless attestor set), the schema author owns the consequence.
 
 ---
 
 ## 9. Limitations and Future Work
 
+The v0.2 mechanism specifies hash-based commit-reveal under classical hash functions with chain-height time-locks. Four extensions remain out of scope; we document each here.
+
 ### 9.1 ZK-Friendly Variant
 
-[**v0.2:** Out of scope. A SNARK-based reveal where the runtime verifies the commitment match without seeing payload would enable confidential-payload time-locks. Research-grade; deferred.]
+A SNARK-based reveal would let the chain verify "the committed payload satisfies predicate P" without learning the payload itself. Applications: sealed-bid auctions where the chain verifies "this bid is in valid range [min, max]" without disclosing the bid value, even on reveal; regulatory filings where the filer proves compliance without disclosing sensitive content. The §3.4 Poseidon hash option exists for this future variant; v0.2 specifies the cleartext-reveal mechanism only.
+
+The complications are non-trivial. SNARK verification at admission time is expensive ($O(10^4)$ gas equivalents in modern proof systems); proof generation is slow ($O(\text{seconds})$ on commodity hardware for medium-complexity predicates). The runtime would need to bound proof-verification cost per `MsgReveal`. v0.3+ work; a follow-up paper.
 
 ### 9.2 Cross-Chain Time-Locks
 
-[**v0.2:** Out of scope. A commitment on Ligate Chain whose reveal is gated by a foreign chain's block height. Separate paper if needed.]
+A commitment on Ligate Chain whose reveal is gated by a foreign chain's block height (or by Drand round, or by external clock) is the cross-chain time-lock problem. Mechanically: the reveal admission check requires an IBC light-client proof of the foreign chain's height, plus the time-lock condition evaluates against that. Complications: IBC update latency means the foreign chain's height-as-known-to-Ligate is stale by the round-trip; cascade interaction with cross-schema-composition's §3.4 needs re-validation. Out of scope for v0.2; follow-up paper.
 
 ### 9.3 VDF-Based Hard Time-Locks
 
-[**v0.2:** Out of scope. Verifiable Delay Functions could provide "no early reveal even if the committer wants to", different security model. Not a v1.5 priority.]
+A VDF-based time-lock would provide "no early reveal even if the committer wants to": the committer encrypts the payload such that decryption requires T sequential VDF steps, then commits the ciphertext. Even the committer cannot reveal before T elapses. Different security model: trustless time-lock (no chain consensus required for the time-lock itself), at the cost of VDF computation overhead. Not a v1.5 priority; positioned in §7 as a complement, not a competitor.
 
 ### 9.4 Multi-Party Commit-Reveal
 
-[**v0.2:** Out of scope. M-of-N reveal patterns (any M of N committers can reveal) need additional cryptography. Tracked as follow-up.]
+An M-of-N reveal pattern (any M of N original committers can reveal) is useful for multi-party-controlled commitments (escrow agents, multi-stakeholder embargos). Requires additional cryptography: either (a) M-of-N threshold-signing the reveal (already supported via the attestor-set threshold, but the original attestor set may not be the M-of-N reveal set), or (b) Shamir-style secret-sharing of the payload-and-nonce across the N parties. v0.2 specifies single-attestor-set-reveal; multi-party variants are follow-up.
 
 ---
 
 ## 10. Conclusion
 
-[**v0.2:** Recap. Time-locked attestations as a runtime primitive eliminate the trusted auctioneer / coordinator from commit-reveal workflows. The cryptographic argument is standard; the operational argument is about TTL, deposit, and front-running defense. v1.5 protocol territory: ships when at least one design partner per category has validated the demand.]
+Time-locked attestations as a runtime primitive eliminate the trusted auctioneer or coordinator from commit-reveal workflows. The §1.1 late-disclosure thesis is the motivation: some attestations should not be readable at submission time, and the chain should enforce that without an off-chain intermediary. The §1.2 off-chain trust problem is the central justification: every off-chain commit-reveal protocol carries availability + confidentiality + integrity + censorship-resistance assumptions that are hard to harden; an on-chain primitive replaces all four with chain BFT consensus.
+
+The paper's four contributions resolve the design space. (1) **Mechanism (§3 + §4)**: three transaction types over a four-state lifecycle, with optional deposit-on-commit and a permissionless cleanup market. (2) **Cryptographic security (§5)**: binding under collision-resistance, hiding under pre-image-resistance and 128-bit nonce floor, time-lock security under chain consensus. (3) **Failure-mode analysis (§8)**: six failure modes (never-reveal, late-reveal, front-running, hash collisions, nonce reuse, reveal-DoS) each bounded by structural and economic defenses. (4) **Use-case validation gate (§6)**: explicit framing that engineering work begins only when at least one design partner per category (auction, embargo, regulatory) submits a concrete use case.
+
+The mechanism is positioned as a **v1.5 protocol feature**, post-devnet but pre-mainnet. Ligate Chain v1 ships with single-phase attestations; the four flagship products do not need commit-reveal at launch. Time-locked attestations land when §6.1 gate is satisfied. This paper documents the design space and security argument so that, when the gate opens, engineering work has a target to ship against.
+
+**What this paper does not do.** It does not advocate for shipping time-locked attestations on v1 day one. It does not claim that workflows currently using single-phase attestations should switch. It does not commit Ligate Chain to a v1.5 release date.
+
+**What this paper does do.** Capture the design space at the point in time when the trade-offs are fresh, the cryptographic argument is standard, and the integration with companion primitives (native delegation, per-schema fees, cross-schema composition) is concrete. If and when design-partner demand validates the use cases, the engineering cycle has a reference document.
+
+**Invitations.** Paper, future simulator, and chain implementation are open to external review. The §6.2 use-case template is open to design-partner submissions through `hello@ligate.io`. Feedback on §5 cryptographic security (especially nonce-derivation patterns and hash-function migration timelines) is welcome from cryptography researchers.
+
+The §1.4 central question was: what is the minimum on-chain commit-reveal primitive that handles auction / embargo / regulatory use cases with adequate cryptographic security and explicit never-reveal cleanup, without re-introducing off-chain trust assumptions? This paper answers: three transactions, four states, hash-based commitments under standard cryptographic assumptions, validator-enforced time-bounds, permissionless cleanup market. The mechanism is small, the argument is tight, the integration with adjacent primitives is orthogonal.
 
 ---
 
 ## References
 
-[**v0.2:** Pedersen and Lamport commitment papers, Vickrey auction papers, Drand timelock encryption papers, RANDAO specification, Wesolowski VDF, plus standard PoUA references.]
+**Cryptographic commitments and time-locks.**
+
+- Pedersen, T. (1991). *Non-interactive and information-theoretic secure verifiable secret sharing*. CRYPTO 1991.
+- Lamport, L. (1979). *Constructing digital signatures from a one-way function*. SRI International CSL-98.
+- Wesolowski, B. (2019). *Efficient verifiable delay functions*. EUROCRYPT 2019.
+- Pietrzak, K. (2018). *Simple verifiable delay functions*. ITCS 2019.
+
+**Auction theory.**
+
+- Vickrey, W. (1961). *Counterspeculation, auctions, and competitive sealed tenders*. Journal of Finance, 16(1).
+- Clarke, E. (1971). *Multipart pricing of public goods*. Public Choice, 11.
+- Groves, T. (1973). *Incentives in teams*. Econometrica, 41(4).
+
+**On-chain randomness and commit-reveal protocols.**
+
+- Drand (2017+). *Distributed randomness beacon*. <https://drand.love/>
+- Galindo, D., Liu, J., Ordean, M., Wong, J. (2021). *Fully distributed verifiable random functions and their application to decentralised random beacons*. EuroS&P 2021.
+- RANDAO (Ethereum beacon chain randomness). <https://eth2book.info/altair/part3/transition/epoch>
+
+**Hash functions.**
+
+- NIST (2002). *FIPS 180-2: Secure Hash Standard (SHS)*. (SHA-256 family.)
+- Aumasson, J., Neves, S., Wilcox-O'Hearn, Z., Winnerlein, C. (2020). *BLAKE3: One Function, Fast Everywhere*. <https://github.com/BLAKE3-team/BLAKE3-specs>
+- Grassi, L., Khovratovich, D., Rechberger, C., Roy, A., Schofnegger, M. (2021). *Poseidon: A New Hash Function for Zero-Knowledge Proof Systems*. USENIX Security 2021.
+
+**Companion Ligate Labs research.**
+
+- Ligate Labs (2026). *Proof of Useful Attestation*. Working paper v0.8.
+- Ligate Labs (2026). *Native Delegation as a Runtime Primitive*. Working paper v0.2.
+- Ligate Labs (2026). *Per-Schema Fee Markets*. Working paper v0.2.
+- Ligate Labs (2026). *Cross-Schema Composition*. Working paper v0.2.
+- Ligate Labs (2026). *Schema-Bound Tokens*. Working paper v0.1.
+
+**Chain stack.**
+
+- Sovereign Labs (2024). *Sovereign SDK*. <https://github.com/Sovereign-Labs/sovereign-sdk>
+- Celestia Labs (2023). *Celestia: Modular Data Availability*. <https://celestia.org/learn/>
 
 ---
 
 ## Appendix A: Simulator Validation Plan
 
-[**v0.2:** What `prototypes/time-locked-attestations-sim/` will contain. Test harness for commit-reveal correctness, never-reveal cleanup, front-running defense, nonce-entropy enforcement. Cross-language test vectors for the canonical commitment encoding.]
+A reference simulator under `prototypes/time-locked-attestations-sim/` (planned milestone M1, after this paper lands and the §6 gate is satisfied) will provide cross-language test vectors for the canonical commitment encoding and the lifecycle state transitions.
+
+**Planned modules under `src/time_locked_attestations_sim/`:**
+
+- `commitment.py`: §3.1 `Commitment` tuple, §3.4 hash-function dispatch (SHA-256 / BLAKE3 / Poseidon).
+- `lifecycle.py`: §3.3 four-state machine (COMMITTED, REVEALED, EXPIRED, CLEANED-UP).
+- `transactions.py`: §4 `MsgCommit`, `MsgReveal`, `MsgCleanup` admission checks.
+- `failure_modes.py`: §8 attack-scenario harnesses (never-reveal, late-reveal, front-running, hash-collision adversaries, nonce-reuse, reveal-DoS).
+
+**Planned test coverage:**
+
+- §3.3 lifecycle state-machine transitions
+- §4.1 / §4.2 / §4.3 admission-time checks
+- §5.1 binding (negative test: cannot construct collisions in finite work budget)
+- §5.2 hiding (entropy-bound enforcement)
+- §5.4 time-lock (reveal-before-`reveal_at` and reveal-after-TTL both rejected)
+- §8.1 never-reveal cleanup runs to EXPIRED then CLEANED-UP
+- §8.6 reveal-DoS quantitative cost (per-commit attacker cost vs chain state retained)
+
+**Cross-language test vectors** in the simulator's `test_vectors/` directory, matching the format used by per-schema-fees-sim and native-delegation-sim: each vector has `input`, `expected`, and `tolerance`. Future Rust or TypeScript implementations can verify identical outputs.
+
+The simulator is **not** part of v0.2. It lands when the §6 use-case-validation gate opens.
+
+---
 
 ## Appendix B: Formal Definitions
 
-[**v0.2:** Restated definitions of commitment, reveal, nonce, TTL, validity state machine, in formal notation.]
+We collect the formal definitions used throughout the paper in one place.
+
+**Definition (Commitment).** A tuple $c = (h, \text{reveal\_at}, \text{ttl}, \sigma, \mathcal{A}_\sigma, d)$ where $h = H(\text{payload} \| \text{nonce})$ is the commitment hash, $\text{reveal\_at}$ is the earliest reveal block, $\text{ttl}$ is the reveal-window length, $\sigma$ is the schema-id, $\mathcal{A}_\sigma$ is the attestor set, and $d$ is the optional deposit.
+
+**Definition (Reveal).** A pair $(\text{payload}, \text{nonce})$ submitted within the reveal window (block height in the half-open interval from `reveal_at` to `reveal_at + ttl`), where $H(\text{payload} \| \text{nonce})$ matches the committed hash and the submission carries the same threshold signature as the original commitment.
+
+**Definition (Validity state).** For each commitment $c$, $\text{state}(c)$ is one of: COMMITTED, REVEALED, EXPIRED, CLEANED-UP. Transitions per §3.3.
+
+**Definition (Cleanup-runner reward).** A small protocol fee rebated from the schema's per-commit fee to the address submitting a successful `MsgCleanup` on an EXPIRED commitment. Funds the permissionless cleanup market.
+
+**Definition (Binding).** Under the chosen hash function $H$, the commitment scheme is binding if no efficient adversary can produce two reveals $(\text{payload}_1, \text{nonce}_1) \neq (\text{payload}_2, \text{nonce}_2)$ that both pass the reveal check against the same commitment $h$. Proven for SHA-256, BLAKE3, Poseidon at the 128-bit security level per §5.1.
+
+**Definition (Hiding).** Under the chosen hash function and nonce length, the commitment is hiding if no efficient adversary can recover $\text{payload}$ from $h$ alone with probability significantly better than $|\text{payload-space}| \cdot 2^{-|\text{nonce}|}$. Proven for SHA-256 / BLAKE3 / Poseidon with the 128-bit nonce floor per §5.2.
+
+**Definition (Time-lock security).** Under chain BFT liveness, a reveal is admitted if and only if the inclusion height lies within the reveal window (the half-open interval starting at `reveal_at` and ending at `reveal_at + ttl`). The chain's height is the canonical clock; no exotic cryptography (VDF, time-lock encryption) is required.
