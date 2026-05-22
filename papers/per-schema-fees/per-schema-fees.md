@@ -26,55 +26,151 @@ The mechanism's central design choice is to make the **schema** the fee-market u
 
 ### 1.1 The Heterogeneous-Demand Thesis
 
-[**v0.2:** Why a single fee market is the wrong abstraction for attestation-native chains. The schema is the natural unit; demand profiles vary by orders of magnitude. Cite Themisra (high-throughput, low-fee) vs. sovereign-identity examples (low-throughput, high-fee).]
+Blockchain fee market design has, until recently, assumed a single workload. Ethereum, the canonical example, fits this assumption: token transfers, DeFi interactions, and contract calls share enough demand-curve shape that a single base fee with global adjustment dynamics serves them adequately. EIP-1559's unified base fee adjusts to chain-wide congestion. The cost of mixing workloads is paid by everyone uniformly, which is acceptable when no workload is structurally different from the others.
+
+Attestation-native chains break that assumption decisively. Consider two schemas that might coexist on Ligate Chain at maturity. **Themisra `proof-of-prompt/v1`** is the AI-provenance receipt for every Claude / ChatGPT / Gemini interaction: at maturity, millions of attestations per day, smoothly distributed, each attestation worth fractions of a cent in fee. **Sovereign-identity proofs** are government-issued identity assertions: hundreds per day, sparse, each attestation potentially gating access to financial services, government benefits, or compliance reporting and therefore worth dollars in fee. The two schemas share a chain but share nothing about their demand curves: volume differs by four orders of magnitude, fee elasticity differs by three, time-of-day distribution differs in shape entirely.
+
+A single base fee cannot serve both. If the chain prices for the high-volume schema, the identity schema either underpays (and its bandwidth is squeezed by transient surges in the AI-provenance workload) or overpays (and the chain extracts more from identity users than the workload justifies). If the chain prices for the identity schema, the high-volume schema's users see fee swings driven by other workloads they have nothing to do with. The misalignment cost compounds at scale.
+
+The thesis of this paper: the **schema is the natural fee-market unit on attestation-native chains**. The chain already accounts per-schema for attestation work (PoUA §4.3 reputation update is schema-tagged, schema-bound tokens depend on per-schema attestor sets, the schema registration mechanism creates first-class chain state per schema). Per-schema fee state is a natural extension of state that already exists, and per-schema isolation means a congested schema's base fee no longer drags an uncongested schema's users.
 
 ### 1.2 Why Now
 
-[**v0.2:** EIP-1559 has shipped on Ethereum mainnet since 2021; multi-resource fee markets are an active research area; PoUA's per-schema accounting at the consensus layer makes per-schema fee dynamics first-class. The convergence is now.]
+Three independent developments converge to make per-schema fee markets implementable and desirable in 2026.
+
+**EIP-1559 is mature.** Ethereum mainnet has shipped EIP-1559 since August 2021. The base-fee adjustment formula $b(t+1) = b(t) \cdot (1 + \xi \cdot (u - T) / T)$ with $\xi = 1/8$ has been live in production for five years. Convergence behavior, attack-surface, and parameter calibration are well-understood. We can borrow the dynamics and apply them per-schema with high confidence in stability.
+
+**Multi-resource fee markets are an active research area.** Solana's priority fees, Cosmos's `x/feemarket` module, Aptos's gas pricing, and the EIP-7732 / EIP-4844 multi-dimensional fee proposals on Ethereum have each explored varieties of multi-resource pricing. The conceptual space is mapped; what is missing is a chain that treats workload type (rather than compute / storage / DA) as the resource being priced. That is what per-schema fees does.
+
+**Attestation chains have per-schema state at the consensus layer.** PoUA's reputation accounting is schema-tagged. Schema-bound tokens use per-schema attestor sets as mint authority. Native delegation grants are schema-scoped (per the [companion paper](../native-delegation/) §3.3). Adding fee-market state per-schema is the natural completion of a state model that is already per-schema everywhere else.
+
+**Iris is the bellwether product.** Iris's USD-billed-relayer model needs predictable per-schema fee dynamics: an Iris customer running a Themisra session needs to know what the per-attestation cost will be over the next 24 hours, not what the chain-wide average will be. A unified fee market makes Iris's subscription pricing harder; a per-schema fee market lets Iris hedge per-schema. The product-economic case for per-schema fees is concrete and immediate.
 
 ### 1.3 The Misalignment Problem
 
-[**v0.2:** A unified base fee adjusts to network-wide congestion. A high-throughput schema with stable demand sees its fee swing because of unrelated activity in another schema. Conversely, a low-throughput schema spike doesn't get the dedicated price discovery it needs.]
+A unified base fee, like EIP-1559's, adjusts based on chain-wide utilization. The mechanism's elegance comes from a single signal: when the chain is congested, prices climb; when it is empty, prices drop. The economic intuition is clear.
+
+The same mechanism, applied to a chain with heterogeneous workloads, produces three failure modes.
+
+**Failure mode 1: high-volume schema absorbs spikes in low-volume schema.** Suppose the chain runs a steady Themisra workload at 80% utilization (well above the 50% target). The base fee climbs to extract revenue and discourage congestion. Now an identity-proof spike happens (a wave of new-user onboarding flows after a regulatory event). The spike adds 5% to chain-wide utilization, pushing it to 85%. Under a unified fee market, the base fee climbs further. Themisra users, who had nothing to do with the identity spike, pay more because of unrelated activity.
+
+**Failure mode 2: low-volume schema cannot trigger its own price discovery.** Same chain, reverse problem. The identity workload spikes briefly (a few hundred attestations in a short window), but the chain-wide utilization barely moves because Themisra dominates the denominator. The identity spike never gets the price signal it needs to clear quickly. Identity users wait. The high-value low-volume schema does not get bandwidth proportional to its willingness to pay.
+
+**Failure mode 3: aggregate base fee fits no profile.** The chain's steady-state base fee, optimized for an average across schemas, is too high for the high-volume low-margin schema and too low for the low-volume high-value schema. Both workloads pay the wrong price all the time, with the wrong price defined as the price the workload would have paid under a fee market sized to its own demand profile.
+
+All three failure modes share a structural cause: the chain has more information about workload heterogeneity than the unified fee market can express. Per-schema state already exists in the chain; the fee market should use it.
 
 ### 1.4 The Central Question
 
-> [**v0.2:** How can a chain price attestation work in a way that respects per-schema demand heterogeneity, without re-introducing the cross-schema-arbitrage attack surface?]
+> **How can an attestation-native chain price attestation work in a way that respects per-schema demand heterogeneity, while preserving PoUA's cost-to-grind security floor and composing cleanly with sponsored-gas and native-delegation patterns?**
+
+This paper answers: per-schema EIP-1559 with a configurable burn-versus-routing split, coupled to PoUA's adaptive $\tau_{\text{burn}}$ rebase so that the chain-wide cost-to-grind floor is preserved even under per-schema isolation.
 
 ### 1.5 Approach in Brief
 
-[**v0.2:** Three-sentence preview. Per-schema base fee with EIP-1559 adjustment formula. Validator-side reputation tracks valid work across all schemas (PoUA inheritance) so per-fee preference is bounded by §A.1 detection. Cross-schema fee-griefing handled by §5.]
+Each registered schema carries its own fee-market state: base fee $b_\sigma$, current utilization $u_\sigma$, target utilization $T_\sigma$, plus a small parameter vector for adjustment rate, tip floor, base-fee clip bounds, and a routing fraction $\rho_\sigma$. Per-block, the chain adjusts each schema's base fee independently using the EIP-1559 formula, scoped to that schema's observed utilization. Tips compete within schema capacity; cross-schema isolation is preserved by allocating per-block attestation slots per schema (proposer chooses the per-block allocation under governance-tuned bounds).
+
+The burn split is the bridge to PoUA. Of every paid base fee, fraction $\tau_{\text{burn}}$ is burned (the same chain-wide burn that PoUA §4.4 governs), fraction $(1 - \tau_{\text{burn}}) \cdot \rho_\sigma$ flows to the schema registrant, and fraction $(1 - \tau_{\text{burn}}) \cdot (1 - \rho_\sigma)$ flows to the validator who included the attestation. Tips flow entirely to the validator. Section 5 shows that even at the most aggressive routing ($\rho_\sigma = 0.5$ chain-wide), PoUA's Lemma 1 cost-to-grind floor is preserved with the same constants.
+
+The mechanism composes orthogonally with two other primitives. **Sponsored gas** lets a third party pay base fee and tip on behalf of an attestor (Iris's pattern): signer and fee-payer are independent transaction fields, and the §4.3 sponsored-gas accounting handles the variance hedging. **Native delegation** (companion paper) lets a master key authorize a hot key to sign attestations within bounded scope; the per-schema fee market does not change anything about who can sign, only about who pays and how the chain prices the work.
 
 ### 1.6 Contributions
 
-[**v0.2:** Mechanism specification, integration with PoUA, security analysis, comparison with EIP-1559 + Cosmos fee markets + Solana priority fees.]
+The paper makes four contributions.
 
-### 1.6.1 Status of Claims
+A **mechanism specification** in §4: the per-schema base-fee adjustment formula, the per-block target-utilization calibration table, the tip auction within schema capacity, the burn-and-routing split, and the integration points with PoUA reputation accounting. The mechanism is fully specified at a level where a chain implementer can build it without further ambiguity.
 
-[**v0.2:** Same panel as PoUA v0.7 §1.6.1: proven, bounded-under-stated-assumptions, empirical/heuristic.]
+A **cost-to-grind preservation theorem** in §5: under the per-schema fee market with arbitrary schema-set $\Sigma$ and routing fractions $\{\rho_\sigma\}_{\sigma \in \Sigma}$ bounded to $\rho_\sigma \leq 0.5$, PoUA's §5.5.3 Lemma 1 holds with the same constants. The chain's economic-security floor is unchanged by introducing per-schema fees, even at the most adversary-friendly routing setting.
+
+A **comparative analysis** in §6 positioning per-schema fees against EIP-1559, Solana priority fees, Cosmos `x/feemarket`, and Aptos gas pricing across five axes (granularity of pricing, target-utilization mechanism, burn fraction, sponsor-friendly extensions, multi-workload accommodation). Per-schema fees occupies a distinct point in this design space: the only mechanism in the comparison that treats workload type as the unit of pricing.
+
+A **calibration recommendation** in §4.2 (taxonomy of three demand profiles plus latency-critical addendum) and §7.2 (v0 protocol parameters). The recommendation is governance guidance, not a hard constraint; the chain enforces a $[0.1, 0.9]$ bound on $T_\sigma$ and a $[0, 0.5]$ bound on $\rho_\sigma$, but schemas declare their own values at registration within those bounds.
+
+#### 1.6.1 Status of Claims
+
+Following PoUA v0.7's discipline of separating claim categories explicitly:
+
+**Proven** (formal mathematical argument under standard cryptographic and BFT assumptions):
+
+- The §5.1 cost-to-grind preservation theorem proves PoUA's Lemma 1 floor holds under per-schema fees with $\rho_\sigma \leq 0.5$, with the same constants and the same security argument.
+
+**Empirical or heuristic**, requiring devnet validation:
+
+- The §4.2 calibration table (recommended $T_\sigma$ per demand profile) is an architectural default. Real-world demand curves for live schemas will refine these targets once devnet operation produces data.
+- The §5.4 sponsored-gas adversarial model assumes a specific Iris pricing pattern (pre-committed subscription with retroactive reimbursement above threshold). Other sponsorship models exist and need their own analysis.
+
+**Bounded under stated assumptions**, where the assumptions are non-trivial and named:
+
+- The §5.2 cross-schema censorship bound assumes the PoUA §A.1 KL-divergence detector's tolerance is calibrated against the chain-wide null distribution of schema arrivals. If the calibration is too loose, cross-schema censorship goes undetected; if too tight, honest fee-driven preference is flagged. Default tolerance from PoUA v0.7 §A.4 holds; per-schema fees do not require recalibration.
+- The §3.2 validator income decomposition assumes the proposer is the validator who includes the attestation; in a separated-proposer-and-builder architecture (e.g., MEV-Boost-style), the income flows differently. The mechanism still works but §6.2 needs a separate treatment.
 
 ### 1.7 Scope and Non-Goals
 
-[**v0.2:** In scope: per-schema fee dynamics, EIP-1559 adjustment, integration with PoUA reputation. Out of scope: multi-resource fee markets (separate paper), MEV (separate concern), cross-chain fee-market portability.]
+**In scope:**
+
+- Per-schema fee dynamics: base-fee adjustment, target utilization, tip auction, burn split, fee routing
+- Integration with PoUA reputation accounting and adaptive $\tau_{\text{burn}}$ rebase
+- Cost-to-grind preservation under per-schema isolation
+- Composition with sponsored gas (Iris paymaster pattern)
+- Composition with native delegation (companion paper)
+- Cross-schema attack analysis and detector calibration
+
+**Explicitly out of scope:**
+
+- **Multi-resource fee markets.** A separate paper would price gas / storage / DA bandwidth as distinct resources. This paper prices workload-type (the schema) as a single composite resource and treats other resources as derived.
+- **MEV (maximal extractable value).** Block-builder ordering preferences, sandwich attacks, and reorg incentives are outside this paper. The §6.2 builder-side incentive analysis touches MEV briefly but defers detailed treatment.
+- **Cross-chain fee-market portability.** A schema registered on Ligate Chain that is also recognized on a counterparty chain via IBC needs cross-chain price discovery. Out of scope for v0.2; a follow-on paper will cover it.
+- **EVM-execution fee market.** If Ligate Chain's v4 phase ships EVM execution (per the chain roadmap, deliberately deferred), EVM contract calls will have their own fee dynamics that this paper does not address.
 
 ### 1.8 Document Structure
 
-[**v0.2:** TOC walkthrough.]
+Section 1.6.1 separates the paper's claims into proven, bounded-under-stated-assumptions, and empirical-or-heuristic; readers in a hurry may want to start there. Section 2 surveys EIP-1559, multi-resource fee market designs, and attestation-chain fee patterns as background. Section 3 fixes the system model: the schema as fee-market unit, validator income decomposition, demand profile taxonomy. Section 4 specifies the mechanism. Section 5 proves the cost-to-grind preservation theorem and analyzes four threat models. Section 6 analyzes incentives across three parties (validator, builder, sponsor). Section 7 walks through the Sovereign SDK integration and recommended v0 parameters. Section 8 positions per-schema fees against prior systems. Section 9 lists limitations and future work; Section 10 concludes; Section 11 collects frequently asked questions.
 
 ---
 
 ## 2. Background and Related Work
 
+Fee market design has gone through three distinct generations on production chains: per-transaction auction (Bitcoin and pre-1559 Ethereum), unified base fee with target utilization (EIP-1559), and multi-resource fee markets (Solana, Aptos, Cosmos `x/feemarket`). This section surveys each and then positions attestation-chain fee patterns (EAS, Ceramic, EigenLayer AVS) against the per-schema thesis.
+
 ### 2.1 EIP-1559
 
-[**v0.2:** Ethereum's base-fee mechanism, target utilization, max-change-per-block.]
+Ethereum Improvement Proposal 1559 (Buterin et al., 2021) replaced Ethereum's first-price gas auction with a base-fee + tip mechanism. Each block carries a base fee determined by the previous block's utilization, with target utilization $T = 0.5$ (half-full target). The per-block adjustment rule is:
+
+$$b(t+1) = b(t) \cdot \left(1 + \xi \cdot \frac{u(t) - T}{T}\right), \quad \xi = \frac{1}{8}$$
+
+allowing a maximum $\pm 12.5\%$ swing per block. The base fee is burned (sent to a verifiably unspendable address); tips go to the proposer. The mechanism ships convergence properties around $u = T$ that have held in production since August 2021.
+
+**What EIP-1559 does well.** Base-fee burn anchors the chain's monetary policy: high demand burns more, deflationary pressure aligns with usage. Target utilization gives predictable headroom (50% buffer over steady state, supporting normal-load latency guarantees). Per-block adjustment is bounded ($\xi = 1/8$ prevents oscillation), and the mechanism is composable with sponsored-gas patterns at the application layer (ERC-4337 paymasters).
+
+**What EIP-1559 cannot do that per-schema fees can.** A single base fee assumes a single workload. Ethereum's heterogeneity (token transfers, DeFi, DA blobs since EIP-4844) has driven the chain toward separate fee markets for DA (blobspace) while keeping execution as one fee market. The trend is per-resource separation; this paper extends it to per-workload (schema) separation.
 
 ### 2.2 Multi-Resource Fee Markets
 
-[**v0.2:** Solana's priority fees, Cosmos's fee market module, Aptos's gas pricing.]
+Three production chains have implemented variants of multi-dimensional pricing.
+
+**Solana** charges a per-compute-unit (CU) fee with optional priority fees. The base unit price is set per-transaction by the submitter, subject to chain-enforced minimum and the proposer-tunable maximum CU per block. Priority fees compete for inclusion within the block. The mechanism is closer to a first-price auction than to EIP-1559's adjusting base fee; convergence happens via signaling between users and proposers rather than via a deterministic curve.
+
+**Cosmos `x/feemarket`** (cosmos-sdk v0.50+) provides an EIP-1559-inspired adjusting base fee at the chain level, with optional per-module fee multipliers. Each module (the `bank` module, the `staking` module, custom application modules) can declare a fee multiplier that scales the chain-wide base fee for transactions of that module type. This is the closest existing primitive to per-schema fees: per-module multipliers approximate per-workload pricing. The differences from this paper: (i) Cosmos multipliers are governance-set static parameters, not dynamic per-module utilization-driven, (ii) Cosmos has no per-module target-utilization mechanism, (iii) the burn-and-routing split is global, not per-module.
+
+**Aptos gas pricing** uses a per-transaction gas-unit-price plus a max-gas-amount. The proposer admits transactions in tip-priority order. The mechanism is closer to a sealed-bid auction than to a smoothly-adjusting market. Aptos has no per-module differentiation; one pool of gas, one curve.
+
+**EIP-4844 blob fees on Ethereum.** Independent of execution gas, blob transactions (data-availability blobs for L2s) have their own EIP-1559-style fee market. The blob base fee adjusts based on blob utilization, completely separate from execution-gas utilization. This is the first production example of *per-resource fee market separation* on a major chain. Per-schema fees extends the same idea from per-resource to per-workload granularity.
+
+**What this paper takes from prior work.** The EIP-1559 adjustment formula. The Cosmos per-module multiplier intuition (per-module pricing matters). The EIP-4844 lesson that per-resource fee separation works in production. The Aptos / Solana lesson that simpler designs (per-transaction auctions) suffer at the heterogeneity edge.
+
+**What this paper does that none do.** Make the schema (the workload type) the unit of fee adjustment, with full per-schema state (not just per-module multiplier), full per-schema target utilization, and a burn-versus-routing split that flows part of the non-burned base fee to the schema registrant.
 
 ### 2.3 Attestation Chains and Schema Heterogeneity
 
-[**v0.2:** EAS, Ceramic, restaking-AVS fee dynamics, Ligate's schema-as-economic-unit position.]
+Three attestation-adjacent systems are worth comparing on the schema-heterogeneity axis.
+
+**Ethereum Attestation Service (EAS)** is a smart-contract attestation framework on Ethereum. Schemas are first-class on-chain entities, but EAS inherits Ethereum's unified EIP-1559 fee market: a single base fee plus tip applies to all EAS transactions regardless of schema. This is exactly the misalignment §1.3 describes. EAS's design is reasonable for Ethereum (workloads are dominated by DeFi, not attestations), but a chain whose primary workload *is* attestations cannot afford to mix the fee surface.
+
+**Ceramic** uses per-stream rentals (model fees) rather than per-attestation fees. Each Ceramic Model has a fee curve tied to the model's storage footprint and update frequency. This is closer to a SaaS pricing model than a public-chain fee market: the per-model price is set by the model author and doesn't adjust to demand. The intuition (per-workload pricing matters) is right; the mechanism (static fee curves) doesn't fit chains that need dynamic price discovery.
+
+**EigenLayer AVS economics.** Restaking AVSs (Actively Validated Services) have per-AVS slashing and reward economics: an AVS author specifies the rewards / slashing parameters for operators serving that AVS. This is a different axis (security economics, not transaction fees), but the analogy is structural: per-AVS economics is to restaking as per-schema fees is to attestation chains. Both treat the workload as the natural unit of economic differentiation.
+
+**Ligate's position.** Per-schema fees as a runtime primitive, with full per-schema dynamic adjustment (not static like Ceramic, not global like EAS, not security-economics-flavored like EigenLayer). The schema is the workload, and the workload is the fee-market unit. The §6 comparison table puts this paper alongside EIP-1559, Cosmos `x/feemarket`, Solana priority fees, and Aptos gas pricing across six axes; per-schema fees occupies a distinct design point.
 
 ---
 
