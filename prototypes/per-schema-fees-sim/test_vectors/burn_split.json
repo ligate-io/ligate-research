@@ -1,0 +1,173 @@
+{
+  "version": "0.1.0",
+  "vectors": [
+    {
+      "name": "rho_0.0_tau_0.1",
+      "section": "\u00a74.4",
+      "input": {
+        "routing_fraction": 0.0,
+        "tau_burn": 0.1
+      },
+      "expected": {
+        "burned": 0.1,
+        "schema_registrant": 0.0,
+        "validator": 0.9
+      },
+      "tolerance": 1e-12
+    },
+    {
+      "name": "rho_0.0_tau_0.3",
+      "section": "\u00a74.4",
+      "input": {
+        "routing_fraction": 0.0,
+        "tau_burn": 0.3
+      },
+      "expected": {
+        "burned": 0.3,
+        "schema_registrant": 0.0,
+        "validator": 0.7
+      },
+      "tolerance": 1e-12
+    },
+    {
+      "name": "rho_0.0_tau_0.5",
+      "section": "\u00a74.4",
+      "input": {
+        "routing_fraction": 0.0,
+        "tau_burn": 0.5
+      },
+      "expected": {
+        "burned": 0.5,
+        "schema_registrant": 0.0,
+        "validator": 0.5
+      },
+      "tolerance": 1e-12
+    },
+    {
+      "name": "rho_0.0_tau_1.0",
+      "section": "\u00a74.4",
+      "input": {
+        "routing_fraction": 0.0,
+        "tau_burn": 1.0
+      },
+      "expected": {
+        "burned": 1.0,
+        "schema_registrant": 0.0,
+        "validator": 0.0
+      },
+      "tolerance": 1e-12
+    },
+    {
+      "name": "rho_0.25_tau_0.1",
+      "section": "\u00a74.4",
+      "input": {
+        "routing_fraction": 0.25,
+        "tau_burn": 0.1
+      },
+      "expected": {
+        "burned": 0.1,
+        "schema_registrant": 0.225,
+        "validator": 0.675
+      },
+      "tolerance": 1e-12
+    },
+    {
+      "name": "rho_0.25_tau_0.3",
+      "section": "\u00a74.4",
+      "input": {
+        "routing_fraction": 0.25,
+        "tau_burn": 0.3
+      },
+      "expected": {
+        "burned": 0.3,
+        "schema_registrant": 0.175,
+        "validator": 0.5249999999999999
+      },
+      "tolerance": 1e-12
+    },
+    {
+      "name": "rho_0.25_tau_0.5",
+      "section": "\u00a74.4",
+      "input": {
+        "routing_fraction": 0.25,
+        "tau_burn": 0.5
+      },
+      "expected": {
+        "burned": 0.5,
+        "schema_registrant": 0.125,
+        "validator": 0.375
+      },
+      "tolerance": 1e-12
+    },
+    {
+      "name": "rho_0.25_tau_1.0",
+      "section": "\u00a74.4",
+      "input": {
+        "routing_fraction": 0.25,
+        "tau_burn": 1.0
+      },
+      "expected": {
+        "burned": 1.0,
+        "schema_registrant": 0.0,
+        "validator": 0.0
+      },
+      "tolerance": 1e-12
+    },
+    {
+      "name": "rho_0.5_tau_0.1",
+      "section": "\u00a74.4",
+      "input": {
+        "routing_fraction": 0.5,
+        "tau_burn": 0.1
+      },
+      "expected": {
+        "burned": 0.1,
+        "schema_registrant": 0.45,
+        "validator": 0.45
+      },
+      "tolerance": 1e-12
+    },
+    {
+      "name": "rho_0.5_tau_0.3",
+      "section": "\u00a74.4",
+      "input": {
+        "routing_fraction": 0.5,
+        "tau_burn": 0.3
+      },
+      "expected": {
+        "burned": 0.3,
+        "schema_registrant": 0.35,
+        "validator": 0.35
+      },
+      "tolerance": 1e-12
+    },
+    {
+      "name": "rho_0.5_tau_0.5",
+      "section": "\u00a74.4",
+      "input": {
+        "routing_fraction": 0.5,
+        "tau_burn": 0.5
+      },
+      "expected": {
+        "burned": 0.5,
+        "schema_registrant": 0.25,
+        "validator": 0.25
+      },
+      "tolerance": 1e-12
+    },
+    {
+      "name": "rho_0.5_tau_1.0",
+      "section": "\u00a74.4",
+      "input": {
+        "routing_fraction": 0.5,
+        "tau_burn": 1.0
+      },
+      "expected": {
+        "burned": 1.0,
+        "schema_registrant": 0.0,
+        "validator": 0.0
+      },
+      "tolerance": 1e-12
+    }
+  ]
+}
