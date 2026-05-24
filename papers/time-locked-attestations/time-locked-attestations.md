@@ -380,7 +380,7 @@ The **deposit** field on `MsgCommit` is optional but governed by the schema's `d
 | Regulatory time-lock | moderate | `TREASURY` (deters frivolous filings) |
 | Insurance claim | moderate | `COMMITTER` on reveal; `TREASURY` on expiry |
 
-**Deposit-floor calibration.** The `deposit_floor` should make the spam-cost-per-commitment exceed the cost of one `MsgCleanup` execution. At v0 chain parameters (estimated ~0.001 LGT per cleanup), a deposit floor of ~0.01 LGT (10x cleanup cost) is sufficient. Schemas with high-value commitments (e.g., auctions) set the floor much higher to bound the lost-deposit risk for honest committers.
+**Deposit-floor calibration.** The `deposit_floor` should make the spam-cost-per-commitment exceed the cost of one `MsgCleanup` execution. At v0 chain parameters (estimated ~0.001 AVOW per cleanup), a deposit floor of ~0.01 AVOW (10x cleanup cost) is sufficient. Schemas with high-value commitments (e.g., auctions) set the floor much higher to bound the lost-deposit risk for honest committers.
 
 **Why deposits, not just fees.** The base commit fee is paid even on successful reveal; it does not deter never-reveal because reveal itself doesn't refund the fee. The deposit is the only mechanism that creates economic incentive to reveal: lose the deposit if you don't reveal. Deposits and fees are complementary: fees fund proposer reward / burn, deposits fund cleanup runner / spam deterrence.
 

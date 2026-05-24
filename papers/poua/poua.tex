@@ -38,6 +38,17 @@
 }{% if KOMA class
   \KOMAoptions{parskip=half}}
 \makeatother
+\usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
@@ -81,12 +92,9 @@
 \subsection{A Consensus Primitive for Attestation-Native
 Chains}\label{a-consensus-primitive-for-attestation-native-chains}
 
-\textbf{Ligate Labs Research, Working Paper v0.5}
+\textbf{Ligate Labs Research, Working Paper v0.8}
 
-\textbf{Date:} 2026-05-01
-
-\textbf{Status:} Draft for internal review and design-partner
-circulation.
+\textbf{Date:} 2026-05-19
 
 \textbf{Contact:} hello@ligate.io
 
@@ -117,8 +125,9 @@ profit-maximizing validator model, and a concrete integration with the
 Sovereign SDK rollup framework. PoUA inherits the safety and liveness
 properties of its underlying BFT primitive (Tendermint-style optimistic
 finality, in deployment) and constructs a multiplicative cost-to-attack
-premium of \(4\times\) to \(10\times\) over equivalent pure-stake
-chains.
+premium of \(4\times\) to \(10\times\) over equivalent pure-stake chains
+(Figure \ref{fig:cost-to-attack}; reproduced empirically by
+\texttt{prototypes/poua-sim/scripts/run\_capital\_scan.py}).
 
 The contribution is not a new cryptographic primitive. It is a
 synthesis: reputation-weighted consensus (Yu et al., 2019; Eyal, 2015),
@@ -157,6 +166,22 @@ economic model, and the consensus mechanism follow from that choice.
 This paper covers the consensus component: \textbf{Proof of Useful
 Attestation (PoUA)}, a weighting primitive in which validator influence
 is tied to the validator's history of producing valid attestation work.
+
+\textbf{What PoUA is and is not.} PoUA is a consensus weighting
+primitive layered on top of a data availability substrate (Celestia in
+our reference implementation, DA-agnostic in principle). It is not an
+alternative to DA; immutability and ordering guarantees still come from
+the substrate. What PoUA adds is reputation-weighted signer integrity:
+validators are weighted by stake \(\times\) non-transferable reputation,
+where reputation evolves from the validator's history of valid
+attestation work and slashed misbehavior. The chain enforces this
+weighting at consensus time, not as application-level computation. The
+result is a security model where the cost-to-grind for an attacker is
+bounded below by an intrinsic protocol parameter
+(\(\tau_{\text{burn}}\)), independent of the underlying DA layer's
+economics. Section 3.8 works the distinction out in terms of the system
+model; §11 Q11 answers the ``why not just use Celestia raw'' framing
+directly.
 
 The argument is economic, not aesthetic. A chain whose security budget
 is sized to its attestation workload, and whose security mechanism pays
@@ -320,7 +345,9 @@ attack time. With recommended parameters
 (\(r_{\max}/r_{\min} \in [4, 10]\)), a healthy steady-state chain
 achieves a cost-to-attack premium of \(4\times\) to \(10\times\) over
 equivalent pure-stake PoS. This is the formal moat referenced in Section
-1.1.
+1.1, and the §5.3 derivation matches empirical Monte Carlo from the
+reference simulator (Figure \ref{fig:cost-to-attack};
+\texttt{run\_capital\_scan.py}) to within binomial variance.
 
 \subsubsection{1.6 Contributions}\label{contributions}
 
@@ -359,6 +386,141 @@ proof-of-useful-work systems (Helium, Filecoin), restaking (EigenLayer),
 and pure-stake Proof of Stake (Tendermint, Algorand) across six axes.
 PoUA is novel as a synthesis, not in any single component, and §8
 identifies the specific synthesis point.
+
+\subsubsection{1.6.1 Status of Claims: Proven, Bounded, and
+Empirical}\label{status-of-claims-proven-bounded-and-empirical}
+
+Reviewers asking the right questions converge on the same separation. We
+name it explicitly so that readers know which claims rest on formal
+proof, which rest on stated assumptions, and which require devnet or
+simulator validation we have not yet completed.
+
+\textbf{Proven, in the sense of formal mathematical argument under
+standard cryptographic and BFT assumptions:}
+
+\begin{itemize}
+\tightlist
+\item
+  BFT safety and liveness inheritance under \(f < n/3\) Byzantine
+  \emph{weight} (Theorems 1 and 2, §5.2, via the weighted
+  quorum-intersection Lemma 2).
+\item
+  The cost-to-attack premium algebra \(\kappa = \bar{r}_H / r_{\min}\)
+  for a pure capital adversary (§5.3).
+\item
+  The cost-to-grind lower bound under Layer 3 with stated burn
+  destination:
+  \(F^{\text{net, per member}}_{\mathcal{CR}} \geq \tau_{\text{burn}} \cdot \Delta r / [\eta \cdot \alpha_{\text{eff}}(m, k)]\)
+  (Lemma 1, §5.5.3), with explicit cartel-size and burn-destination
+  parameter dependence.
+\item
+  Boundedness, monotonicity, and stability of the reputation update
+  function (§4.3, by clip plus linearity of the additive update).
+\end{itemize}
+
+\textbf{Bounded under stated assumptions, where the assumptions are
+non-trivial and named:}
+
+\begin{itemize}
+\tightlist
+\item
+  The ``up to \(4\times\) to \(10\times\) moat'' headline is a
+  \emph{steady-state ceiling}, depressed during the warmup window, the
+  validator-set ramp, and post-slash recovery. §5.3.1 quantifies the
+  transition envelope; the realized \(\kappa\) is a stake-weighted
+  average of validator-specific reputation values, which approaches the
+  ceiling only when warmup is complete, churn is low, and no recent
+  major slash has occurred.
+\item
+  The cartel cost-to-grind bound holds as stated under the recommended
+  pure-burn destination. The treasury and redistribution alternatives in
+  §5.5.3 carry weaker bounds explicitly derived per variant.
+\item
+  The honest equilibrium argument (§6.2) assumes profit-maximizing
+  validators with full information about protocol rules and other
+  validators' strategies. Validators with non-economic motives sit
+  outside the model.
+\item
+  Reputation as forward-revenue (§6.3) assumes attestation fee flow
+  \(R_f\) is positive and approximately stationary across the
+  validator's discount horizon. In low-volume periods the slash
+  deterrent attenuates.
+\end{itemize}
+
+\textbf{Empirically validated via the reference simulator}
+(\href{https://github.com/ligate-io/ligate-research/tree/main/prototypes/poua-sim}{\texttt{prototypes/poua-sim/}},
+M1-M7):
+
+\begin{itemize}
+\tightlist
+\item
+  The cost-to-attack premium \(\kappa\) algebra (§5.3) reproduces under
+  Monte Carlo to within binomial sampling variance (Figure 2). The
+  transition-state \(\kappa\) envelope (§5.3.1) reproduces empirically
+  across warmup / ramp / steady / post-slash phases (Figure 3).
+\item
+  Lemma 1's cartel cost-to-grind bound (§5.5.3) reproduces under all
+  three Layer 3 burn destinations across \(m \in \{1, 2, 3, 4\}\) in
+  \(k = 12\) to floating-point precision (Figure 6).
+\item
+  The full named-deviation strategy space (§6.2) collapses to
+  \(r_{\min}\) under the full layered defense (Panel C of Figure 8),
+  validating the honest-equilibrium claim against the M6 strategy-search
+  heatmap including GRIND\_VIA\_STAGED\_SUBMITTERS at small / medium /
+  large pool sizes.
+\item
+  Scale invariance of \(\kappa\) holds across
+  \(|V| \in \{50, 100, 250, 500, 1000\}\) (§5.3.2, Figure 4); the §5.3
+  small-set Lemma 1 example generalizes to mainnet-scale validator sets
+  without parameter retuning.
+\item
+  Eclipse recovery follows the analytical §4.3 update rate (§5.5.6.1,
+  Figure 7); \(\kappa\) is insensitive to adversarial latency in the
+  single-canonical-chain model (§5.3.2.1, Figure 5).
+\item
+  The three-rebase auto-adjuster (§4.4.2 + §4.4.3) Lyapunov function
+  \(V = D_\tau^2 + D_\eta^2 + D_\lambda^2\) is non-increasing under
+  correlated drift
+  (\texttt{test\_three\_rebases\_concurrent\_no\_amplification}).
+\end{itemize}
+
+\textbf{Empirical or heuristic, named as such, still requiring devnet
+validation (deferred to v0.9 and beyond):}
+
+\begin{itemize}
+\tightlist
+\item
+  A2 (censorship) and A3 (grinding) detection \emph{power} against
+  realistic adversaries. Appendix A gives analytical false-positive
+  bounds under stated null hypotheses (\(\chi^2\) for A2,
+  Erdős-Rényi-style for A3); the synthetic-attestor TPR scan in §A.4
+  saturates and does not provide a calibrated true-positive curve.
+  Devnet attestation traffic is required to position the detectors
+  against realistic graph structure.
+\item
+  The Erdős-Rényi null hypothesis for A3 detection does not match real
+  chain transaction graphs, which are typically scale-free. §A.4's
+  Chung-Lu comparison figure (Figure 10) quantifies the gap; production
+  deployment should re-derive the threshold against an empirical
+  chain-graph baseline (post-devnet calibration).
+\item
+  Full mechanism-design-grade incentive compatibility. §6 plus the M6
+  strategy-search heatmap give a layered economic argument against the
+  named rational-deviation strategies; a Hurwicz-style proof of full
+  strategy-proofness across an unconstrained strategy space remains open
+  (v1.0+ research).
+\end{itemize}
+
+The honest one-line takeaway: \textbf{PoUA is a mechanism design
+proposal with a formal economic floor (Lemma 1) plus inherited BFT
+safety and liveness (Theorems 1-2), empirically validated through M1-M7
+of the reference simulator across the named adversary models, with the
+remaining heuristic surfaces (A2 / A3 detector power, full
+strategy-proofness) explicitly deferred to devnet calibration and
+post-arXiv research.} It is not a complete cryptographic security proof.
+Where the paper makes ``if-then'' arguments, the ``if'' is named and
+bounded; where the argument is heuristic, the heuristic is labeled and
+the limitation acknowledged.
 
 \subsubsection{1.7 Scope and Non-Goals}\label{scope-and-non-goals}
 
@@ -408,20 +570,42 @@ identifies the specific synthesis point.
 
 \subsubsection{1.8 Document Structure}\label{document-structure}
 
-Section 2 surveys background and prior art across Proof of Stake, Proof
-of Useful Work, reputation-weighted consensus, restaking, and Proof of
-Authority families. Section 3 fixes notation and the system model.
-Section 4 specifies the PoUA protocol in full. Section 5 analyzes
-security, including the layered defense against compound
-capital-plus-grinding adversaries (§5.5). Section 6 analyzes incentives.
-Section 7 describes the Ligate Chain implementation, including concrete
-v0 parameter recommendations. Section 8 compares PoUA with prior systems
-across six analytical axes. Section 9 lists limitations and future work.
-Section 10 concludes. Section 11 collects frequently asked questions and
-addresses common misunderstandings raised in early review. References
-follow. Appendix A specifies (in skeleton form) the statistical
-detection procedures for heuristic slashing conditions. Appendix B
-collects formal definitions used throughout.
+Section 1.6.1 separates the paper's claims into proven,
+bounded-under-stated-assumptions, and empirical-or-heuristic; readers in
+a hurry may want to start there. Section 2 surveys background and prior
+art across Proof of Stake, Proof of Useful Work, reputation-weighted
+consensus, restaking, and Proof of Authority families. Section 3 fixes
+notation and the system model. Section 4 specifies the PoUA protocol in
+full, including the §4.4.1 \(\alpha\)-\(\beta\) Pareto frontier and the
+§4.4.2 adaptive \(\tau_{\text{burn}}\) rebase mechanism. Section 5
+analyzes security, including the transition-state \(\kappa\) envelope
+(§5.3.1) and the layered defense against compound capital-plus-grinding
+adversaries (§5.5). Section 6 analyzes incentives, including the §6.3.1
+volume-dependence of the slash deterrent. Section 7 describes the Ligate
+Chain implementation, including concrete v0 parameter recommendations.
+Section 8 compares PoUA with prior systems across six analytical axes.
+Section 9 lists limitations and future work. Section 10 concludes.
+Section 11 collects frequently asked questions and addresses common
+misunderstandings raised in early review. References follow. Appendix A
+specifies the statistical detection procedures for heuristic slashing
+conditions, with analytical false-positive bounds and an empirical FPR
+comparison (ER vs.~scale-free null) in §A.4. Appendix B collects formal
+definitions used throughout.
+
+\textbf{On figures and empirical validation.} v0.7 incorporates five
+empirical figures from the reference simulator at
+\texttt{prototypes/poua-sim/} alongside the analytical derivations:
+cost-to-attack with Monte Carlo overlay (Figure
+\ref{fig:cost-to-attack}), realized \(\kappa\) across the chain
+lifecycle (Figure \ref{fig:kappa-trajectory}), Lemma 1 cartel + burn
+destinations (Figure \ref{fig:lemma1-burn-destinations}),
+volume-deterrent ratio (Figure \ref{fig:volume-deterrent}), and A3
+detector FPR under realistic null hypotheses (Figure
+\ref{fig:a3-fpr-comparison}). Cross-language test vectors at
+\texttt{prototypes/poua-sim/test\_vectors/} encode the analytical truths
+so that a future Rust implementation in \texttt{ligate-chain} can
+re-validate the same algebra. See the simulator README for the
+regeneration workflow.
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -556,6 +740,23 @@ validators are \emph{honest} and follow the protocol.
 The Byzantine bound \(f < n/3\) is the weakest assumption under which
 BFT safety and liveness can be guaranteed in partial synchrony (Dwork et
 al., 1988).
+
+\textbf{Reference simulator coverage of network adversity.} The
+reference simulator at
+\href{https://github.com/ligate-io/ligate-research/tree/main/prototypes/poua-sim}{\texttt{prototypes/poua-sim/}}
+implements four \texttt{NetworkScheduler} protocols that empirically
+exercise the partial-synchrony model above under adversarial conditions:
+uniform / adversarial latency, partition with drops, target-validator
+eclipse, and scale benchmarking across
+\(|V| \in \{50, 100, 250, 500, 1000\}\). Together these cover the four
+adversarial-network categories from §5.2's safety / liveness inheritance
+argument. The simulator's per-validator delivery queue lets blocks
+propagate at scheduler-determined slot offsets while preserving the §4.3
+voter-share semantics: the per-block \(g_{\text{vote}}\) denominator is
+fixed at block creation, so late-arriving voters use the same
+denominator as on-time ones. Empirical results land in §5.3.2 (scale
+invariance), §5.3.2.1 (adversarial latency), and §5.5.6.1 (eclipse
+recovery).
 
 \subsubsection{3.2 Cryptographic
 Assumptions}\label{cryptographic-assumptions}
@@ -705,6 +906,50 @@ validators carry reputation.
 \label{fig:system}
 \end{figure}
 
+\subsubsection{3.8 Why Data Availability Alone Is
+Insufficient}\label{why-data-availability-alone-is-insufficient}
+
+A natural simplification of any attestation system is ``use a data
+availability layer and call it done.'' DA gives immutable byte storage
+and verifiable ordering. For pure attestation logs (e.g., timestamped
+commitments to off-chain content), this is enough.
+
+PoUA is not a pure attestation log. It is a reputation-weighted
+attestation system, which requires three things DA cannot provide.
+
+\textbf{Signer reputation as queryable state.} Section 4.3's reputation
+update is a stateful computation. Light clients must verify ``validator
+\(v\)'s reputation is \(r\) at epoch \(t\)'' without re-executing the
+chain history. This requires consensus on per-epoch reputation, exposed
+as committed state. A DA layer does not produce committed state; it
+produces ordered, available data.
+
+\textbf{Schema-scoped attestor sets.} Each schema (§3.4) declares an
+attestor set with minimum reputation requirements. Validators not in the
+set, or below the threshold, cannot produce valid attestations for that
+schema. Enforcement requires consensus to evaluate set membership and
+reputation predicates at attestation time. DA layers accept all
+submitted bytes regardless of predicate.
+
+\textbf{Protocol-enforced burn.} Lemma 1 (§5.5.3) bounds the adversary's
+cost-to-grind by
+\(F_{\text{net}} \geq \tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha_{\text{eff}})\).
+The bound holds only if the chain enforces the \(\tau_{\text{burn}}\)
+fraction at fee-distribution time. DA layers charge per-byte; they do
+not redirect fees to provable destruction. Without protocol-enforced
+burn, \(F_{\text{net}} \to 0\) and security collapses.
+
+These three requirements collectively define the consensus surface PoUA
+needs above DA. The surface is small (per-validator reputation,
+per-schema policy, fee economics) but nonempty. Pure DA cannot host it.
+This is why PoUA runs as a Sovereign SDK rollup on Celestia rather than
+as a Celestia namespace alone.
+
+The two layers are complementary: Celestia secures the bytes; PoUA
+secures the signer. Both are required, and the security argument in §5
+holds only when both are in place. §11 Q11 answers the same question
+directly for FAQ readers.
+
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \subsection{4. The PoUA Protocol}\label{the-poua-protocol}
@@ -821,17 +1066,26 @@ accumulation pattern; the per-epoch cap \(G_{\max}\) ensures the rate at
 which reputation propagates through the validator set is bounded by
 protocol design rather than by the contingencies of proposer selection.
 
-The choice \(\alpha = 0.7, \beta = 0.3\) reflects two design intuitions:
-(1) proposers do strictly more work (block construction, validity
-verification of every attestation in their block, network propagation)
-than voters (verification only), so they earn more; (2) but voters earn
-enough that a validator participating honestly across an epoch
-accumulates non-negligible reputation even without ever being selected
-as proposer. A new validator with stake \(s\) but \(r_v = r_{\min}\) has
-selection probability \(s \cdot r_{\min} / S\), so they will rarely
-propose early; the \(\beta\) component ensures their honest voting still
-ramps their reputation toward \(r_{\max}\) at a rate bounded below by
-\(\eta \cdot \beta \cdot G_v^{\text{vote}}\).
+The choice \(\alpha = 0.7, \beta = 0.3\) reflects three design
+considerations: (1) proposers do strictly more work (block construction,
+validity verification of every attestation in their block, network
+propagation) than voters (verification only), so they earn more; (2) but
+voters earn enough that a validator participating honestly across an
+epoch accumulates non-negligible reputation even without ever being
+selected as proposer (a new validator with stake \(s\) but
+\(r_v = r_{\min}\) has selection probability \(s \cdot r_{\min} / S\),
+so they will rarely propose early; the \(\beta\) component ensures their
+honest voting still ramps their reputation toward \(r_{\max}\) at a rate
+bounded below by \(\eta \cdot \beta \cdot G_v^{\text{vote}}\)); (3) the
+split also bounds the \emph{coordinated-cartel reputation discount}
+under Lemma 1's cost-to-grind bound. With \(\alpha = 0.7\), a
+Byzantine-fraction cartel pays at most \(\sim 12.5\%\) less per member
+than a single-proposer attacker in the \(k \to \infty\) asymptotic limit
+(and slightly less at finite \(k\)); for \(\alpha = 0.5\) the asymptotic
+discount widens to \(25\%\), and for \(\alpha = 0.9\) it shrinks to
+\(\sim 3.6\%\). Higher \(\alpha\) tightens the cartel bound but worsens
+proposer-rich-get-richer; lower \(\alpha\) improves voter ramp but
+loosens the cartel bound. See §5.5.3 for the full sensitivity analysis.
 
 \subsubsection{4.4 Parameter Calibration}\label{parameter-calibration}
 
@@ -864,6 +1118,403 @@ subject to governance. We provide design guidance:
 
 Section 7.2 gives concrete v0 parameter recommendations for Ligate Chain
 devnet.
+
+\paragraph{\texorpdfstring{4.4.1 The \(\alpha\)-\(\beta\) Split: Pareto
+Frontier}{4.4.1 The \textbackslash alpha-\textbackslash beta Split: Pareto Frontier}}\label{the-alpha-beta-split-pareto-frontier}
+
+The proposer/voter share parameters \((\alpha, \beta)\) with
+\(\alpha + \beta = 1\) sit at a three-axis tradeoff. Higher \(\alpha\)
+tightens the cartel cost-to-grind bound (Lemma 1); lower \(\alpha\)
+spreads reputation accrual across the validator set (combating
+proposer-rich-get-richer); \(\alpha\) also affects the floor on a small
+validator's voter-channel ramp speed. The recommendation
+\(\alpha = 0.7, \beta = 0.3\) is one point on the Pareto frontier; this
+subsection makes the frontier explicit so chain operators can choose
+differently if their objective weights differ.
+
+\textbf{Three metrics.}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Cartel discount at the BFT cap.} Per Lemma 1 (§5.5.3), a
+  Byzantine-fraction cartel pays \(\alpha / \alpha_{\text{eff}}\) of the
+  single-proposer cost-to-grind. Asymptotically:
+  \(\alpha / (\alpha + \beta/3)\). Smaller is better (tighter bound,
+  larger \(F^{\text{net}}\) floor).
+\item
+  \textbf{Voter-channel ramp speed.} A small validator that rarely
+  proposes ramps reputation through the voter channel at rate
+  proportional to \(\beta\). Larger \(\beta\) improves new-validator
+  onboarding speed; smaller \(\beta\) slows it.
+\item
+  \textbf{Proposer-rich-get-richer entrenchment.} Larger \(\alpha\)
+  concentrates reputation gain on the small subset of validators
+  selected as proposers, accelerating divergence in the validator-weight
+  distribution. Smaller \(\alpha\) keeps the distribution flatter.
+\end{itemize}
+
+\textbf{Asymptotic frontier} (closed form, \(k \to \infty\)):
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\(\alpha\)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\(\beta\)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Cartel discount at \(m/k = 1/3\)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Voter-ramp rate (relative)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Entrenchment pressure (relative)
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+0.5 & 0.5 & \(25.0\%\) & \(1.00\) & low \\
+0.6 & 0.4 & \(18.2\%\) & \(0.80\) & low-medium \\
+0.7 & 0.3 & \(12.5\%\) & \(0.60\) & medium \\
+0.8 & 0.2 & \(7.7\%\) & \(0.40\) & medium-high \\
+0.9 & 0.1 & \(3.6\%\) & \(0.20\) & high \\
+1.0 & 0.0 & \(0\%\) (no cartel discount, but voter channel disabled) &
+\(0\) & maximal \\
+\end{longtable}
+}
+
+\textbf{Recommended choice.} \(\alpha = 0.7, \beta = 0.3\). The cartel
+discount of \(\sim 12.5\%\) leaves the bound meaningful (cartel still
+pays \(0.875\times\) the single-proposer floor in non-recoverable fees)
+while the voter channel keeps new validators viable. Operators with
+stronger anti-entrenchment requirements may prefer \(\alpha = 0.6\);
+operators with stronger anti-cartel requirements may prefer
+\(\alpha = 0.8\). The empirical frontier across \(k \in \{12, 100\}\) is
+exercised in the simulator at
+\texttt{prototypes/poua-sim/scripts/run\_lemma1\_scan.py}.
+
+\paragraph{\texorpdfstring{4.4.2 Parameter Drift and Adaptive
+\(\tau_{\text{burn}}\)
+Rebase}{4.4.2 Parameter Drift and Adaptive \textbackslash tau\_\{\textbackslash text\{burn\}\} Rebase}}\label{parameter-drift-and-adaptive-tau_textburn-rebase}
+
+Lemma 1's bound holds in protocol-denominated tokens. As the chain's fee
+economics shift (deflationary token, low-volume periods, schemas racing
+to the bottom on attestation fees), the absolute non-recoverable burn
+shrinks while the formal claim stays unchanged on paper. A static
+\(\tau_{\text{burn}}\) erodes silently. ``Subject to governance'' is not
+an answer when governance moves slower than the fee market drifts.
+
+This subsection specifies the \textbf{adaptive \(\tau_{\text{burn}}\)
+rebase} mechanism that handles routine drift without governance
+intervention. Governance retains override authority for structural
+shifts.
+
+\textbf{Telemetry surface.} The chain publishes per-epoch:
+
+\begin{itemize}
+\tightlist
+\item
+  Realized \(\bar{r}_H\) (stake-weighted average reputation across
+  honest validators).
+\item
+  Realized \(\kappa = \bar{r}_H / r_{\min}\).
+\item
+  Realized cost-to-grind \(\hat{F}^{\text{net}}_{\text{per member}}\) at
+  the current parameters and observed traffic.
+\item
+  Volume-deterrent ratio \(\hat{\rho}_{\text{vol}} = (R_b + R_f) / R_b\)
+  averaged over the epoch (§6.3.1).
+\item
+  Fee-distribution statistics (median, p10, p90 of attestation fees per
+  schema).
+\item
+  Validator-weight distribution (Gini coefficient on \(w_v\), top-1/3/10
+  share).
+\end{itemize}
+
+These are exposed as REST endpoints under the reputation module's
+namespace and as on-chain commitments so light clients can verify
+without trusting a node.
+
+\textbf{Threshold-triggered rebase rule.} Define a target floor
+\(\hat{F}^{\text{net}}_{\text{floor}}\) and ceiling
+\(\hat{F}^{\text{net}}_{\text{ceiling}}\) on the realized cost-to-grind.
+The rebase fires symmetrically:
+
+\[\tau_{\text{burn}}(t+1) = \begin{cases}
+\tau_{\text{burn}}(t) \cdot (1 + \Delta) & \text{if } \hat{F}^{\text{net}}(t) < \hat{F}^{\text{net}}_{\text{floor}} \text{ for } N \text{ consecutive epochs} \\
+\tau_{\text{burn}}(t) \cdot (1 - \Delta) & \text{if } \hat{F}^{\text{net}}(t) > \hat{F}^{\text{net}}_{\text{ceiling}} \text{ for } N \text{ consecutive epochs} \\
+\tau_{\text{burn}}(t) & \text{otherwise}
+\end{cases}\]
+
+clipped to \([\tau_{\min}, \tau_{\max}]\) and rate-limited to one step
+per \(N\)-epoch window.
+
+\textbf{Recommended parameters.}
+
+\begin{itemize}
+\tightlist
+\item
+  \(\hat{F}^{\text{net}}_{\text{floor}} = 0.7 \cdot \hat{F}^{\text{net}}_{\text{calib}}\),
+  where \(\hat{F}^{\text{net}}_{\text{calib}}\) is the v0 design target
+  (5\{,\}000 fee-units at the v0 parameters).
+\item
+  \(\hat{F}^{\text{net}}_{\text{ceiling}} = 2.0 \cdot \hat{F}^{\text{net}}_{\text{calib}}\).
+\item
+  \(N = 30\) epochs (\textasciitilde5 days at \(E = 14400\),
+  \(\tau = 1\,\text{s}\)).
+\item
+  \(\Delta = 0.1\) (10\% multiplicative step).
+\item
+  \(\tau_{\min} = 0.1\), \(\tau_{\max} = 0.9\).
+\end{itemize}
+
+These bounds keep the parameter inside the feasible \(\tau \in (0, 1]\)
+range and prevent oscillation: the symmetric rebase with hysteresis
+between floor and ceiling, plus the \(N\)-epoch cooldown, gives a stable
+trajectory under stationary fee distributions (verified by simulator
+tests in the v0.7 milestone of \texttt{prototypes/poua-sim/}).
+
+\textbf{Governance escalation.} For structural shifts that the
+auto-adjuster cannot handle (token-supply changes, fee-market redesign,
+attestation-flow regime changes), governance can:
+
+\begin{itemize}
+\tightlist
+\item
+  Override \(\tau_{\text{burn}}\) to a specific value.
+\item
+  Adjust \(\tau_{\min}, \tau_{\max}\) bounds.
+\item
+  Pause or unpause the auto-adjuster.
+\item
+  Trigger a one-time re-anchoring of
+  \(\hat{F}^{\text{net}}_{\text{calib}}\).
+\end{itemize}
+
+Governance is the \textbf{slow-but-permanent} layer; the auto-adjuster
+is the \textbf{fast-but-bounded} layer. The split mirrors how
+rules-based monetary policy interacts with deliberate human override in
+well-designed central banks.
+
+\textbf{Failure modes.} (1) Auto-adjuster oscillation if \(\Delta\) is
+too large or \(N\) too small. Mitigation: simulator-tuned defaults plus
+the rate-limit. (2) Telemetry gaming by validators reporting biased
+\(\hat{F}^{\text{net}}\). Mitigation: telemetry is computed by the chain
+runtime, not reported by validators. (3) Governance capture of the
+\(\tau_{\min}, \tau_{\max}\) bounds. Mitigation: bounds are themselves
+rate-limited at the governance layer. None of these break the core
+mechanism; they constrain what the operator must monitor.
+
+\textbf{Equivalent treatment for $\eta$ and $\lambda$.} The same drift
+problem applies to the reputation-growth rate \(\eta\) and the
+slash-decay rate \(\lambda\). Both get the same telemetry +
+threshold-triggered + governance-escalation treatment, specified in
+§4.4.3 below.
+
+\paragraph{\texorpdfstring{4.4.3 Adaptive \(\eta\) and \(\lambda\)
+Rebase}{4.4.3 Adaptive \textbackslash eta and \textbackslash lambda Rebase}}\label{adaptive-eta-and-lambda-rebase}
+
+§4.4.2 specifies the rebase mechanism for \(\tau_{\text{burn}}\), the
+cost-to-grind floor parameter. The §4.3 update has two other free
+parameters that drift in production for analogous reasons: \(\eta\)
+(reputation gain per fee-unit of \(g_v\)) and \(\lambda\) (reputation
+lost per unit of \(b_v\)). This subsection mirrors §4.4.2's structure
+for both, with distinct telemetry signals appropriate to each.
+
+\textbf{Why $\eta$ drifts.} If the chain enters a low-volume regime,
+\(\eta \cdot G_{\max}\) may be too small to drive ramp at the target
+\(T_{\text{ramp}}\) rate; honest validators stay near \(r_{\min}\) for
+longer than the calibration assumed. If attestation volume spikes (a
+popular schema goes viral), \(\eta\) is too large and validators
+saturate \(G_{\max}\) in fewer epochs than intended; the cost-to-grind
+argument tightens for the wrong reason (cheaper-to-burn, not
+earned-by-work).
+
+\textbf{Why $\lambda$ drifts.} If slash events become more frequent
+(network instability, adversary churn), the absolute reputation cost per
+slash stays the same in \(\lambda\) but becomes a smaller share of the
+total reputation churn; deterrent erodes. If governance adds new
+slashing conditions (e.g., a future MEV-attestation slash) with
+severities calibrated against the original \(\lambda\), the new
+conditions are mispriced relative to the existing ones until \(\lambda\)
+is re-anchored.
+
+\textbf{Telemetry signals.}
+
+\begin{itemize}
+\tightlist
+\item
+  \(\eta\) signal: \(T_{\text{ramp,obs}}\), the observed ramp time for a
+  \emph{median-participation validator} (50th percentile by \(g_v\))
+  computed over a rolling window \(W_\eta\) epochs. Drift indicator
+  \(D_\eta = T_{\text{ramp,obs}} / T_{\text{ramp,target}} - 1\). The
+  median-validator construction is robust to whales (high-\(g_v\)
+  outliers) and free-riders (zero-\(g_v\) outliers); the signal is
+  invariant under symmetric outlier injection up to Byzantine
+  \(\rho \leq 1/3\).
+\item
+  \(\lambda\) signal: \(\Delta r_{\text{obs}}\), the mean reputation
+  drop per recorded severe-class slash event, computed over a rolling
+  window of \(W_\lambda\) severe slashes (event-counted, not
+  epoch-counted, because severe slashes are sparse). Drift indicator
+  \(D_\lambda = \Delta r_{\text{obs}} / (r_{\max} - r_{\min}) - 1\). A
+  sparsity floor \(W_{\lambda,\min}\) keeps the rebase dormant until
+  enough events have accumulated for a stable estimate.
+\end{itemize}
+
+\textbf{Rebase rules.} Both mirror §4.4.2's structure exactly; the only
+differences are the drift signal and the sign convention for \(\lambda\)
+(positive drift means the slash is over-calibrated, reduce \(\lambda\)).
+
+\[\eta(t+1) = \begin{cases}
+\eta(t) \cdot (1 + \Delta_\eta) & \text{if } D_\eta(t) > +\varphi \text{ for } N \text{ consecutive epochs} \\
+\eta(t) \cdot (1 - \Delta_\eta) & \text{if } D_\eta(t) < -\varphi \text{ for } N \text{ consecutive epochs} \\
+\eta(t) & \text{otherwise}
+\end{cases}\]
+
+\[\lambda(t+1) = \begin{cases}
+\lambda(t) \cdot (1 - \Delta_\lambda) & \text{if } D_\lambda(t) > +\varphi \text{ and } W_\lambda \text{ events accumulated} \\
+\lambda(t) \cdot (1 + \Delta_\lambda) & \text{if } D_\lambda(t) < -\varphi \text{ and } W_\lambda \text{ events accumulated} \\
+\lambda(t) & \text{otherwise}
+\end{cases}\]
+
+Both rules clip to \([\eta_{\min}, \eta_{\max}]\) and
+\([\lambda_{\min}, \lambda_{\max}]\) respectively and rate-limit to at
+most one step per \(N\)-epoch window.
+
+\textbf{Recommended parameters.} Derived from §4.4.2's
+\(\tau_{\text{burn}}\) rebase as the family default; tunable
+per-deployment.
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Parameter
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Value
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Rationale
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\(\varphi\) & 0.30 & 30\% drift before rebase fires (matches §4.4.2) \\
+\(\Delta_\eta, \Delta_\lambda\) & 0.10 & 10\% multiplicative step
+(matches §4.4.2) \\
+\(N\) & 30 epochs & \textasciitilde5 days at \(E = 14400\),
+\(\tau = 1\,\text{s}\) \\
+\(W_\eta\) & 100 epochs & \textasciitilde16.7 days at v0; long enough
+for ramp-time stability \\
+\(W_\lambda\) & 50 severe slash events & Multi-month window at expected
+slash rates \\
+\(W_{\lambda,\min}\) & 10 severe slash events & Sparsity floor; rebase
+dormant below this \\
+\((\eta_{\min}, \eta_{\max})\) & \((0.0001, 0.01)\) & 100\(\times\)
+dynamic range around v0 \(\eta = 0.001\) \\
+\((\lambda_{\min}, \lambda_{\max})\) & \((0.5, 2.0)\) & 4\(\times\)
+dynamic range around v0 \(\lambda = 1.0\) \\
+\(T_{\text{ramp,target}}\) & 7000 epochs & Matches v0 calibration in
+§7.2 \\
+\(\Delta r_{\text{target}}\) & \(r_{\max} - r_{\min} = 7.0\) & Severe
+slash takes a full ramp \\
+\end{longtable}
+}
+
+\textbf{Three-rebase interaction.} The chain runs three rebases
+concurrently in v0.8: \(\tau_{\text{burn}}\), \(\eta\), \(\lambda\).
+Their primary signals are orthogonal: \(F_{\text{net}}\) depends on fee
+economics, \(T_{\text{ramp,obs}}\) on attestation volume,
+\(\Delta r_{\text{obs}}\) on slashing-condition catalog. Correlation
+enters only at second order, e.g., a fee regime change can shift
+attestation volume which feeds back into \(\eta\). Under worst-case
+correlated drift (all three signals drifting in the
+cost-to-grind-shrinking direction simultaneously), each step is bounded
+by \(\Delta \leq 0.1\) and the combined per-step effect on the Lemma 1
+floor
+\(F_{\text{net}} \geq \tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha_{\text{eff}})\)
+is bounded by \((1.1) \cdot (1.1) / (0.9) \approx 1.34\). The rate-limit
+prevents compounding within the same \(N\)-epoch window. The simulator's
+\texttt{test\_three\_rebases\_concurrent\_no\_amplification} runs all
+three rebases under correlated drift and confirms the combined Lyapunov
+\(V = D_\tau^2 + D_\eta^2 + D_\lambda^2\) is non-increasing; §11 Q13
+expands on this.
+
+\textbf{Adversarial signal manipulation.} Both signals are computed from
+on-chain state, not validator-reported, so direct telemetry injection is
+not the attack surface. The only adversarial lever on \(\eta\) is
+biasing the median-participation \(g_v\) by submitting zero or maximal
+attestation work; the median is robust to outliers up to Byzantine
+\(\rho \leq 1/3\) and empirically the attack cannot shift
+\(T_{\text{ramp,obs}}\) by more than \(\sim 10\%\). The only adversarial
+lever on \(\lambda\) is choosing whether to be slashed, which is
+asymmetric: the adversary loses the slash itself, so there is no
+positive-EV signal-manipulation strategy. Both signals inherit the
+chain's underlying BFT integrity; the rebase is not an additional attack
+surface.
+
+\textbf{Failure modes (condensed from the working spec).}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Failure
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Detection
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Mitigation
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Auto-adjuster oscillation & \(\Delta\eta / \eta\) or
+\(\Delta\lambda / \lambda\) flipping sign within \(< 2N\) epochs &
+\(\varphi\) hysteresis + \(N\)-epoch cooldown + \(\Delta \leq 0.1\) \\
+Telemetry sparsity (\(\lambda\)) & \(W_\lambda\) events not yet
+accumulated & Dormancy below \(W_{\lambda,\min} = 10\) \\
+Median-validator gaming (\(\eta\)) & Sudden median-\(g_v\) shift
+correlated with adversary slot rotation & Detector: monitor
+median-validator \(g_v\) variance; alert at \(> 2\sigma\) \\
+Three-rebase compound drift & All parameters at clip bounds
+simultaneously & 34\% one-step worst-case bound; ``rebase saturation''
+alert when any parameter sits at a clip bound for \(> N\) epochs \\
+\end{longtable}
+}
+
+\textbf{Governance escalation.} Identical to §4.4.2: governance can
+override \(\eta\) or \(\lambda\) to a specific value, adjust the clip
+bounds (rate-limited at the governance layer, at most \(\pm 20\%\) per
+governance vote, at most one bound vote per quarter), pause or unpause
+the auto-adjuster on either parameter, or trigger a one-time
+re-anchoring of \(T_{\text{ramp,target}}\) or
+\(\Delta r_{\text{target}}\) if the underlying calibration target has
+shifted.
+
+\textbf{Reference implementation.} The
+\href{https://github.com/ligate-io/ligate-research/tree/main/prototypes/poua-sim}{reference
+simulator} provides \texttt{RebaseConfig}, \texttt{RebaseTelemetry}, and
+the three rebase functions. The test suite validates convergence,
+dormancy, multi-parameter non-amplification, and median-validator
+robustness against synthetic drift signals. The full spec including the
+Lyapunov stability argument is in
+\href{https://github.com/ligate-io/ligate-research/blob/main/papers/poua/specs/eta-lambda-rebase.md}{the
+working spec}.
 
 \subsubsection{4.5 Slashing Conditions}\label{slashing-conditions}
 
@@ -1062,56 +1713,185 @@ multiplicative cost premium of:
 In a healthy chain at steady state, \(\bar{r}_H\) approaches
 \(r_{\max}\), giving \(\kappa \to r_{\max}/r_{\min}\). Per Section 4.4
 design guidance (\(r_{\max}/r_{\min} \in [4, 10]\)), the capital
-adversary's cost-to-attack is \textbf{4 to 10 times higher} than an
-equivalent pure-stake PoS chain.
+adversary's cost-to-attack is \textbf{up to 4 to 10 times higher} than
+an equivalent pure-stake PoS chain \emph{at steady state} (Figure
+\ref{fig:cost-to-attack}). The realized \(\kappa\) is lower during the
+warmup window, during validator-set ramp, and immediately after a slash;
+§5.3.1 quantifies these transition-state effects (empirical trajectory:
+Figure \ref{fig:kappa-trajectory}).
 
 This premium \(\kappa\) is the formal moat PoUA constructs over generic
 PoS. Figure 2 plots the relationship
 \(s_{\mathcal{C}} / S_H = \kappa \cdot \rho/(1-\rho)\) for three values
-of \(\kappa\), illustrating the multiplicative effect of the reputation
-premium on capital required to acquire any target weight fraction
-\(\rho\).
+of \(\kappa\), with empirical Monte Carlo points overlaid from the
+reference simulator.
 
 \begin{figure}[h]
 \centering
-\begin{tikzpicture}
-\begin{axis}[
-  width=11cm,
-  height=7cm,
-  xlabel={\small Attack fraction $\rho$ (target share of total weight)},
-  ylabel={\small Stake required, in multiples of honest stake $S_H$},
-  legend pos=north west,
-  legend style={font=\scriptsize},
-  domain=0.01:0.49,
-  samples=120,
-  xmin=0, xmax=0.5,
-  ymin=0, ymax=8,
-  xtick={0, 0.1, 0.2, 0.333, 0.4, 0.5},
-  xticklabels={$0$, $0.1$, $0.2$, $\frac{1}{3}$, $0.4$, $0.5$},
-  ytick={0, 1, 2, 4, 6, 8},
-  grid=both,
-  major grid style={line width=.2pt, draw=gray!30},
-  minor grid style={line width=.1pt, draw=gray!10},
-  axis line style={draw=black!60},
-  tick style={draw=black!60}
-]
-\addplot[thick, blue!70!black] {x/(1-x)};
-\addlegendentry{Pure PoS ($\kappa = 1$)}
-
-\addplot[thick, orange!85!black] {4*x/(1-x)};
-\addlegendentry{PoUA ($\kappa = 4$)}
-
-\addplot[thick, red!75!black] {8*x/(1-x)};
-\addlegendentry{PoUA ($\kappa = 8$)}
-
-\draw[dashed, gray!70, thick] (axis cs:0.333,0) -- (axis cs:0.333,8);
-\node[anchor=south west, font=\scriptsize, gray!70!black] at (axis cs:0.337, 6.4) {BFT safety};
-\node[anchor=south west, font=\scriptsize, gray!70!black] at (axis cs:0.337, 5.7) {threshold};
-
-\end{axis}
-\end{tikzpicture}
-\caption{Cost-to-attack curves for pure stake-weighted PoS and for PoUA at two reputation-premium values, derived from $s_{\mathcal{C}} / S_H = \kappa \cdot \rho/(1-\rho)$. The vertical dashed line marks the BFT safety threshold $\rho = 1/3$. At this threshold, pure PoS requires $0.5 \, S_H$ in fresh stake, while PoUA at $\kappa = 8$ requires $4.0 \, S_H$, a multiplicative moat of $8\times$. The curves diverge most sharply as the attack fraction grows.}
+\includegraphics[width=0.9\textwidth]{../../prototypes/poua-sim/out/cost_to_attack.png}
+\caption{Cost-to-attack curves for pure stake-weighted PoS ($\kappa = 1$) and for PoUA at $\kappa \in \{4, 8\}$, derived from $s_{\mathcal{C}} / S_H = \kappa \cdot \rho/(1-\rho)$. Lines are analytical; markers are empirical (30 Monte Carlo seeds × 2{,}000 slots/seed × 10 honest validators), produced by \texttt{prototypes/poua-sim/scripts/run\_capital\_scan.py}. The vertical dashed line marks the BFT safety threshold $\rho = 1/3$. At this threshold, pure PoS requires $0.5 \, S_H$ in fresh stake while PoUA at $\kappa = 8$ requires $4.0 \, S_H$, a multiplicative moat of $8\times$. Empirical points sit on analytical curves to within binomial sampling variance. Curves assume $\bar{r}_H = r_{\max}$ (steady state); §5.3.1 quantifies the transition-state envelope.}
 \label{fig:cost-to-attack}
+\end{figure}
+
+\subsubsection{\texorpdfstring{5.3.1 Transition-State
+\(\kappa\)}{5.3.1 Transition-State \textbackslash kappa}}\label{transition-state-kappa}
+
+The cost-to-attack premium \(\kappa = \bar{r}_H / r_{\min}\) is a
+steady-state ceiling. Three lifecycle conditions push the realized
+\(\kappa\) below this ceiling, and an attacker timing entry to those
+windows extracts a real (if bounded) discount.
+
+\textbf{Warmup window.} Per §4.6, for the first \(T_{\text{warmup}}\)
+epochs after genesis (recommended 14 epochs \(\approx\) 2-3 days), the
+chain operates as pure stake-weighted PoS: reputation values are
+computed but not folded into vote weight. During this window:
+
+\[\kappa_{\text{warmup}} = 1 \quad \text{for } t \in [0, T_{\text{warmup}}].\]
+
+A capital adversary timing an attack to land before
+\(T_{\text{warmup}}\) pays the same \(\rho/(1-\rho)\) cost ratio as on a
+pure-PoS chain, with no premium. The warmup is a deliberate trade: it
+gives validators a uniform window to accumulate baseline reputation
+under symmetric conditions, at the cost of leaving the chain at
+\(\kappa = 1\) for that window. Mitigations: pin a high
+genesis-validator-set quality bar, run an extended permissioned phase
+before mainnet activation, or shorten \(T_{\text{warmup}}\) at the cost
+of a noisier reputation distribution at activation.
+
+\textbf{Validator-set ramp.} A validator entering at epoch
+\(t_e > T_{\text{warmup}}\) joins with \(r_v = r_{\min}\) and ramps
+toward \(r_{\max}\) over \(T_{\text{ramp}}\) epochs of honest
+participation (recommended \(\approx 30\) epochs \(\approx\) 5 days).
+The reputation contribution of this validator to \(\bar{r}_H\) during
+ramp is:
+
+\[r_v(t) \approx r_{\min} + \min\!\left(1, \frac{t - t_e}{T_{\text{ramp}}}\right) \cdot (r_{\max} - r_{\min}) \quad \text{for } t \geq t_e.\]
+
+For a validator set with churn rate \(\mu\) (fraction of validators
+replaced per epoch), the steady-state share of validators in their ramp
+window is \(\mu \cdot T_{\text{ramp}}\), each contributing on average
+\(r_{\min} + (r_{\max} - r_{\min})/2\) to \(\bar{r}_H\). The realized
+\(\bar{r}_H\) at steady state with churn:
+
+\[\bar{r}_H(\mu) \approx (1 - \mu T_{\text{ramp}}) \cdot r_{\max} + \mu T_{\text{ramp}} \cdot \tfrac{r_{\min} + r_{\max}}{2}.\]
+
+For typical churn (\(\mu \approx 0.001\) per epoch, i.e., \(\sim 1\%\)
+validator turnover per month) and \(T_{\text{ramp}} = 30\), the ramp
+share is \(\mu T_{\text{ramp}} = 0.03\) (\(3\%\) of validators in their
+ramp window at any time), and
+\(\bar{r}_H \approx 0.985 \cdot r_{\max} + 0.015 \cdot (r_{\min} + r_{\max})/2\).
+With \(r_{\max}/r_{\min} = 8\): \(\bar{r}_H/r_{\min} \approx 7.93\),
+only \(\sim 1\%\) below the steady-state ceiling. For a validator set
+with high churn (e.g., \(\mu = 0.01\) per epoch, \(30\%\) in ramp
+window), \(\bar{r}_H/r_{\min} \approx 6.65\), an \(\sim 17\%\) moat
+reduction. \textbf{Operational implication:} a chain that experiences a
+large coordinated entry of new validators (e.g., a validator-set
+expansion event) sees \(\kappa\) depressed for \(T_{\text{ramp}}\)
+afterward, and security-conscious chain operators should sequence such
+events away from periods of expected attack pressure.
+
+\textbf{Post-slash recovery.} When validator \(v\) is slashed at
+severity \(\Lambda\), their reputation drops to \(r_{\min}\) (per §4.5,
+recommended \(\lambda\) chosen such that a single severe slash drops
+\(r_v\) from \(r_{\max}\) to \(r_{\min}\)). If \(v\) controls stake
+share \(s_v / S_H\) at the time of slashing, \(\bar{r}_H\) drops by:
+
+\[\Delta \bar{r}_H = -\frac{s_v}{S_H} \cdot (r_{\max} - r_{\min})\]
+
+(approximately; the exact reduction depends on whether \(v\) exits or
+remains slashed-but-active). Recovery to the pre-slash \(\bar{r}_H\)
+takes at least \(T_{\text{ramp}}\) if \(v\) exits and is replaced by a
+fresh validator of equal stake, or \(T_{\text{ramp}}\) if \(v\) remains
+active and rebuilds reputation. For a slash of a small-stake validator
+(\(s_v / S_H \ll 1\)), \(\bar{r}_H\) barely moves; for a slash of a
+major validator (\(s_v / S_H \approx 0.1\)), \(\bar{r}_H\) drops by
+\(\sim 0.1 \cdot (r_{\max} - r_{\min})\), weakening \(\kappa\) by
+approximately the same factor for the duration of the recovery window.
+
+\textbf{Weighted-average formulation.} Combining the three effects, the
+chain's realized \(\kappa\) at time \(t\) is:
+
+\[\kappa(t) = \begin{cases} 1 & t < T_{\text{warmup}}, \\ \dfrac{\bar{r}_H(t)}{r_{\min}} & t \geq T_{\text{warmup}}, \end{cases}\]
+
+with \(\bar{r}_H(t)\) a stake-weighted average over all validators of
+their current reputation. The steady-state ceiling \(r_{\max}/r_{\min}\)
+is reached only when (i) \(t \gg T_{\text{warmup}} + T_{\text{ramp}}\),
+(ii) churn is low (\(\mu T_{\text{ramp}} \ll 1\)), and (iii) no recent
+major slash has occurred.
+
+\textbf{Operational guidance.} Chains should:
+
+\begin{itemize}
+\tightlist
+\item
+  Avoid scheduling protocol-critical events (governance votes, treasury
+  releases, schema activations) inside the warmup window or immediately
+  after a major slash.
+\item
+  Publish \(\bar{r}_H(t)\) as part of the chain's public telemetry so
+  off-chain consumers can adjust their trust assumptions during
+  transition periods.
+\item
+  Treat the headline ``\(4-10\times\) moat'' as a steady-state
+  guarantee, not an instantaneous one.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{../../prototypes/poua-sim/out/kappa_trajectory.png}
+\caption{Empirical realized $\kappa$ across the chain's lifecycle, produced by \texttt{prototypes/poua-sim/scripts/run\_kappa\_trajectory.py}. Top panel: stake-weighted $\bar{r}_H(t)$. Bottom panel: realized $\kappa = \bar{r}_H / r_{\min}$, with the steady-state ceiling $r_{\max}/r_{\min} = 8$ marked by a dashed line. Phase shading: warmup (yellow), ramp (blue), steady state (green), post-slash recovery (red). The slash event at epoch 54 drops $\bar{r}_H$ by $(s_v / S_H) \cdot (r_{\max} - r_{\min}) \approx 0.7$ for a $10\%$-stake validator and recovers linearly over the next $T_{\text{ramp}}$ epochs.}
+\label{fig:kappa-trajectory}
+\end{figure}
+
+\subsubsection{\texorpdfstring{5.3.2 Scale Invariance of
+\(\kappa\)}{5.3.2 Scale Invariance of \textbackslash kappa}}\label{scale-invariance-of-kappa}
+
+The §5.3 cost-to-attack premium \(\kappa = r_{\max} / r_{\min}\) at
+steady state is invariant in the validator-set size \(|V|\). The §4.3
+update applies per-validator with per-block voter share
+\(\eta \cdot \beta \cdot \text{fee} / k\) independent of \(|V|\) at
+fixed block production rate. The simulator confirms this empirically: at
+\(|V| \in \{50, 100, 250, 500, 1000\}\) with uniform stake and the v0
+reputation parameters (modulo a figure-time scaling of \(\eta\) and
+\(g_{\max}\) to keep ramp time bounded; see figure caption), realized
+\(\kappa\) saturates at the \(r_{\max} / r_{\min} = 8\) ceiling for
+every scale tested. The §5.3 small-set Lemma 1 example (\(|V| = 10\))
+generalizes to mainnet-scale validator sets without parameter retuning.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{../../prototypes/poua-sim/out/scale_benchmark.png}
+\caption{Scale invariance of realized $\kappa$. Top: realized $\kappa = \bar{r}_H / r_{\min}$ at steady state across $|V| \in \{50, 100, 250, 500, 1000\}$; all five scales saturate at the $r_{\max} / r_{\min} = 8$ ceiling. Bottom: simulator throughput (slots/sec) on log-log axes. Figure-time parameters $\eta = 0.05$, $g_{\max} = 10$ ensure bounded ramp time across scales; the $\kappa$ ceiling is the same at v0 production parameters ($\eta = 0.001$, $g_{\max} = 233$), only the ramp time differs. Generated by \texttt{prototypes/poua-sim/scripts/run\_scale\_benchmark.py}.}
+\label{fig:scale-benchmark}
+\end{figure}
+
+\paragraph{\texorpdfstring{5.3.2.1 \(\kappa\) under adversarial
+scheduling}{5.3.2.1 \textbackslash kappa under adversarial scheduling}}\label{kappa-under-adversarial-scheduling}
+
+The \texttt{AdversarialLatencyScheduler} (PR
+\href{https://github.com/ligate-io/ligate-research/pull/75}{\#75})
+models a network adversary that delivers blocks instantly to cartel
+members while delaying honest validators by \(\Delta_{\text{adv}}\)
+slots. The simulator measures realized \(\kappa\) as a function of
+\(\Delta_{\text{adv}}\). In our single-chain reference simulator, the
+§4.3 voter-share denominator is fixed at block creation, so late honest
+votes still contribute the same per-vote share they would in the
+synchronous case. As a result, \(\kappa\) is essentially insensitive to
+\(\Delta_{\text{adv}}\) across the range tested: cartel and honest
+validators alike accumulate to the ceiling, with only transient
+differences during the queue-drain phase at run end. Figure
+\ref{fig:adversarial-latency} confirms this. The qualitative ``BFT-bound
+collapse'' regime, beyond which the consensus primitive fails, is
+outside the simulator's scope (we assume a single canonical chain by
+construction); reviewers asking about that regime should consult the
+§5.2 inheritance argument, which delegates safety / liveness to the
+underlying BFT primitive's analytical bound.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{../../prototypes/poua-sim/out/adversarial_latency.png}
+\caption{Realized $\kappa$ across adversarial-latency settings. The x-axis is the cartel-vs-honest delivery delay $\Delta_{\text{adv}}$ (slots); the y-axis is realized $\kappa = \bar{r}_H / r_{\min}$ at steady state. The simulator's per-validator delivery queue preserves the §4.3 voter-share semantics under arbitrary delay: late honest votes still contribute their per-block share, so $\kappa$ stays at the $r_{\max} / r_{\min} = 8$ ceiling regardless of $\Delta_{\text{adv}}$. This is the simulator's empirical statement; the analytical ``BFT-bound collapse'' regime is outside this single-chain model and is covered by the §5.2 inheritance argument. Generated by \texttt{prototypes/poua-sim/scripts/run\_adversarial\_latency.py}.}
+\label{fig:adversarial-latency}
 \end{figure}
 
 \subsubsection{5.4 Reputation Adversary}\label{reputation-adversary}
@@ -1139,7 +1919,7 @@ submitted by the adversary over the period. Inverting:
 To raise reputation to \(r_{\max}\), the adversary must pay at least
 \((r_{\max} - r_{\min})/(\eta \cdot \alpha)\) in gross attestation fees.
 This cost is \textbf{paid into the chain's economy} (treasury, builder
-routing) --- i.e., for the \emph{pure} reputation adversary (no fee
+routing), i.e., for the \emph{pure} reputation adversary (no fee
 recovery via owned schemas) it is not pure deadweight loss, but it is
 also not recoverable.
 
@@ -1191,7 +1971,7 @@ mechanisms operating at three levels: formal protocol rules, economic
 disincentives, and post-hoc detection. Each layer is independently
 breakable; the combination is not.
 
-\paragraph{5.5.1 Layer 1 --- Proposer-submitter address exclusion
+\paragraph{5.5.1 Layer 1: Proposer-submitter address exclusion
 (formal)}\label{layer-1-proposer-submitter-address-exclusion-formal}
 
 \textbf{Rule.} In the reputation update of §4.3, an attestation
@@ -1204,7 +1984,7 @@ submitter). But it raises the floor: the adversary must now manage at
 least two distinct on-chain identities, with the second receiving funds
 from the first via observable transactions. This forces Layer 2.
 
-\paragraph{5.5.2 Layer 2 --- Address-graph distance
+\paragraph{5.5.2 Layer 2: Address-graph distance
 (formal)}\label{layer-2-address-graph-distance-formal}
 
 \textbf{Rule.} An attestation \(\alpha\) contributes 0 to \(g_v(t)\) if
@@ -1234,87 +2014,318 @@ case; in practice the relevant subgraph is sparse).
 \textbf{Cost to evade.} The adversary must route the submitter's funding
 through \(d\) or more intermediate addresses, none of which can have
 direct funding ties to \(v\). Each intermediate address must itself be
-funded from somewhere - either an exchange (real cost: KYC +
-withdrawal), a mixer (real cost: mixer fees + observable mixer
+funded from somewhere. Three sources, each with real cost: an exchange
+(KYC + withdrawal latency), a mixer (mixer fees plus observable mixer
 interaction, which is itself a heuristic flag), or another
-previously-laundered address (compounding the setup work). For a
-determined adversary, this is bypassable with sustained pre-attack
-address staging; for casual reputation farming, it is a hard barrier.
+previously-laundered address (compounding the setup work).
 
-\paragraph{5.5.3 Layer 3 --- Non-recoverable treasury share (formal,
+A concrete lower bound on the per-attack staging cost: let \(K\) be the
+number of staged intermediate addresses (with \(K \geq d\) for distance
+compliance), \(T_{\text{kyc}}\) the time cost of producing one
+KYC-verified withdrawal address (typically hours to days per identity),
+and \(F_{\text{mixer}}\) the per-pass mixer fee fraction (typically
+0.5-3\% of the funded amount per Tornado Cash, Wasabi, or analogous
+mixer). The adversary's working-capital cost is at least
+
+\[F_{\text{stage}} \geq K \cdot F_{\text{mixer}} \cdot s_{\text{submitter}}\]
+
+where \(s_{\text{submitter}}\) is the funding amount routed through each
+intermediate, and the time cost is at least \(K \cdot T_{\text{kyc}}\)
+in attacker labor (or pre-staged from earlier compromised accounts,
+which is itself a constraint). For \(d = 3\) and
+\(F_{\text{mixer}} = 0.01\): routing \(1{,}000\) tokens through 3
+intermediates costs at minimum \(30\) tokens in mixer fees alone, plus
+the labor cost of staging three KYC-verified deposit accounts. This is
+bypassable with sustained pre-attack staging; for casual reputation
+farming it is a hard barrier. The bound is loose (mixer fees vary, KYC
+time varies), but it establishes the economic floor below which evasion
+is implausible.\footnote{In the simulator's deterministic-membership
+  specialization (reference implementation below), the chain's knowledge
+  of controlled-membership is exact and the cost-to-evade is infinite.
+  The finite bound above applies to the production distance-\(d\) rule,
+  where on-chain graph-distance approximation introduces the
+  staged-address evasion path quantified by \(F_{\text{stage}}\).}
+
+\textbf{Reference simulator implementation.} The simulator implements
+Layer 2 as a \emph{deterministic-membership specialization}: each
+validator carries a \texttt{controlled\_addresses} set, and an
+attestation \(\alpha\) is rejected if
+\(\alpha.\text{submitter} \in v.\text{controlled\_addresses}\). This is
+equivalent to the production rule in the limit where the chain derives
+controlled-membership perfectly from the transaction graph; it is
+strictly stronger than any real distance-\(d\) heuristic (every
+adversary the production rule catches via on-chain graph-distance, the
+simulator catches; the simulator does not catch sybil-distance
+constructions where addresses are formally graph-distant but
+operationally co-controlled, which the production rule's distance-\(d\)
+traversal also misses absent off-chain intelligence). Reference
+implementation at
+\href{https://github.com/ligate-io/ligate-research/blob/main/prototypes/poua-sim/src/poua_sim/validator.py}{\texttt{Validator.controlled\_addresses}}
+and
+\href{https://github.com/ligate-io/ligate-research/blob/main/prototypes/poua-sim/src/poua_sim/chain.py}{\texttt{Chain.enable\_layer\_2}};
+empirical validation in
+\href{https://github.com/ligate-io/ligate-research/blob/main/prototypes/poua-sim/tests/test_layer_2.py}{\texttt{tests/test\_layer\_2.py}}.
+The §6.2 strategy-search heatmap (Panel C) confirms the full collapse:
+under the deterministic-membership specialization,
+GRIND\_VIA\_STAGED\_SUBMITTERS reward collapses to \(r_{\min}\) across
+all stake-share and pool-size regimes.
+
+\paragraph{5.5.3 Layer 3: Non-recoverable treasury share (formal,
 economic)}\label{layer-3-non-recoverable-treasury-share-formal-economic}
 
 \textbf{Rule.} Every attestation fee is split: a fixed minimum fraction
-\(\tau_{\text{burn}} \in (0, 1]\) flows to a non-recoverable destination
-(protocol treasury, burn address, or per-epoch reward pool distributed
-to \emph{all} validators by stake-and-reputation share, \emph{not} by
-inclusion). The schema's \texttt{fee\_routing\_bps} parameter routes
+\(\tau_{\text{burn}} \in (0, 1]\) flows to a non-recoverable
+destination. The schema's \texttt{fee\_routing\_bps} parameter routes
 only the residual \(1 - \tau_{\text{burn}}\) fraction.
 
-\textbf{Recommended parameter.} \(\tau_{\text{burn}} = 0.5\) for v0.3.
+\textbf{Burn destinations.} PoUA admits three protocol-level
+destinations for the \(\tau_{\text{burn}}\) share, each with a distinct
+cost-to-grind bound:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Pure burn} (default for v0.6): the \(\tau_{\text{burn}}\)
+  share is sent to a provably-unspendable address. Non-recoverable by
+  construction; no governance pathway can return the funds. Lemma 1's
+  bound holds as stated.
+\item
+  \textbf{Treasury} (allowed with rate-cap): the \(\tau_{\text{burn}}\)
+  share accrues to a protocol treasury. The treasury is
+  governance-spendable, so an adversary holding governance influence can
+  recover a fraction of their burn over a long horizon. Lemma 1 holds
+  modulo a treasury-recovery-rate assumption that must be specified by
+  the chain (recommended cap: governance can spend at most
+  \(\rho_{\text{gov}} \leq 0.1\) of treasury per year, bounding the
+  adversary's expected recovery to
+  \(\rho_{\text{gov}} \cdot \tau_{\text{burn}}\) over the attack
+  horizon).
+\item
+  \textbf{Per-validator-by-stake redistribution} (NOT recommended): the
+  \(\tau_{\text{burn}}\) share is redistributed each epoch to all
+  validators by stake-and-reputation share, \emph{not} by inclusion.
+  This destination weakens Lemma 1: an attacker holding stake share
+  \(\rho_{\text{stake}}\) recovers
+  \(\rho_{\text{stake}} \cdot \tau_{\text{burn}}\) of their burn. The
+  effective non-recoverable fraction drops to
+  \(\tau_{\text{burn}} \cdot (1 - \rho_{\text{stake}})\), and the bound
+  becomes
+  \(F_{\mathcal{CR}}^{\text{net, per member}} \geq \tau_{\text{burn}} \cdot (1 - \rho_{\text{stake}}) \cdot \Delta r / [\eta \cdot \alpha_{\text{eff}}(m, k)]\).
+  For an adversary at the Byzantine threshold
+  \(\rho_{\text{stake}} \to 1/3\), the effective fraction is
+  \(\sim 67\%\) of nominal. Redistribution is allowed only if the chain
+  is willing to accept a \(1/3\) weakening of Lemma 1 in exchange for
+  the rebate-to-honest-validators ergonomics.
+\end{enumerate}
+
+\textbf{v0.6 default: pure burn.} All numerical examples and bounds in
+this paper assume the pure-burn destination. A chain operator may opt
+into treasury or redistribution by governance, with the cost-to-grind
+bound adjusted accordingly. The \texttt{burn\_destination} choice is a
+\(\S 7.2\) protocol parameter, not a per-schema knob.
+
+\textbf{Recommended parameter.} \(\tau_{\text{burn}} = 0.5\) for v0.6.
 
 \textbf{Cost to grind.} This is the \textbf{load-bearing economic
 defense}. Even if the adversary perfectly evades Layers 1 and 2, the
-fees they submit are not fully recoverable. We formalize the
-cost-to-grind floor:
+fees they submit are not fully recoverable.\footnote{The ``perfectly
+  evades Layer 2'' assumption applies to the production distance-\(d\)
+  rule of §5.5.2, where on-chain graph-distance approximation leaves a
+  finite staging path quantified by \(F_{\text{stage}}\). Under the
+  simulator's deterministic-membership specialization, the chain's
+  knowledge of controlled-membership is exact and Layer 2 evasion is
+  impossible (\(F_{\text{stage}} \to \infty\)); Lemma 1's bound is
+  therefore conservative against the production rule and is exceeded
+  under the specialization. The §6.2 Panel C empirical heatmap
+  quantifies the difference: under the specialization,
+  GRIND\_VIA\_STAGED\_SUBMITTERS collapses to \(r_{\min}\) across all
+  stake-share and pool-size regimes.} We formalize the cost-to-grind
+floor:
 
-\textbf{Lemma 1 (Cost-to-grind bound, v0.3).} \emph{Under Layer 3 with
-parameter \(\tau_{\text{burn}} \in (0, 1]\) and the §4.3 reputation
-update with proposer-share \(\alpha \in (0, 1]\), any compound adversary
-acting as block proposer to acquire reputation gain \(\Delta r\) pays
-non-recoverable fees of at least}
+\textbf{Lemma 1 (Cost-to-grind bound, v0.6.1).} \emph{Let \(m \geq 1\)
+be the size of a coordinated adversarial validator cartel and
+\(k \geq m\) the per-block voter count. Under Layer 3 with parameter
+\(\tau_{\text{burn}} \in (0, 1]\) and the §4.3 reputation update with
+proposer-share \(\alpha \in (0, 1]\) and voter-share
+\(\beta = 1 - \alpha\), any compound adversary cartel acting as block
+proposer (with proposer-role rotation among cartel members) to acquire
+per-member reputation gain \(\Delta r\) pays per-member non-recoverable
+fees of at least}
 
-\[F_{\mathcal{CR}}^{\text{net}} \geq \frac{\tau_{\text{burn}} \cdot \Delta r}{\eta \cdot \alpha} \tag{Lemma 1}\]
+\[F_{\mathcal{CR}}^{\text{net, per member}} \geq \frac{\tau_{\text{burn}} \cdot \Delta r}{\eta \cdot \alpha_{\text{eff}}(m, k)} \tag{Lemma 1}\]
 
-\emph{in protocol-denominated tokens. In the special case \(\alpha = 1\)
-(proposer captures all reputation, equivalent to v0.1's reputation
-update without the voter share), this reduces to the looser bound
-\(\tau_{\text{burn}} \cdot \Delta r / \eta\).}
+\emph{where the effective proposer share is}
 
-\emph{Proof.} By the §4.3 reputation update, the proposer component of
-\(g_v(t)\) contributes at most \(\alpha \cdot \text{fee}(\alpha)\) to
-reputation per included attestation \(\alpha\) (the voter component,
-with coefficient \(\beta\) divided by \(|\text{voters}(B)|\),
-contributes negligibly per attestation in any reasonably-sized validator
-set). Summing across the attestations the adversary submits as proposer:
-\(\Delta r \leq \eta \cdot \alpha \cdot F_{\mathcal{CR}}^{\text{gross}}\),
-where \(F_{\mathcal{CR}}^{\text{gross}}\) is the gross fees the
-adversary pays for those attestations. Therefore
-\(F_{\mathcal{CR}}^{\text{gross}} \geq \Delta r / (\eta \cdot \alpha)\).
-By construction of Layer 3, every valid attestation incurs a
-non-recoverable fee fraction \(\tau_{\text{burn}}\). The adversary's net
-cost is at least
-\(\tau_{\text{burn}} \cdot F_{\mathcal{CR}}^{\text{gross}} \geq \tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha)\).
+\[\alpha_{\text{eff}}(m, k) = \alpha + \frac{(m - 1) \cdot \beta}{k}.\]
+
+\emph{The single-validator case \(m = 1\) recovers
+\(\alpha_{\text{eff}} = \alpha\) exactly. In the asymptotic limit
+\(k \to \infty\) with \(m / k\) held constant,
+\(\alpha_{\text{eff}} \to \alpha + (m/k) \cdot \beta\); for the
+canonical \(m / k = 1/3\) Byzantine cap this is the value cited in the
+numerical example below. In the special case \(\alpha = 1\) (proposer
+captures all reputation), this reduces to the looser bound
+\(\tau_{\text{burn}} \cdot \Delta r / \eta\) regardless of cartel size.}
+
+\emph{Proof.} By the §4.3 reputation update, each cartel-controlled
+attestation included in a cartel-proposed block injects per-attestation
+reputation \(\alpha \cdot \text{fee}(\alpha) \cdot \eta\) to the
+proposer and \(\beta \cdot \text{fee}(\alpha) / k \cdot \eta\) to each
+voter. Per §4.3, ``\(G_v^{\text{vote}}\)'\,' sums over blocks \(v\)
+voted on \textbf{but did not propose}, so the cartel proposer earns
+through the proposer channel only on its own block. Each of the
+remaining \(m - 1\) cartel members votes on the cartel-proposed block
+and earns \(\beta \cdot \text{fee}(\alpha) / k \cdot \eta\). Summed
+across the cartel:
+
+\[\text{cartel-total per attestation} = \left(\alpha + (m - 1) \cdot \frac{\beta}{k}\right) \cdot \text{fee}(\alpha) \cdot \eta = \alpha_{\text{eff}}(m, k) \cdot \text{fee}(\alpha) \cdot \eta.\]
+
+Distributing the gain uniformly across \(m\) members (achieved by
+rotating the proposer role through the cartel): each member needs
+\(\Delta r\) reputation. The cartel's \emph{cost-effective} allocation
+may concentrate reputation on a single high-stake member if only that
+member's weight is needed for the attack; uniform allocation is the
+optimal strategy when \textbf{each cartel member's stake-weighted vote
+is required for the BFT-fraction attack} (the case of an \(m\)-member
+coalition that needs all \(m\) at high reputation simultaneously to
+collectively cross the \(1/3\) weight threshold). For attacks that need
+only one high-reputation entity, the bound reduces to the \(m = 1\) case
+applied to that entity, which is strictly tighter; the
+uniform-allocation framing is therefore the
+\emph{upper-bound-compatible} attack mode against which Lemma 1 must
+hold. Across \(N\) attestations the cartel processes,
+
+\[m \cdot \Delta r \leq N \cdot \text{fee} \cdot \eta \cdot \alpha_{\text{eff}}(m, k),\]
+
+so
+\(F_{\mathcal{CR}}^{\text{gross}} = N \cdot \text{fee} \geq m \cdot \Delta r / [\eta \cdot \alpha_{\text{eff}}(m, k)]\).
+By Layer 3, every valid attestation incurs a non-recoverable fee
+fraction \(\tau_{\text{burn}}\), giving cartel-total
+\(F_{\mathcal{CR}}^{\text{net}} \geq \tau_{\text{burn}} \cdot m \cdot \Delta r / [\eta \cdot \alpha_{\text{eff}}(m, k)]\)
+and per-member
+\(F_{\mathcal{CR}}^{\text{net, per member}} \geq \tau_{\text{burn}} \cdot \Delta r / [\eta \cdot \alpha_{\text{eff}}(m, k)]\).
 \(\square\)
+
+\textbf{Remark on the voter channel.} Earlier versions of this paper
+(v0.3 - v0.5) used a single-proposer bound
+\(F^{\text{net}} \geq \tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha)\)
+and dismissed the voter channel as ``negligible per attestation in any
+reasonably-sized validator set.'' That is true for an individual
+validator's marginal contribution but understates the \emph{cumulative}
+voter-channel injection when multiple cartel members vote on the same
+cartel-proposed blocks. The cartel-aware bound above closes this gap by
+making \(m\) explicit. The v0.3 - v0.5 single-proposer bound is
+recovered as the \(m = 1\) specialization.
+
+\textbf{Reconciliation with v0.6.} The v0.6 statement of Lemma 1 used
+\(\alpha_{\text{eff}} = \alpha + m \beta / k\), derived from a proof
+that credited the proposer with own-block voter-channel reputation. That
+credit conflicts with §4.3's explicit
+`\texttt{but\ did\ not\ propose\textquotesingle{}\textquotesingle{}\ exclusion.\ v0.6.1\ corrects\ the\ proof\ to\ match\ §4.3\ strictly,\ yielding\ \$\textbackslash{}alpha\ +\ (m\ -\ 1)\ \textbackslash{}beta\ /\ k\$.\ The\ two\ forms\ coincide\ at\ \$m\ =\ 1\$\ and\ at\ \$k\ \textbackslash{}to\ \textbackslash{}infty\$;\ at\ finite\ \$k\$\ the\ v0.6.1\ bound\ is\ tighter\ (smaller\ \$\textbackslash{}alpha\_\{\textbackslash{}text\{eff\}\}\$,\ larger\ \$F\^{}\{\textbackslash{}text\{net\}\}\$\ floor).\ The\ reference\ simulator\ at\ {[}}prototypes/poua-sim/`{]}(https://github.com/ligate-io/ligate-research/tree/main/prototypes/poua-sim)
+implements §4.3 strictly and reproduces \(\alpha + (m - 1) \beta / k\)
+to floating-point precision across \(m \in \{1, 2, 3, 4\}\) and
+\(k = 12\).
 
 \textbf{Comparison to honest acquisition.} A naive capital adversary
 (§5.3) acquires weight fraction \(\rho\) at stake cost
 \(\frac{\rho}{1-\rho} \cdot \frac{W}{r_{\min}}\). The compound grinding
 adversary, having acquired stake \(s_v\) already, can attempt to
 multiply their effective weight by the reputation premium
-\(r_{\max}/r_{\min}\), gaining \(\Delta r = r_{\max} - r_{\min}\). The
-cost-to-grind for this full ramp is at least
-\(\tau_{\text{burn}} \cdot (r_{\max} - r_{\min}) / (\eta \cdot \alpha)\)
+\(r_{\max}/r_{\min}\), gaining \(\Delta r = r_{\max} - r_{\min}\) per
+cartel member. The per-member cost-to-grind for this full ramp is at
+least
+\(\tau_{\text{burn}} \cdot (r_{\max} - r_{\min}) / [\eta \cdot \alpha_{\text{eff}}(m, k)]\)
 in non-recoverable fees.
 
-For v0.3 parameters (\(\tau_{\text{burn}} = 0.5\), \(\eta = 0.001\),
-\(\alpha = 0.7\), \(r_{\max} - r_{\min} = 7\)):
+For v0.6 parameters (\(\tau_{\text{burn}} = 0.5\), \(\eta = 0.001\),
+\(\alpha = 0.7\), \(\beta = 0.3\), \(r_{\max} - r_{\min} = 7\)):
 
-\[F_{\mathcal{CR}}^{\text{net}} \geq \frac{0.5 \cdot 7}{0.001 \cdot 0.7} = 5000 \text{ fee-units.}\]
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Single-proposer adversary} (\(m = 1\),
+  \(\alpha_{\text{eff}} = 0.7\) exactly):
+\end{itemize}
+
+\[F_{\mathcal{CR}}^{\text{net}} \geq \frac{0.5 \cdot 7}{0.001 \cdot 0.7} = 5{,}000 \text{ fee-units.}\]
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Byzantine-fraction cartel, asymptotic} (\(k \to \infty\) with
+  \(m / k = 1/3\), \(\alpha_{\text{eff}} \to \alpha + \beta/3 = 0.8\)):
+\end{itemize}
+
+\[F_{\mathcal{CR}}^{\text{net, per member}} \to \frac{0.5 \cdot 7}{0.001 \cdot 0.8} = 4{,}375 \text{ fee-units per cartel member.}\]
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Byzantine-fraction cartel, finite \(k = 12\)} (\(m = 4\),
+  \(\alpha_{\text{eff}} = 0.7 + 3 \cdot 0.3 / 12 = 0.775\)):
+\end{itemize}
+
+\[F_{\mathcal{CR}}^{\text{net, per member}} \geq \frac{0.5 \cdot 7}{0.001 \cdot 0.775} \approx 4{,}516 \text{ fee-units per cartel member.}\]
+
+The Byzantine-fraction cartel pays \(\sim 12.5\%\) less per cartel
+member than a single-proposer adversary in the asymptotic limit, and
+\(\sim 9.7\%\) less at finite \(k = 12\) (a typical small-validator-set
+value). For practical mainnet sizes (\(k \geq 100\)) the finite-\(k\)
+correction shrinks to a fraction of a percent: at \(k = 100, m = 33\),
+\(\alpha_{\text{eff}} = 0.796\) and the discount is \(\sim 12.06\%\),
+within \(0.5\%\) of the asymptotic \(12.5\%\). (See
+\texttt{prototypes/poua-sim/test\_vectors/alpha\_eff.json} and
+\texttt{prototypes/poua-sim/test\_vectors/lemma1\_cost\_to\_grind.json}
+for the per-input values; \texttt{run\_lemma1\_scan.py} validates the
+bound across the empirical scan.)
+
+The cartel-aggregate burn is correspondingly
+\(m \cdot F^{\text{net, per member}}\), much larger in absolute terms
+than the single-proposer floor. The per-member discount is the price of
+the voter channel; it is bounded above by
+\(\beta / (\alpha k / m + \beta)\), which approaches
+\(\beta / (3 \alpha + \beta)\) at the Byzantine cap as \(k \to \infty\).
+For the recommended \(\alpha = 0.7, \beta = 0.3\) split, the asymptotic
+ceiling is \(0.3 / 2.4 = 12.5\%\).
+
+\textbf{Sensitivity to \(\alpha\) (asymptotic limit).} The cartel
+discount widens as \(\alpha\) shrinks (more reputation injected through
+the voter channel): for \(\alpha = 0.5, \beta = 0.5\), the asymptotic
+maximum discount rises to \(\beta/(3\alpha + \beta) = 0.5/2.0 = 25\%\).
+For \(\alpha = 0.9, \beta = 0.1\), it shrinks to
+\(0.1/2.8 \approx 3.6\%\). The recommended \(\alpha = 0.7\) balances the
+cartel-discount tightness against the proposer-rich-get-richer
+entrenchment that motivated the voter channel in the first place (§4.3).
+Finite-\(k\) corrections apply but are negligible for \(k \gtrsim 100\).
 
 Calibration: setting the minimum attestation fee high enough that
-\(5000 \times \text{fee}_{\min}\) exceeds the stake cost of the
+\(5{,}000 \times \text{fee}_{\min}\) exceeds the stake cost of the
 equivalent reputation-premium gain makes grinding strictly more
-expensive than honestly acquiring stake. This is a tunable: governance
-sets \(\text{fee}_{\min}, \tau_{\text{burn}}, \alpha\) such that the
-cost-equivalence inequality holds for the chain's economics.
+expensive than honestly acquiring stake even under the cartel-aware
+bound (the cartel pays at most \(0.875 \times\) that floor per member at
+the asymptotic Byzantine cap, still well above the honest-acquisition
+cost for any healthy parameter calibration). This is a tunable:
+governance sets \(\text{fee}_{\min}, \tau_{\text{burn}}, \alpha\) such
+that the cost-equivalence inequality holds for the chain's economics
+across the full \(m \in [1, k/3]\) cartel-size range.
 
 \textbf{This converts the compound-adversary case from ``moat
 collapses'' to ``moat is preserved by economic argument.''} It is the
 primary defense improvement of v0.2 over v0.1, sharpened in v0.3 with
-the explicit \(\alpha\)-dependent bound.
+the explicit \(\alpha\)-dependent bound, tightened in v0.6 to cover the
+voter channel under coordinated cartels, and reconciled in v0.6.1 to
+match the §4.3 update rule strictly (proposer excluded from own-block
+voter share).
 
-\paragraph{5.5.4 Layer 4 --- Statistical detection
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{../../prototypes/poua-sim/out/lemma1_burn_destinations.png}
+\caption{Lemma 1 cost-to-grind bound across cartel sizes $m \in \{1, 2, 3, 4\}$ in a $k = 12$ network, under the three Layer 3 burn destinations. Lines are analytical $\tau_{\text{burn}} / [\eta \cdot \alpha_{\text{eff}}(m, k)]$, with treasury weakened by $(1 - \rho_{\text{gov}})$ at $\rho_{\text{gov}} = 0.1$ and redistribution weakened by $(1 - \rho_{\text{stake}})$ at the realized cartel stake share. Markers are empirical from \texttt{prototypes/poua-sim/scripts/run\_lemma1\_scan.py}, sitting on the analytical lines to floating-point precision. The vertical dashed line marks the BFT cap $m = k/3 = 4$. Pure burn (red) is the v0.6 default and gives the tightest bound; redistribution (blue) drops fastest as cartel stake share grows; treasury at 10\% governance recovery (orange) sits a uniform 10\% below pure burn.}
+\label{fig:lemma1-burn-destinations}
+\end{figure}
+
+\paragraph{5.5.4 Layer 4: Statistical detection
 (heuristic)}\label{layer-4-statistical-detection-heuristic}
 
 For attacks that evade Layers 1-3 (e.g., adversary willing to pay the
@@ -1342,15 +2353,35 @@ Appendix A specifies the statistical procedure with empirical
 calibration of false-positive bounds \(\beta_2, \beta_3\) targeting
 \(\leq 1\%\) per epoch under honest baseline traffic.
 
-When the detector fires above its confidence threshold, the validator is
-flagged for slashing review.
+When the detector fires above its confidence threshold, the chain
+records a slash of severity \(\Lambda_3\) against the flagged
+validator's \texttt{epoch\_b} tally per §4.5. The §4.3 reputation update
+applies the slash at the next epoch boundary, multiplied by \(\lambda\)
+per the standard reputation-update formula. The slash remains
+contestable through the §5.5.5 appeal window; an upheld appeal reverses
+the \texttt{epoch\_b} increment before it propagates into the next
+epoch's reputation.
+
+The reference implementation lives at
+\href{https://github.com/ligate-io/ligate-research/blob/main/prototypes/poua-sim/src/poua_sim/a3_slash.py}{\texttt{A3SlashConfig}
+and \texttt{maybe\_apply\_a3\_slash}}. Default \texttt{enabled=False}
+keeps the slashing pathway opt-in; the chain at calibration time sets
+\texttt{beta\_3}, the per-validator window \texttt{T\_lookback}, and the
+severity \(\Lambda_3\). The simulator's
+\texttt{tests/test\_a3\_slash.py} validates that the detector + slash
+composition produces \(r \to r_{\min}\) for synthetically-constructed
+small-pool grinding adversaries within \(T_{\text{detect}}\) epochs. The
+§6.2 strategy-search heatmap (Panel B) shows the empirical effect: under
+Layer 1 + detector slash, small staged pools collapse at the detector;
+large diluted pools require the §5.5.2 Layer 2 reference implementation
+(Panel C) to close the residual gap.
 
 \textbf{Cost to evade.} The detector is an arms race; sufficiently
 sophisticated adversaries can mimic honest traffic distributions. The
 detector is meaningful as a residual defense behind Layers 1-3, not a
 primary line.
 
-\paragraph{5.5.5 Layer 5 --- Governance appeal and slash
+\paragraph{5.5.5 Layer 5: Governance appeal and slash
 review}\label{layer-5-governance-appeal-and-slash-review}
 
 A flagged validator is slashed at severity \(\Lambda_3\). The slash is
@@ -1366,7 +2397,7 @@ an avenue to contest. The governance machinery itself uses standard PoUA
 weighting, with the slashed validator excluded from the vote on their
 own appeal.
 
-\paragraph{5.5.6 Layer 6 --- Cryptographic future
+\paragraph{5.5.6 Layer 6: Cryptographic future
 work}\label{layer-6-cryptographic-future-work}
 
 In v1+ of the protocol, the submitter could attach a zero-knowledge
@@ -1391,12 +2422,37 @@ Open research questions:
 
 This is not in v0.2 scope. It is named as future research in §9.2.
 
+\paragraph{5.5.6.1 Empirical eclipse-recovery
+profile}\label{empirical-eclipse-recovery-profile}
+
+The reference simulator's \texttt{EclipseScheduler} (PR
+\href{https://github.com/ligate-io/ligate-research/pull/79}{\#79})
+models a network adversary that restricts a single target validator's
+view to cartel-proposed blocks during a finite eclipse window. Under the
+§4.3 update, the eclipsed target's reputation \(r_v\) stays
+approximately constant during the eclipse (no \(g_v\) from honest
+blocks, no slashes) while honest validators continue to ramp. After the
+eclipse window ends, the target resumes normal block delivery and
+rebuilds reputation at the standard ramp rate. Figure
+\ref{fig:eclipse-recovery} shows the trajectory: a flat plateau under
+eclipse, then approach to the honest baseline over
+\(\sim T_{\text{ramp}}\) epochs once delivery resumes. The §4.3 update
+with \(\eta \cdot g_v\) is the closed-form recovery rate; the empirical
+curve confirms the analytical model.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{../../prototypes/poua-sim/out/eclipse_recovery.png}
+\caption{Eclipsed validator reputation trajectory under and post-eclipse. The eclipse window is shaded; during the window, the target sees only cartel-proposed blocks and accumulates reputation only from those, while honest validators continue ramping at the full rate. After the window ends, the target resumes normal delivery and rebuilds toward the honest baseline at the §4.3 update rate. Generated by \texttt{prototypes/poua-sim/scripts/run\_eclipse\_recovery.py}.}
+\label{fig:eclipse-recovery}
+\end{figure}
+
 \paragraph{5.5.7 Synthesizing: the layered economic
 argument}\label{synthesizing-the-layered-economic-argument}
 
 After Layers 1-3, the compound-adversary cost-to-grind is at least:
 
-\[\underbrace{\text{stake cost}}_{\text{same as pure PoS}} + \underbrace{\tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha)}_{\text{net fees, Layer 3 (Lemma 1)}} + \underbrace{\text{address-staging cost}}_{\text{Layer 1 + 2 evasion}}\]
+\[\underbrace{\text{stake cost}}_{\text{same as pure PoS}} + \underbrace{\tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha_{\text{eff}}(m, k))}_{\text{per-member net fees, Layer 3 (Lemma 1)}} + \underbrace{\text{address-staging cost}}_{\text{Layer 1 + 2 evasion}}\]
 
 The first term is unavoidable. The second has a formal lower bound
 (Lemma 1). The third is real but harder to quantify - mixer fees, KYC
@@ -1466,33 +2522,98 @@ valid attestations encountered, vote honestly, do not equivocate, do not
 censor'' is a Nash equilibrium.
 
 \textbf{Argument.} Consider a validator \(v\) deviating from honest play
-to action \(a\):
+to action \(a\). We enumerate six named deviations spanning the strategy
+space, and argue each is dominated under standard parameter calibration:
 
 \begin{itemize}
 \tightlist
 \item
-  Equivocation (signing two blocks at the same height): detectable by
-  any honest validator, slashed at \(\Lambda_{\text{eq}}\). Expected
-  cost of equivocation \(\gg\) block reward gain. Not profitable.
+  \textbf{Equivocation} (signing two blocks at the same height):
+  detectable by any honest validator, slashed at
+  \(\Lambda_{\text{eq}}\). Expected cost of equivocation \(\gg\) block
+  reward gain. Not profitable.
 \item
-  Including invalid attestations (A1): detectable at vote time, slashed
-  at \(\Lambda_1\). The marginal ``benefit'' of including a bad
+  \textbf{Including invalid attestations (A1)}: detectable at vote time,
+  slashed at \(\Lambda_1\). The marginal ``benefit'' of including a bad
   attestation (a non-existent fee, since invalid attestations don't pay)
   is zero. Not profitable.
 \item
-  Selective censorship (A2): foregoes the censored attestation's fee,
-  plus carries detection risk and slash. Not profitable in expectation
-  absent an external bribe exceeding both.
+  \textbf{Selective censorship (A2)}: foregoes the censored
+  attestation's fee, plus carries detection risk and slash. Not
+  profitable in expectation absent an external bribe exceeding both.
 \item
-  Reputation grinding (A3): yields reputation gain at zero direct cost
-  (in the colluding-attestor case), but carries detection risk.
-  Profitability depends on the false-negative rate of A3 detection.
+  \textbf{Reputation grinding (A3)}: yields reputation gain at zero
+  \emph{direct} cost in the colluding-attestor case, but bounded below
+  by Lemma 1's cost-to-grind floor under Layer 3 plus carrying §A.2
+  detection risk. Profitability depends on the false-negative rate of A3
+  detection; cost is dominated by the Layer 3 burn for any realistic
+  parameter calibration.
+\item
+  \textbf{Free-riding voter} (validator votes on others' blocks but
+  never proposes when selected, or proposes empty blocks): forgoes the
+  proposer-channel reputation injection
+  \(\alpha \cdot \text{fee} \cdot \eta\) per attestation while still
+  earning the voter share. Per §4.3, the proposer share dominates
+  (\(\alpha = 0.7\) vs.~\(\beta/k = 0.3/k \ll \alpha\) for any
+  reasonably-sized validator set), so a free-riding voter accrues
+  reputation at rate strictly below an honest proposer's. Combined with
+  §4.4's \(G_{\max}\) cap and the zero block reward when not proposing
+  (the validator forgoes block reward for proposing slots), net revenue
+  under free-riding is strictly worse than honest play. Not profitable.
+\item
+  \textbf{Selective fork-choice gaming}: a validator that votes on a
+  non-canonical fork (or withholds vote on the canonical one) hoping to
+  influence which branch finalizes. The PoUA vote tally inherits the
+  underlying BFT primitive's fork-choice rule (Tendermint-style
+  two-round optimistic finality in deployment); voting against the
+  converging branch carries the underlying primitive's slash for
+  inconsistent voting (surround-vote slashing), independent of
+  attestation rewards. Not profitable absent an external coordination
+  gain that exceeds the surround-vote slash.
 \end{itemize}
 
-The first three deviations are unambiguously dominated by honest play.
-Reputation grinding is dominated by honest play \emph{if} A3 detection
-is sufficiently sensitive; this is the heuristic-detection limitation
-acknowledged in Section 5.5.
+The first three and the last two deviations are unambiguously dominated
+by honest play. Reputation grinding (A3) is dominated by honest play
+\emph{if} the §A.2 detection false-negative rate is sufficiently low
+\emph{and} Layer 3 burn parameters satisfy the cost-equivalence
+inequality from §5.5.3 calibration.
+
+\textbf{Strategy-search empirical validation.} Figure
+\ref{fig:strategy-reward-heatmap} visualizes the layered-defense
+progression empirically. Panel A is the v0.7-baseline simulator (§5.5
+Layer 1 only): under Layer-1-only enforcement,
+GRIND\_VIA\_STAGED\_SUBMITTERS dominates HONEST at every stake share,
+reaching 2-4\(\times\) HONEST reputation at moderate stakes (concretely,
+reward \(2.96 / 5.79 / 7.98\) at small / medium / large pool sizes for
+\(\alpha = 0.20\)). Panel B layers the §A.3 detector-driven slash from
+§5.5.4: small staged pools trigger the detector and collapse to
+\(r_{\min}\), but large staged pools dilute the bipartite-density signal
+below the threshold and retain the dominance. Panel C layers the §5.5.2
+Layer 2 deterministic-membership rejection on top: under Panel C all
+pool sizes collapse uniformly to \(r_{\min}\) (reward
+\(1.00 / 1.00 / 1.00\), the HONEST baseline), closing the residual gap.
+The progression visualizes the §5.5 layered-defense argument as stated:
+each layer is independently breakable; the combination is not. The
+reference implementation, test fixtures, and exact generator command are
+at
+\href{https://github.com/ligate-io/ligate-research/blob/main/prototypes/poua-sim/scripts/run_strategy_search.py}{\texttt{scripts/run\_strategy\_search.py}}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.98\textwidth]{../../prototypes/poua-sim/out/strategy_reward_heatmap_3panel.png}
+\caption{Strategy-search reward heatmap, 3-panel layered-defense progression. X-axis: cartel stake share $\alpha \in \{0.05, 0.10, 0.20, 0.30\}$. Y-axis: BehaviorPolicy. Cell value: per-cartel-member final reputation after $T = 200$ slots, averaged over 50 RNG seeds. Generated by \texttt{scripts/run\_strategy\_search.py --enable-a3-slash --enable-layer-2}. \textbf{Panel A}: §5.5 Layer 1 only (proposer-submitter address-equality). \textbf{Panel B}: Layer 1 + §A.3 detector slash. \textbf{Panel C}: Layer 1 + §A.3 detector slash + §5.5 Layer 2 deterministic-membership. The GRIND\_VIA\_STAGED\_SUBMITTERS row demonstrates the layered-defense argument empirically: small staged pools collapse at Panel B; large diluted pools require Panel C; under Panel C all three pool sizes collapse to $r_{\min}$ across all stake-share regimes.}
+\label{fig:strategy-reward-heatmap}
+\end{figure}
+
+The honest-equilibrium claim therefore holds against the full
+rational-deviation strategy space exercised by the M6 simulator (closed
+via \href{https://github.com/ligate-io/ligate-research/issues/30}{issue
+\#30} and the M6 follow-up
+\href{https://github.com/ligate-io/ligate-research/issues/53}{issue
+\#53}) under the full layered defense (Panel C), modulo the simulator's
+deterministic-membership specialization of Layer 2 documented in §5.5.2
+(which corresponds to the limit case of the production distance-\(d\)
+rule's accuracy).
 
 \subsubsection{6.3 Reputation as Future
 Revenue}\label{reputation-as-future-revenue}
@@ -1570,6 +2691,94 @@ with substantial stake, this future-revenue loss can dwarf any plausible
 one-shot deviation gain, providing a \emph{time-locked} incentive
 alignment that pure-stake PoS lacks: in pure PoS, a slash costs only the
 burned bond, not foregone future selection-share premium.
+
+The \(s_v / S\) factor in the formula treats the validator's
+stake-weighted share as constant across the recovery window. This is
+approximate: immediately after a \(\Lambda\)-severity slash that drops
+reputation from \(r_v\) to \(r_{\min}\), the validator's effective
+weight share drops from \(s_v r_v / S\) to \(s_v r_{\min} / S\), and
+during recovery the share rises back monotonically as reputation
+rebuilds. The formula's use of pre-slash \(s_v / S\) therefore
+\emph{over-estimates} the PV-of-slash by a factor bounded above by
+\(r_v / r_{\min}\), since the validator earns less revenue during the
+recovery period than the formula assumes. The conservative direction
+(\(\text{PV}_{\text{actual}} \leq \text{PV}_{\text{formula}}\)) means
+the bound on validator deviation-incentive is an \emph{upper} bound on
+the deterrent, and the actual deterrent is somewhat weaker. This is a
+known approximation; a tighter bound would integrate a time-varying
+\(w_v(t)/S(t)\) across the recovery, which closes to within a few
+percent for high-reputation validators (where \(r_v \approx r_{\max}\))
+but materially weakens for mid-reputation validators near the median.
+v0.8 will refine the bound; the qualitative claim (``time-locked
+incentive alignment that pure-stake PoS lacks'') is robust to this
+refinement.
+
+\paragraph{6.3.1 Volume-Dependence of the Slash
+Deterrent}\label{volume-dependence-of-the-slash-deterrent}
+
+The PV-of-slash bound depends linearly on the chain's per-epoch revenue
+\(R_b + R_f\). The reputation-channel component therefore scales with
+volume in a way pure-stake-bond slashing does not. \textbf{PoUA retains
+the bond-burn slash on top of the reputation channel}: the bond
+deterrent is unchanged across PoS variants. What follows describes the
+magnitude scaling of the reputation-channel premium relative to its
+block-reward-only floor; PoUA's \emph{total} slash deterrent is always
+the bond burn \emph{plus} this reputation-channel quantity, never less
+than pure-stake PoS.
+
+Define the \emph{volume-deterrent ratio} as the magnitude scaling on the
+reputation-channel premium:
+
+\[\rho_{\text{vol}}(R_f / R_b) := \frac{R_b + R_f}{R_b} = 1 + \frac{R_f}{R_b}.\]
+
+At \(R_f \to 0\), \(\rho_{\text{vol}} \to 1\): the reputation-channel
+deterrent reaches its block-reward-only floor (not zero, and not the
+bond, a smaller, \(R_b\)-scaled value). At \(R_f / R_b = 1\) (fee
+revenue equals block reward), the reputation-channel deterrent is
+\(2\times\) its floor. Figure \ref{fig:volume-deterrent} shows the curve
+across realistic operating points.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{../../prototypes/poua-sim/out/volume_deterrent.png}
+\caption{Volume-deterrent ratio $\rho_{\text{vol}} = 1 + R_f/R_b$ across attestation-fee-flow regimes: the magnitude scaling on the reputation-channel slash deterrent relative to its $R_f = 0$ floor. The dashed line at $1.0$ is the floor (block-reward-only reputation deterrent); the curve rises linearly with $R_f / R_b$. Named operating points: bootstrap ($R_f / R_b \approx 0.05$, $\rho_{\text{vol}} \approx 1.05$), early ($\approx 0.5$, $\approx 1.5$), mature ($\approx 2.0$, $\approx 3.0$), high-volume ($\approx 4.0$, $\approx 5.0$). The reference dashed line is \emph{not} a comparison to pure-stake-bond magnitude; bond-burn deterrent is denominated separately and added on top of the reputation channel in PoUA's total deterrent. Produced by \texttt{prototypes/poua-sim/scripts/run\_volume\_deterrent.py}.}
+\label{fig:volume-deterrent}
+\end{figure}
+
+\textbf{Implications.} Three operational regimes warrant explicit
+mitigation, because in each the reputation-channel premium attenuates
+toward its floor (PoUA still retains the bond-burn slash; total
+deterrent never falls below pure-stake PoS):
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Chain bootstrap.} Devnet-and-early-mainnet periods have
+  \(R_f / R_b \ll 1\). The reputation-channel premium over its floor is
+  small; PoUA's incentive alignment is dominated by the bond plus the
+  floor. Mitigations: extended permissioned phase, higher initial
+  \(\tau_{\text{burn}}\), or a volume-independent slash component (e.g.,
+  a fixed protocol fee) until fee flow stabilizes.
+\item
+  \textbf{Network-wide volume troughs.} Bear markets, post-shock
+  recovery, low-utilization periods. The reputation-channel premium
+  attenuates symmetrically. Mitigations: minimum-fee floor enforced by
+  governance, or a fee-floor schedule indexed to market activity.
+\item
+  \textbf{Schemas with low fee schedules.} A schema whose attestor set
+  chooses a low fee per attestation (race-to-the-bottom) reduces the
+  reputation-channel slash premium for any validator processing that
+  schema's attestations. Mitigations: per-schema fee minimums, or a
+  global \(\text{fee}_{\min}\) enforced at the runtime layer.
+\end{enumerate}
+
+§4.4.2 specifies the \textbf{adaptive \(\tau_{\text{burn}}\) rebase}
+mechanism that reacts automatically to drift below a published
+\(\rho_{\text{vol}}\) floor; that is the protocol-level countermeasure
+to (1)-(3) at scale. The simulator at
+\texttt{prototypes/poua-sim/scripts/run\_volume\_deterrent.py} produces
+the canonical figure used to set the floor parameter.
 
 \subsubsection{6.4 Cold-Start Free-Rider
 Problem}\label{cold-start-free-rider-problem}
@@ -1674,7 +2883,7 @@ For Ligate devnet, we propose:
 \item
   \(r_{\min} = 1.0\), \(r_{\max} = 8.0\) (premium ratio 8\(\times\))
 \item
-  \(\eta = 0.001\) (reputation per nano-LGT of valid attestation fee)
+  \(\eta = 0.001\) (reputation per nano-AVOW of valid attestation fee)
 \item
   \(\lambda = 1.0\) (reputation per stake-equivalent slash)
 \item
@@ -1682,6 +2891,11 @@ For Ligate devnet, we propose:
 \item
   \(\alpha = 0.7, \beta = 0.3\) (proposer / voter reputation share,
   \(\alpha + \beta = 1\))
+\item
+  \(\tau_{\text{burn}} = 0.5\) (Layer 3 non-recoverable share)
+\item
+  \texttt{burn\_destination\ =\ pure\_burn} (Layer 3 destination; see
+  §5.5.3 for the alternatives and their cost-to-grind implications)
 \item
   \(G_{\max} = (r_{\max} - r_{\min}) / (\eta \cdot T_{\text{ramp}}) = 7 / (0.001 \cdot 30) \approx 233\)
   fee-units per epoch (per-validator per-epoch growth cap)
@@ -1805,7 +3019,7 @@ coupling, cost-to-attack, complexity, and production maturity.
 \textbf{Helium PoC} & Coverage proof & Hardware identity + coverage measurement & Direct & $> 1\times$, hard to compute (geographic) & High & Mainnet (Helium Network) \\
 \textbf{Filecoin PoSt} & Storage commitment proof + collateral & Storage hardware & Direct & $> 1\times$, varies & Very high & Mainnet \\
 \rowcolor{tablerowalt}
-\textbf{RepuCoin} (Yu et al.) & Mining history $\times$ stake & PoW + stake & Indirect (mining $\neq$ application work) & $\geq 1\times$ & High & Research only \\
+\textbf{RepuCoin} (Yu et al.) & Reputation as first-class weight (derived from total blocks produced, activity, and contribution regularity) & PoW + stake & Indirect (mining $\neq$ application work) & Grows with elapsed chain time as reputation accumulates & High & Research only \\
 \bottomrule
 \end{longtable}
 \endgroup
@@ -1859,12 +3073,15 @@ We acknowledge the following as real limitations of PoUA v0.1:
   equilibrium may fail. We recommend devnet operation provides empirical
   evidence before mainnet launch.
 \item
-  \textbf{No empirical validation.} This paper specifies a mechanism.
-  Production-scale validation requires devnet operation, simulation
-  studies, and comparison to baseline pure-PoS performance under
-  realistic adversary models. The Ligate research roadmap commits to a
-  reference simulator and devnet calibration studies in v0.2 of this
-  paper.
+  \textbf{Devnet calibration still pending.} The reference simulator at
+  \href{https://github.com/ligate-io/ligate-research/tree/main/prototypes/poua-sim}{\texttt{prototypes/poua-sim/}}
+  closed milestones M1-M7 across v0.7 + v0.8 (cost-to-attack,
+  transition-state \(\kappa\), Lemma 1, A3 detector FPR, M6
+  strategy-search heatmap, M7 network adversity, scale invariance). What
+  remains is production-scale calibration against real attestation
+  traffic, including the §A.4 ER-vs-Chung-Lu threshold reformulation and
+  the A2 / A3 detector TPR curves under realistic chain-graph baselines.
+  Devnet operation (mid-2026 per current roadmap) provides those inputs.
 \end{enumerate}
 
 \subsubsection{9.2 Future Work}\label{future-work}
@@ -1884,22 +3101,31 @@ We acknowledge the following as real limitations of PoUA v0.1:
 \item
   \textbf{Cross-chain reputation portability.} A canonical primitive for
   transferring reputation across chains, possibly through a shared
-  reputation registry or zkbridge-based assertion.
+  reputation registry or zkbridge-based assertion. The companion paper
+  \href{https://github.com/ligate-io/ligate-research/tree/main/papers/cross-schema-composition}{Cross-Schema
+  Composition} covers the typed-reference foundation; the cross-chain
+  extension is the harder lift.
 \item
   \textbf{Reputation as governance weight.} Beyond consensus, reputation
   could enter governance vote tallying. The case is delicate (protects
   against governance capture by capital, but may entrench
   validator-class dominance over user-class voice).
 \item
-  \textbf{Adaptive reputation parameters.} Dynamic adjustment of
-  \(\eta, \lambda\) in response to network conditions (attestation
-  volume, attack frequency) rather than fixed at genesis.
-\item
   \textbf{Privacy-preserving reputation.} A scheme in which reputation
   is observable in aggregate (so validator selection is verifiable) but
   per-validator privacy is preserved. Useful for politically sensitive
   validation contexts.
+\item
+  \textbf{Hybrid post-quantum signatures.} Tracked at
+  \href{https://github.com/ligate-io/ligate-research/issues/50}{ligate-research\#50}.
+  Ed25519 default with Dilithium opt-in for validators with
+  longer-horizon threat models.
 \end{itemize}
+
+Adaptive \(\eta\) and \(\lambda\) rebase, previously listed as future
+work, landed in §4.4.3 of this version. The M6 strategy-search and M7
+network-conditions extensions previously listed as future simulator work
+closed via PRs in the v0.8 cycle.
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -1932,6 +3158,23 @@ and external technical reviewers. The hardest part of the paper is §5.5,
 where we make a formal economic claim (Lemma 1) about the cost of
 grinding reputation against a compound adversary; if you find a flaw in
 that argument, that is the most valuable feedback you can give us.
+
+\subsection{Acknowledgments}\label{acknowledgments}
+
+We thank \textbf{Jiangshan Yu} (University of Sydney, Sydney Blockchain
+Centre) for substantive correction of the §8 RepuCoin comparison row
+(weight basis as first-class reputation derived from multi-aspect
+historical contribution; cost-to-attack as time-dependent rather than
+fixed-ratio) and endorsement of the §11 Q4
+intrinsically-anchored-reputation framing. Acknowledged with permission.
+
+We thank \textbf{Marko Vukolić} (Bitcoin Scaling Labs) for emphasizing
+the load-bearing nature of §5.5 attestation-grinding defenses in our
+exchange, which informed the §5.5 layered-detection write-up and the
+§6.2 empirical strategy-search progression.
+
+Both corrections arrived during the v0.7.2 external technical review
+cycle (2026-05). Errors that remain are our own.
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -2033,35 +3276,69 @@ has been tried and not shipped.
 \subsubsection{Q4. Isn't this just RepuCoin or EigenTrust with a new
 name?}\label{q4.-isnt-this-just-repucoin-or-eigentrust-with-a-new-name}
 
-\textbf{No, and the differences matter for the security argument.}
+\textbf{No, and the differences matter for the security argument.} The
+contrast operates along three axes: what the reputation \emph{measures},
+where the reputation \emph{enters} the consensus computation, and what
+the \emph{cost-to-grind} argument relies on.
 
 \begin{itemize}
 \tightlist
 \item
-  \textbf{RepuCoin} (Yu et al., 2019) builds reputation from PoW mining
-  history. The ``work'' being measured is hash computation, not
-  application-layer activity. RepuCoin is also research-stage; we are
-  not aware of a production deployment.
+  \textbf{RepuCoin} (Yu et al., 2019) treats reputation as a first-class
+  quantity derived from multiple aspects of historical contribution
+  (total blocks created, activity and availability, regularity of
+  contribution). The ``work'' being measured is hash computation plus
+  participation, which is \emph{externally anchored} (validators expend
+  out-of-protocol resources to acquire reputation). PoW-as-useful-work
+  is a generic signal: any chain whose validators also mine PoW can
+  adopt it. RepuCoin's cost-to-attack is \emph{time-dependent}: it grows
+  as honest reputation accumulates over chain history, so an attacker
+  faces a steadily rising bar rather than a fixed multiple. RepuCoin is
+  also research-stage; we are not aware of a production deployment.
+  PoUA's ``work'' is the chain's \emph{own paid productive workload}
+  (attestation processing), which is \emph{intrinsically anchored}: a
+  different chain hosting the same attestation contracts cannot
+  replicate the reputation premium without rebuilding consensus, because
+  the workload measurement happens at the consensus-runtime boundary
+  that contract-layer systems don't control.
 \item
   \textbf{EigenTrust} (Kamvar et al., 2003) is a peer-to-peer reputation
   algorithm for decentralized file-sharing and trust networks. It does
   not weight BFT consensus directly; it scores nodes based on transitive
-  interaction history.
+  interaction history (which peers each peer trusted, propagated
+  transitively). PoUA's reputation is non-transitive (each validator
+  earns from chain activity, not from being trusted by other validators)
+  and enters BFT vote weight directly via \(w_v = s_v \cdot r_v\).
+  EigenTrust solves a different problem (file-sharing trust) with
+  different mechanics (transitive aggregation); the ``reputation'' word
+  covers both but the formal objects do not overlap.
 \item
   \textbf{PoUA} measures application-layer attestation processing, with
   reputation entering BFT vote weight directly via
   \(w_v = s_v \cdot r_v\). The mechanism design choices (additive
   update, bounded interval, non-transferability, fee-weighted earning,
-  layered Sybil defense) are specific to this application and do not
-  appear in either prior system as a coherent package.
+  Lemma 1 cost-to-grind floor under Layer 3 burn, layered Sybil defense
+  across six independently-breakable mechanisms) are specific to this
+  application and do not appear in either prior system as a coherent
+  package. The cost-to-grind argument is
+  \emph{economic-by-construction}: the chain's own non-recoverable burn
+  floor (Lemma 1, §5.5.3) bounds the per-fee-unit cost of grinding from
+  below, independent of out-of-protocol resources or peer trust
+  transitivity.
 \end{itemize}
 
 The differentiated property: \textbf{PoUA is the first
 reputation-weighted BFT scheme where the ``work'' the reputation tracks
 is the protocol's own paid productive workload, not an
-externally-anchored signal (mining, storage, peer interactions).} This
-is what makes the moat economic-by-construction rather than relying on
-an external scarcity assumption.
+externally-anchored signal (mining, storage, peer interactions), AND
+where the cost-to-grind floor is bounded by an intrinsic protocol
+parameter (\(\tau_{\text{burn}}\)) rather than depending on
+out-of-protocol scarcity assumptions.} This is what makes the moat
+economic-by-construction. RepuCoin's moat depends on PoW capacity
+scarcity; EigenTrust's depends on the social-network-graph structure of
+who trusts whom; PoUA's depends on the chain's own fee-burn parameter,
+which is observable, calibrable, and adaptive (§4.4.2). The synthesis is
+the contribution; no single component is novel in isolation.
 
 \subsubsection{Q5. Why not just use restaking (EigenLayer) on
 Ethereum?}\label{q5.-why-not-just-use-restaking-eigenlayer-on-ethereum}
@@ -2206,14 +3483,133 @@ result?}\label{q10.-why-publish-a-working-paper-instead-of-waiting-for-a-peer-re
 The mechanism is novel enough that we want public review and critique;
 publishing a peer-reviewed result requires submitting to a venue, which
 has its own timeline (\textasciitilde12-18 months in cryptography
-conferences). v0.1 and v0.2 are working papers explicitly marked as
+conferences). v0.1 through v0.6 are working papers explicitly marked as
 such, with version histories and acknowledged limitations.
 
-The path forward: v0.2 → external technical reviewer feedback (mid-2026)
-→ v0.3 with simulation results (late 2026) → arxiv submission (early
+The path forward: v0.6 → external technical reviewer feedback (mid-2026)
+→ v0.7 with simulation results (late 2026) → arxiv submission (early
 2027) → conference submission (mid-2027 if appropriate venue). At every
 stage, the paper is publicly available and explicitly versioned, so
 readers know what they are citing.
+
+\subsubsection{Q11. Why not just use Celestia raw, or any DA layer, for
+attestations?}\label{q11.-why-not-just-use-celestia-raw-or-any-da-layer-for-attestations}
+
+A reasonable observation: pure attestation looks like an I/O problem.
+Receipts go in, ordered, immutable, byte-priced. Why pay for consensus
+when ordering and availability are all that seems necessary?
+
+Three things pure DA cannot host.
+
+\textbf{Reputation state evolution.} Validator reputation evolves
+per-epoch via §4.3's rule
+\(r_v(t+E) = r_v(t) + \eta \cdot g_v(t) - \lambda \cdot b_v(t)\). This
+requires consensus on per-validator \(g_v\) (cumulative valid work) and
+\(b_v\) (cumulative slash severity), exposed as committed state. A flat
+DA log stores the inputs but does not produce the output verifiably;
+light clients would have to recompute it over the entire chain history.
+
+\textbf{Schema-scoped attestor-set policy.} Each schema declares an
+attestor set with minimum reputation requirements. Enforcement requires
+the chain to evaluate set membership and reputation predicates at
+attestation time, not just record the bytes. DA layers accept any
+submitted data; they cannot evaluate predicates.
+
+\textbf{Burn-and-slash economics.} Lemma 1 (§5.5.3) bounds an
+adversary's cost-to-grind by
+\(F_{\text{net}} \geq \tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha_{\text{eff}})\).
+The bound holds only if the chain enforces the \(\tau_{\text{burn}}\)
+fraction at fee-distribution time. DA layers charge per-byte; they do
+not redirect a fee fraction to provable destruction.
+
+Pure DA secures the bytes. PoUA secures the signer. Different security
+models, both required. Ligate Chain uses Celestia for DA underneath, so
+the I/O layer the question correctly identifies as necessary is already
+there. PoUA is what we layer on top of that, not in place of it. §3.8
+works the same argument out in terms of the system model.
+
+\subsubsection{Q12. Will Ligate Chain ever support general-purpose smart
+contracts?}\label{q12.-will-ligate-chain-ever-support-general-purpose-smart-contracts}
+
+\textbf{Not as a primary surface.} The ``attestation-native chain''
+thesis in §1.1 is a positive design choice, not a temporary scope
+limitation. A chain whose security budget, fee market, and consensus
+mechanism are sized to a specific workload (attestation production) has
+a defensibility profile that a general-purpose chain does not, and
+adding general-purpose contracts would dilute it. The \(4\times\) to
+\(10\times\) cost-to-attack premium quantified in §5 depends on the
+workload being attestation-shaped; arbitrary state transitions break the
+analysis.
+
+Two narrower extensions are on the supplementary-papers roadmap, both
+kept inside the attestation domain:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Cross-schema composition}
+  (\href{https://github.com/ligate-io/ligate-research/tree/main/papers/cross-schema-composition}{companion
+  paper}): typed references that let one attestation depend on another,
+  evaluated at attestation time. Contract-like reasoning over
+  attestation predicates, not general state transitions.
+\item
+  \textbf{Time-locked and commit-reveal attestations}
+  (\href{https://github.com/ligate-io/ligate-research/tree/main/papers/time-locked-attestations}{companion
+  paper}): attestations that become public at a future time, or that
+  reveal their payload only after a separate commit step. Expands the
+  attestation primitive's temporal envelope without leaving the
+  attestation domain.
+\end{itemize}
+
+Neither extension makes Ligate Chain a general-purpose smart contract
+platform. Cross-schema composition operates over typed attestation
+references, not arbitrary state. Time-locked attestations extend when an
+attestation is readable, not what it can compute. Both stay within the
+consensus-runtime boundary that PoUA's security argument requires
+(§3.8).
+
+For application authors who need general-purpose smart contracts: use a
+general-purpose chain (Ethereum, Solana, a Cosmos app chain). For
+application authors whose product is dominated by attestation production
+and verification, with cost-to-attack tied to that workload's economic
+shape: use Ligate. The chain's value proposition is the specialization.
+
+\subsubsection{\texorpdfstring{Q13. Why three rebase parameters
+(\(\tau_{\text{burn}}\), \(\eta\), \(\lambda\))? How do they
+interact?}{Q13. Why three rebase parameters (\textbackslash tau\_\{\textbackslash text\{burn\}\}, \textbackslash eta, \textbackslash lambda)? How do they interact?}}\label{q13.-why-three-rebase-parameters-tau_textburn-eta-lambda-how-do-they-interact}
+
+\textbf{Three because each tracks a structurally different drift.}
+§4.4.2's \(\tau_{\text{burn}}\) rebase tracks cost-to-grind drift driven
+by fee economics (token supply, schema fee structures). §4.4.3's
+\(\eta\) rebase tracks ramp-time drift driven by attestation volume
+regime. §4.4.3's \(\lambda\) rebase tracks slash-deterrent drift driven
+by the slashing-condition catalog. The three signals are orthogonal in
+their primary inputs, so each one needs its own auto-adjuster;
+conflating them into a single rebase would obscure which underlying
+variable is moving.
+
+\textbf{Interaction is bounded.} The three rebases run concurrently.
+Correlation enters only at second order (e.g., a fee regime change can
+shift attestation volume, which feeds back into \(\eta\)). Under the
+worst-case scenario where all three signals drift in the
+cost-to-grind-shrinking direction simultaneously, each step is bounded
+by \(\Delta \leq 0.1\) and the combined per-step effect on Lemma 1's
+\(F_{\text{net}} \geq \tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha_{\text{eff}})\)
+floor is bounded by \((1.1) \cdot (1.1) / (0.9) \approx 1.34\), a 34\%
+one-step swing. The \(N\)-epoch rate-limit prevents compounding within a
+window. The simulator's
+\texttt{test\_three\_rebases\_concurrent\_no\_amplification} test
+validates the combined Lyapunov function
+\(V = D_\tau^2 + D_\eta^2 + D_\lambda^2\) is non-increasing under
+correlated drift.
+
+\textbf{Telemetry surfaces a ``rebase saturation'' alert} when any of
+the three parameters sits at its clip bound for more than \(N\) epochs.
+Saturation means the auto-adjuster has done all it can and governance
+escalation (§4.4.2, §4.4.3) is the next layer. The split between
+rules-based auto-adjustment and discretionary governance mirrors
+well-designed monetary policy: fast-but-bounded automation,
+slow-but-permanent human override.
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -2449,6 +3845,52 @@ v1.0 of this paper will incorporate empirical power analysis from one or
 both sources, replacing the analytical bounds with calibrated values
 where appropriate.
 
+\textbf{Explicit acknowledgment of the Erdős-Rényi assumption gap.} The
+§A.2 A3 detector threshold is derived under the assumption that, under
+the null hypothesis, edges in the bipartite (submitter, attestor) graph
+form independently with uniform probability \(p_{\text{base}}\)
+(Erdős-Rényi). Real chain transaction graphs are \emph{not} Erdős-Rényi:
+they are scale-free, with hub addresses (exchanges, bridges, popular
+dApps, large enterprise submitters) generating edge clusters that
+violate the independence assumption. The simulator-driven empirical
+comparison in Figure \ref{fig:a3-fpr-comparison} below shows this
+explicitly: under a Chung-Lu scale-free null (power-law degree
+distribution, \(\alpha \in \{2.0, 2.5, 3.0\}\)), realized FPR sits 1-3
+orders of magnitude below the nominal \(\beta_3 = 1\%\) target. The
+detector is consistently \emph{more conservative} than the analytical
+claim under realistic graph structure, which means the false-positive
+guarantee is honored in practice but the threshold is too loose for
+attack detection (the corresponding TPR is also depressed). This is a
+calibration issue, not a security flaw: production deployment should
+re-derive the threshold against an empirical chain-graph baseline
+(Chung-Lu fit to the chain's own transaction history) rather than retain
+the ER assumption. Open issue
+\href{https://github.com/ligate-io/ligate-research/issues/16}{\#16}
+tracks the v0.8 reformulation.
+
+\textbf{Synthetic-attestor saturation in TPR scans.} The simulator's
+\texttt{scripts/run\_a3\_tpr\_scan.py} runs a \(\beta_3\) sweep over the
+§A.2 detector against synthetically-constructed grinding cartels. In the
+simulator's synthetic-attestor model, the bipartite-density signal
+saturates: TPR sits at 1.0 across \(\beta_3 \in [0.001, 0.1]\) for small
+staged pools (the detector's design regime). This is not a calibration
+win; it is an artifact of the synthetic model, where attestor sets are
+drawn from the chain's validator addresses without realistic
+hub-and-spoke transaction structure. The saturation documents an
+upper-bound TPR; production calibration against empirical chain traffic
+(post-devnet) is required to position the detector against realistic
+graph structure. The diluted-pool gap (the regime where saturation
+drops) is captured by the §5.5.2 Layer 2 deterministic-membership
+closure rather than by the §A.2 detector alone; the §6.2 Panel C result
+quantifies this empirically.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{../../prototypes/poua-sim/out/a3_fpr_comparison.png}
+\caption{Realized A3 false-positive rate under the §A.2 Erdős-Rényi null (paper assumption) versus a Chung-Lu scale-free null (realistic chain-graph model), across $p_{\text{base}} \in \{0.02, 0.05, 0.10, 0.15, 0.20\}$ and power-law exponent $\alpha \in \{2.0, 2.5, 3.0\}$. 5{,}000 trials per cell on a $30 \times 30$ bipartite graph. Produced by \texttt{prototypes/poua-sim/scripts/run\_a3\_fpr\_comparison.py}. The horizontal dotted line marks the analytical $\beta_3 = 1\%$ target. Under the ER null, realized FPR sits within $\sim$2$\sigma$ binomial of nominal. Under Chung-Lu, the detector is consistently \emph{more} conservative than nominal: realized FPR drops by 1-3 orders of magnitude depending on $p_{\text{base}}$ and $\alpha$. The mismatch reflects the heavy-tail bias under hub-pair clipping; production deployment should re-derive the threshold against an empirical Chung-Lu-style baseline rather than the ER assumption.}
+\label{fig:a3-fpr-comparison}
+\end{figure}
+
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \subsection{Appendix B: Formal Definitions
@@ -2503,18 +3945,29 @@ reputation of honest validators.
 inclusion-exclusion. Used in Theorems 1 and 2.)
 
 \textbf{Lemma 1 (Cost-to-grind bound, recap).} Under Layer 3 with
-parameter \(\tau_{\text{burn}}\) and proposer reputation share
-\(\alpha\), any compound adversary acting as proposer to acquire
-reputation gain \(\Delta r\) pays non-recoverable fees
-\(F_{\mathcal{CR}}^{\text{net}} \geq \tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha)\).
-(Proof: §5.5.3.)
+parameter \(\tau_{\text{burn}}\), proposer reputation share \(\alpha\)
+and voter share \(\beta = 1 - \alpha\), an \(m\)-validator coordinated
+cartel within a \(k\)-voter set that acquires per-member reputation gain
+\(\Delta r\) pays per-member non-recoverable fees
+\(F_{\mathcal{CR}}^{\text{net, per member}} \geq \tau_{\text{burn}} \cdot \Delta r / [\eta \cdot \alpha_{\text{eff}}(m, k)]\),
+where \(\alpha_{\text{eff}}(m, k) = \alpha + (m - 1)\beta/k\). The
+single-validator case \(m = 1\) recovers
+\(\alpha_{\text{eff}} = \alpha\) exactly. In the asymptotic limit
+\(k \to \infty\) at fixed \(m / k\),
+\(\alpha_{\text{eff}} \to \alpha + (m / k)\beta\); for the Byzantine cap
+\(m = k/3\), \(\alpha = 0.7\), the asymptotic per-member discount is
+\(\sim 12.5\%\). (Proof: §5.5.3. Empirical validation: simulator §5.5.3
+reference at
+\href{https://github.com/ligate-io/ligate-research/tree/main/prototypes/poua-sim/scripts/run_lemma1_scan.py}{\texttt{prototypes/poua-sim/scripts/run\_lemma1\_scan.py}}.)
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
-\emph{End of working paper v0.4. Comments welcome to hello@ligate.io.}
+\emph{End of working paper v0.8. Comments welcome to hello@ligate.io.}
 
-\emph{Roadmap: v0.2 adds Appendix A statistical specifications, Section
-6 formal incentive compatibility proof sketch, and devnet calibration
-data. Target: Q3 2026.}
+\emph{Roadmap: v0.9 will incorporate devnet calibration data once devnet
+stabilizes (mid-2026), reviewer feedback from the arXiv submission, and
+any §A.3 / §A.4 production-calibration refinements driven by real
+chain-graph baselines. v1.0 is the venue-submission target (mid-2027 if
+appropriate venue).}
 
 \end{document}
