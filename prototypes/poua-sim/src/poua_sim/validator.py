@@ -2,7 +2,7 @@
 
 A validator carries:
 - ``address``: short identifier (display only; the simulator does not model keys)
-- ``stake``: bonded LGT
+- ``stake``: bonded AVOW
 - ``reputation``: scalar in [r_min, r_max], updated at each epoch boundary
   via the §4.3 update function
 - ``epoch_g_prop``, ``epoch_g_vote``, ``epoch_b``: per-epoch tallies that
