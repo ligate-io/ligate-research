@@ -1022,7 +1022,7 @@ The integration points:
 For Ligate devnet, we propose:
 
 - $r_{\min} = 1.0$, $r_{\max} = 8.0$ (premium ratio 8$\times$)
-- $\eta = 0.001$ (reputation per nano-LGT of valid attestation fee)
+- $\eta = 0.001$ (reputation per nano-AVOW of valid attestation fee)
 - $\lambda = 1.0$ (reputation per stake-equivalent slash)
 - $E = 14400$ slots $\approx$ 4 hours at $\tau = 1\,\text{s}$
 - $\alpha = 0.7, \beta = 0.3$ (proposer / voter reputation share, $\alpha + \beta = 1$)
