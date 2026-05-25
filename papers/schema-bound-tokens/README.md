@@ -4,10 +4,11 @@ A third user-token primitive for attestation-native chains: the mint authority i
 
 ## Latest
 
-- **Working paper**: [`schema-bound-tokens.md`](schema-bound-tokens.md)
-- **Version**: v0.1 (2026-05-19)
-- **Status**: Draft research note. Formal properties (§3) written; one use case (§6.2 AI-provenance NFTs) worked through; comparison table populated; open game-theoretic questions surfaced for v0.2.
-- **Date**: 2026-05-19
+- **Working paper**: [`schema-bound-tokens.md`](schema-bound-tokens.md) + [`schema-bound-tokens.pdf`](schema-bound-tokens.pdf) (15 pages, ~101 KB)
+- **Version**: v0.2 (2026-05-25)
+- **Author**: Stefan Stefanović (Ligate Labs)
+- **Status**: Research note v0.2 closes §3.6 fee-market composition (using Per-Schema Fees v0.2 mechanism), §4.1 attestor-set cap-exceedance incentive analysis (qualitative bound), §4.3 recall notice-period calibration (category-specific defaults using Time-Locked Attestations v0.2 state-machine parallel), and §4.5 sublicensing via meta-schemas (using Cross-Schema Composition v0.2 typed references). §6.1 regulated-currency use case expanded from sketch to full worked example. §4.2 cap-exceedance slash severity calibration and §4.4 sub-quorum partial mint remain open as v0.3 work.
+- **Date**: 2026-05-25
 
 ## Why this paper exists
 
