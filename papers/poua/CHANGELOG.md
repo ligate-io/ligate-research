@@ -1,6 +1,20 @@
 # PoUA Paper Changelog
 
-Tracks substantive changes from v0.1 to v0.8. Each entry is brief; the paper itself is the source of truth.
+Tracks substantive changes from v0.1 to v0.9. Each entry is brief; the paper itself is the source of truth.
+
+---
+
+## v0.9 (2026-05-25): reviewer follow-up clarity pass
+
+Cycle opened 2026-05-25 in response to a 2026-05-25 follow-up from Jiangshan Yu (University of Sydney, Sydney Blockchain Centre) on v0.8. Three reviewer-driven adjustments, all clarity / framing. No load-bearing claim changed; the security argument in §5 stands; the cost-to-attack moat in §5.3 stands.
+
+**Reviewer-feedback corrections** (per [#71](https://github.com/ligate-io/ligate-research/issues/71); follow-up from Jiangshan Yu, Sydney Blockchain Centre, 2026-05-25).
+
+- §8 RepuCoin complexity cell: downgraded from "High" to "Low" per Yu's note that RepuCoin's implementation sits on well-understood PoW + BFT primitives and is materially less involved than Ouroboros or Avalanche.
+- §11 Q4 RepuCoin bullet: "out-of-protocol resources" phrasing replaced. The clarification now reads "externally anchored: the marginal cost of acquiring reputation (electricity, mining hardware) is set by commodity markets, not by a chain-controlled parameter." This addresses Yu's read of "out-of-protocol" as "outside the protocol's rules", which was not the intent; the intent was about cost basis being denominated by off-chain commodity markets.
+- §11 Q4 PoUA bullet and closing differentiated-property paragraph: "out-of-protocol resources / scarcity assumptions" replaced with "off-chain commodity prices" and "off-chain commodity scarcity (energy, hardware, peer-trust graph structure)" respectively, for consistency with the rewritten RepuCoin bullet.
+
+**No load-bearing changes.** Lemma 1 unchanged. The cost-to-attack premium claim ($4\times$ to $10\times$) unchanged. §A.2 / §A.3 detector formalism unchanged. v0.9 is a clarity pass; the security argument's load-bearing parts are stable.
 
 ---
 
