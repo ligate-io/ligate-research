@@ -40,3 +40,8 @@ venv/
 NOTES.md
 TODO.md
 .scratch/
+
+# arXiv submission build dir (regenerable from poua.tex + figure sources;
+# the canonical poua-arxiv.tar.gz is committed alongside the paper for
+# traceability)
+papers/poua/arxiv-build/

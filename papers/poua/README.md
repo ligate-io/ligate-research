@@ -21,8 +21,8 @@ The simulator at [`prototypes/poua-sim/`](../../prototypes/poua-sim/) produces t
 ## Latest
 
 - **Working paper**: [`poua.pdf`](poua.pdf) (compiled) / [`poua.md`](poua.md) (markdown source) / [`poua.tex`](poua.tex) (LaTeX source for arXiv)
-- **Version**: v0.9
-- **Status**: Reviewer follow-up clarity pass on v0.8; arXiv preprint in flight (cs.CR, pending endorsement)
+- **Version**: v0.9.1
+- **Status**: Reviewer follow-up clarity pass on v0.8 + release-prep tightening; arXiv preprint in flight (cs.CR, pending endorsement)
 - **Date**: 2026-05-25
 
 ## Abstract

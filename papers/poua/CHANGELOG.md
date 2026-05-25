@@ -1,12 +1,12 @@
 # PoUA Paper Changelog
 
-Tracks substantive changes from v0.1 to v0.9. Each entry is brief; the paper itself is the source of truth.
+Tracks substantive changes from v0.1 to v0.9.1. Each entry is brief; the paper itself is the source of truth.
 
 ---
 
-## v0.9 (2026-05-25): reviewer follow-up clarity pass
+## v0.9.1 (2026-05-25): reviewer follow-up clarity pass + release-prep tightening
 
-Cycle opened 2026-05-25 in response to a 2026-05-25 follow-up from Jiangshan Yu (University of Sydney, Sydney Blockchain Centre) on v0.8. Three reviewer-driven adjustments, all clarity / framing. No load-bearing claim changed; the security argument in §5 stands; the cost-to-attack moat in §5.3 stands.
+Cycle opened 2026-05-25 in response to a 2026-05-25 follow-up from Jiangshan Yu (University of Sydney, Sydney Blockchain Centre) on v0.8. Three reviewer-driven adjustments plus four release-prep tightenings ahead of arXiv submission. No load-bearing claim changed; the security argument in §5 stands; the cost-to-attack moat in §5.3 stands.
 
 **Reviewer-feedback corrections** (per [#71](https://github.com/ligate-io/ligate-research/issues/71); follow-up from Jiangshan Yu, Sydney Blockchain Centre, 2026-05-25).
 
@@ -14,7 +14,16 @@ Cycle opened 2026-05-25 in response to a 2026-05-25 follow-up from Jiangshan Yu 
 - §11 Q4 RepuCoin bullet: "out-of-protocol resources" phrasing replaced. The clarification now reads "externally anchored: the marginal cost of acquiring reputation (electricity, mining hardware) is set by commodity markets, not by a chain-controlled parameter." This addresses Yu's read of "out-of-protocol" as "outside the protocol's rules", which was not the intent; the intent was about cost basis being denominated by off-chain commodity markets.
 - §11 Q4 PoUA bullet and closing differentiated-property paragraph: "out-of-protocol resources / scarcity assumptions" replaced with "off-chain commodity prices" and "off-chain commodity scarcity (energy, hardware, peer-trust graph structure)" respectively, for consistency with the rewritten RepuCoin bullet.
 
-**No load-bearing changes.** Lemma 1 unchanged. The cost-to-attack premium claim ($4\times$ to $10\times$) unchanged. §A.2 / §A.3 detector formalism unchanged. v0.9 is a clarity pass; the security argument's load-bearing parts are stable.
+**Release-prep tightening** (ahead of arXiv submission, 2026-05-25).
+
+- Title-page date updated 2026-05-19 → 2026-05-25.
+- §6.3 stale "v0.8 will refine the bound" (PV-of-slash approximation) replaced with "a future version will refine the bound".
+- §A.4 stale "tracks the v0.8 reformulation" (ER vs Chung-Lu) replaced with "tracks the reformulation, deferred until devnet provides empirical chain-graph baseline data".
+- End-of-paper roadmap line rewritten. v0.10 now scoped to real-chain Chung-Lu calibration via adjacent-chain transaction graphs as a structural proxy ([issue #120](https://github.com/ligate-io/ligate-research/issues/120)); v1.0 scoped to Ligate-devnet calibration once devnet stabilizes (mid-2026), plus reviewer feedback from the arXiv submission. v1.0 remains the venue-submission target.
+- Acknowledgments updated to fold in Yu's 2026-05-25 follow-up on §8 complexity and §11 phrasing.
+- Closing acknowledgments "cycle" line generalized from "v0.7.2 cycle" to "the 2026-05 external technical review cycle".
+
+**No load-bearing changes.** Lemma 1 unchanged. The cost-to-attack premium claim ($4\times$ to $10\times$) unchanged. §A.2 / §A.3 detector formalism unchanged. v0.9.1 is a clarity + release-prep pass; the security argument's load-bearing parts are stable.
 
 ---
 

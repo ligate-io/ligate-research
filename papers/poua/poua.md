@@ -2,9 +2,9 @@
 
 ## A Consensus Primitive for Attestation-Native Chains
 
-**Ligate Labs Research, Working Paper v0.9**
+**Ligate Labs Research, Working Paper v0.9.1**
 
-**Date:** 2026-05-19
+**Date:** 2026-05-25
 
 **Contact:** hello@ligate.io
 
@@ -1140,11 +1140,11 @@ We invite review and critique - particularly critique. This is a working paper; 
 
 ## Acknowledgments
 
-We thank **Jiangshan Yu** (University of Sydney, Sydney Blockchain Centre) for substantive correction of the §8 RepuCoin comparison row (weight basis as first-class reputation derived from multi-aspect historical contribution; cost-to-attack as time-dependent rather than fixed-ratio) and endorsement of the §11 Q4 intrinsically-anchored-reputation framing. Acknowledged with permission.
+We thank **Jiangshan Yu** (University of Sydney, Sydney Blockchain Centre) for substantive corrections to the §8 RepuCoin comparison row (weight basis as first-class reputation derived from multi-aspect historical contribution; cost-to-attack as time-dependent rather than fixed-ratio; complexity assessment), endorsement of the §11 Q4 intrinsically-anchored-reputation framing, and a follow-up clarification that informed the v0.9.1 §11 phrasing rewrite (cost basis as off-chain commodity-priced rather than "out-of-protocol"). Acknowledged with permission.
 
 We thank **Marko Vukolić** (Bitcoin Scaling Labs) for emphasizing the load-bearing nature of §5.5 attestation-grinding defenses in our exchange, which informed the §5.5 layered-detection write-up and the §6.2 empirical strategy-search progression.
 
-Both corrections arrived during the v0.7.2 external technical review cycle (2026-05). Errors that remain are our own.
+Both reviewers' input arrived during the 2026-05 external technical review cycle. Errors that remain are our own.
 
 ---
 
@@ -1428,6 +1428,6 @@ $$b_v(t) = \sum_{i \in \{1,2,3\}} \Lambda_i \cdot |\{\text{detected slashes of s
 
 ---
 
-*End of working paper v0.9. Comments welcome to hello@ligate.io.*
+*End of working paper v0.9.1. Comments welcome to hello@ligate.io.*
 
-*Roadmap: v0.9 will incorporate devnet calibration data once devnet stabilizes (mid-2026), reviewer feedback from the arXiv submission, and any §A.3 / §A.4 production-calibration refinements driven by real chain-graph baselines. v1.0 is the venue-submission target (mid-2027 if appropriate venue).*
+*Roadmap: v0.10 will incorporate real-chain Chung-Lu calibration for §A.4 using adjacent-chain transaction graphs as a structural proxy ([issue #120](https://github.com/ligate-io/ligate-research/issues/120)) ahead of full Ligate devnet maturity. v1.0 will incorporate Ligate devnet calibration data once devnet stabilizes (mid-2026), reviewer feedback from the arXiv submission, and any §A.3 / §A.4 production-calibration refinements driven by domestic chain-graph baselines. v1.0 is the venue-submission target (mid-2027 if appropriate venue).*
