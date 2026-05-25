@@ -1,6 +1,16 @@
 # PoUA Paper Changelog
 
-Tracks substantive changes from v0.1 to v0.9.1. Each entry is brief; the paper itself is the source of truth.
+Tracks substantive changes from v0.1 to v0.9.2. Each entry is brief; the paper itself is the source of truth.
+
+---
+
+## v0.9.2 (2026-05-25): author attribution on title page
+
+Pre-arXiv-submission patch: title page now names the author (Stefan Stefanović, Ligate Labs) so the PDF and the arXiv listing-page metadata agree. v0.9 / v0.9.1 published the paper with a corporate byline ("Ligate Labs Research") only; v0.9.2 corrects that ahead of the arXiv preprint going live.
+
+No content changes. The author was always Stefan Stefanović; v0.9.2 just makes that explicit on the title page.
+
+Files touched: `poua.md` title page, footer line, `poua.tex` regenerated, `poua.pdf` regenerated, `poua-arxiv.tar.gz` rebuilt from updated source for re-upload.
 
 ---
 

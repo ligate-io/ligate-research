@@ -92,7 +92,11 @@
 \subsection{A Consensus Primitive for Attestation-Native
 Chains}\label{a-consensus-primitive-for-attestation-native-chains}
 
-\textbf{Ligate Labs Research, Working Paper v0.9.1}
+\textbf{Stefan Stefanović}
+
+\emph{Ligate Labs}
+
+\textbf{Working Paper v0.9.2}
 
 \textbf{Date:} 2026-05-25
 
@@ -2708,8 +2712,9 @@ the deterrent, and the actual deterrent is somewhat weaker. This is a
 known approximation; a tighter bound would integrate a time-varying
 \(w_v(t)/S(t)\) across the recovery, which closes to within a few
 percent for high-reputation validators (where \(r_v \approx r_{\max}\))
-but materially weakens for mid-reputation validators near the median.
-A future version will refine the bound; the qualitative claim
+but materially weakens for mid-reputation validators near the median. A
+future version will refine the bound (integrating a time-varying
+\(w_v(t)/S(t)\) across the recovery); the qualitative claim
 (``time-locked incentive alignment that pure-stake PoS lacks'') is
 robust to this refinement.
 
@@ -3293,20 +3298,20 @@ the \emph{cost-to-grind} argument relies on.
   contribution). The ``work'' being measured is hash computation plus
   participation, which is \emph{externally anchored}: the marginal cost
   of acquiring reputation (electricity, mining hardware) is set by
-  commodity markets, not by a chain-controlled parameter. Cost-per-unit-
-  reputation in RepuCoin is therefore a function of off-chain energy and
-  hardware prices, not a chain parameter. PoW-as-useful-work is a
-  generic signal: any chain whose validators also mine PoW can adopt it.
-  RepuCoin's cost-to-attack is \emph{time-dependent}: it grows as honest
-  reputation accumulates over chain history, so an attacker faces a
-  steadily rising bar rather than a fixed multiple. RepuCoin is also
-  research-stage; we are not aware of a production deployment. PoUA's
-  ``work'' is the chain's \emph{own paid productive workload}
-  (attestation processing), which is \emph{intrinsically anchored}: a
-  different chain hosting the same attestation contracts cannot
-  replicate the reputation premium without rebuilding consensus, because
-  the workload measurement happens at the consensus-runtime boundary
-  that contract-layer systems don't control.
+  commodity markets, not by a chain-controlled parameter.
+  Cost-per-unit-reputation in RepuCoin is therefore a function of
+  off-chain energy and hardware prices, not a chain parameter.
+  PoW-as-useful-work is a generic signal: any chain whose validators
+  also mine PoW can adopt it. RepuCoin's cost-to-attack is
+  \emph{time-dependent}: it grows as honest reputation accumulates over
+  chain history, so an attacker faces a steadily rising bar rather than
+  a fixed multiple. RepuCoin is also research-stage; we are not aware of
+  a production deployment. PoUA's ``work'' is the chain's \emph{own paid
+  productive workload} (attestation processing), which is
+  \emph{intrinsically anchored}: a different chain hosting the same
+  attestation contracts cannot replicate the reputation premium without
+  rebuilding consensus, because the workload measurement happens at the
+  consensus-runtime boundary that contract-layer systems don't control.
 \item
   \textbf{EigenTrust} (Kamvar et al., 2003) is a peer-to-peer reputation
   algorithm for decentralized file-sharing and trust networks. It does
@@ -3329,8 +3334,8 @@ the \emph{cost-to-grind} argument relies on.
   package. The cost-to-grind argument is
   \emph{economic-by-construction}: the chain's own non-recoverable burn
   floor (Lemma 1, §5.5.3) bounds the per-fee-unit cost of grinding from
-  below, independent of off-chain commodity prices (energy, hardware)
-  or peer-trust transitivity.
+  below, independent of off-chain commodity prices (energy, hardware) or
+  peer-trust transitivity.
 \end{itemize}
 
 The differentiated property: \textbf{PoUA is the first
@@ -3339,12 +3344,13 @@ is the protocol's own paid productive workload, not an
 externally-anchored signal (mining, storage, peer interactions), AND
 where the cost-to-grind floor is bounded by an intrinsic protocol
 parameter (\(\tau_{\text{burn}}\)) rather than by off-chain commodity
-scarcity (energy, hardware, peer-trust graph structure).} This is what makes the moat
-economic-by-construction. RepuCoin's moat depends on PoW capacity
-scarcity; EigenTrust's depends on the social-network-graph structure of
-who trusts whom; PoUA's depends on the chain's own fee-burn parameter,
-which is observable, calibrable, and adaptive (§4.4.2). The synthesis is
-the contribution; no single component is novel in isolation.
+scarcity (energy, hardware, peer-trust graph structure).} This is what
+makes the moat economic-by-construction. RepuCoin's moat depends on PoW
+capacity scarcity; EigenTrust's depends on the social-network-graph
+structure of who trusts whom; PoUA's depends on the chain's own fee-burn
+parameter, which is observable, calibrable, and adaptive (§4.4.2). The
+synthesis is the contribution; no single component is novel in
+isolation.
 
 \subsubsection{Q5. Why not just use restaking (EigenLayer) on
 Ethereum?}\label{q5.-why-not-just-use-restaking-eigenlayer-on-ethereum}
@@ -3969,7 +3975,7 @@ reference at
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
-\emph{End of working paper v0.9.1. Comments welcome to hello@ligate.io.}
+\emph{End of working paper v0.9.2. Comments welcome to hello@ligate.io.}
 
 \emph{Roadmap: v0.10 will incorporate real-chain Chung-Lu calibration
 for §A.4 using adjacent-chain transaction graphs as a structural proxy

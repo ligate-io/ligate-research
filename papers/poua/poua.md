@@ -2,7 +2,11 @@
 
 ## A Consensus Primitive for Attestation-Native Chains
 
-**Ligate Labs Research, Working Paper v0.9.1**
+**Stefan Stefanović**
+
+*Ligate Labs*
+
+**Working Paper v0.9.2**
 
 **Date:** 2026-05-25
 
@@ -1428,6 +1432,6 @@ $$b_v(t) = \sum_{i \in \{1,2,3\}} \Lambda_i \cdot |\{\text{detected slashes of s
 
 ---
 
-*End of working paper v0.9.1. Comments welcome to hello@ligate.io.*
+*End of working paper v0.9.2. Comments welcome to hello@ligate.io.*
 
 *Roadmap: v0.10 will incorporate real-chain Chung-Lu calibration for §A.4 using adjacent-chain transaction graphs as a structural proxy ([issue #120](https://github.com/ligate-io/ligate-research/issues/120)) ahead of full Ligate devnet maturity. v1.0 will incorporate Ligate devnet calibration data once devnet stabilizes (mid-2026), reviewer feedback from the arXiv submission, and any §A.3 / §A.4 production-calibration refinements driven by domestic chain-graph baselines. v1.0 is the venue-submission target (mid-2027 if appropriate venue).*
