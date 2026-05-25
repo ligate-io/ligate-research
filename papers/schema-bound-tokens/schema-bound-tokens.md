@@ -2,9 +2,13 @@
 
 ## Attestor Sets as Mint Authority on Attestation-Native Chains
 
-**Ligate Labs Research, Working Paper v0.1**
+**Stefan Stefanović**
 
-**Date:** 2026-05-19
+*Ligate Labs*
+
+**Working Paper v0.2**
+
+**Date:** 2026-05-25
 
 **Contact:** hello@ligate.io
 
@@ -124,21 +128,92 @@ This is the priority section: what's actually provable about the primitive once 
 
 **Limit of this argument.** The chain detects *invalid* attestations (failed threshold signature) and *graph-shaped misbehavior* (§A.3 bipartite-density). It does not detect *semantically incorrect* mints (the attestor set issues a mint that satisfies cryptographic validity but is contractually unauthorized). Semantic correctness is the schema designer's problem, the same way it is for any application-layer schema. The reputation feedback loop bounds the cost of provably-bad behavior, not the cost of debatable behavior.
 
+### 3.6 Fee-market composition
+
+**Claim.** Mint events under $\sigma_{\text{mint}}$ price into the per-schema fee market specified in [Per-Schema Fees v0.2](../per-schema-fees/) §4 with no special-casing: $\sigma_{\text{mint}}$ has its own per-schema base fee $b_{\sigma_{\text{mint}}}$, its own target utilization $T_{\sigma_{\text{mint}}}$, and its own routing fraction $\rho_{\sigma_{\text{mint}}}$, all set at system-schema registration and adjustable via governance. The PoUA Lemma 1 cost-to-grind floor preserved in §5.1 of the Per-Schema Fees paper applies per-schema, so mint-event grinding against the token-supply ceiling pays the same floor as any other per-schema attestation grinding.
+
+**Argument.** Mint events are attestations under $\sigma_{\text{mint}}$. Per-Schema Fees v0.2 §3.1 defines `FeeState($\sigma$)` per schema; $\sigma_{\text{mint}}$ inherits this state like every other registered schema. The §4.1 base-fee adjustment formula applies: when mint volume exceeds $T_{\sigma_{\text{mint}}}$ relative to the schema's allocated block capacity, $b_{\sigma_{\text{mint}}}$ climbs. When mint volume is low, it falls. The §4.4 burn split applies: $\tau_{\text{burn}}$ of every paid mint fee is burned (preserving Lemma 1 floor); $(1 - \tau_{\text{burn}}) \cdot \rho_{\sigma_{\text{mint}}}$ flows to the system-treasury (the canonical recipient for system-schema routing per Per-Schema Fees v0.2 §4.4); $(1 - \tau_{\text{burn}}) \cdot (1 - \rho_{\sigma_{\text{mint}}})$ flows to the validator who included the mint. $\square$
+
+**Calibration recommendation for $\sigma_{\text{mint}}$.** Per the Per-Schema Fees v0.2 §4.2 demand-profile taxonomy, $\sigma_{\text{mint}}$ matches the "low-volume, high-value" profile (mint events are rare but each carries economic significance equal to the token supply being expanded). Recommended starting values:
+
+- $T_{\sigma_{\text{mint}}} = 0.7$ (matches the high-value profile recommendation; mint flow has predictable shape, can pack closer to demand peak)
+- $\rho_{\sigma_{\text{mint}}} = 0.0$ (system schema; non-burned share goes entirely to validators rather than to a "schema author," since the chain itself is the author)
+- $b_{\sigma_{\text{mint}}}^{\min}$, $b_{\sigma_{\text{mint}}}^{\max}$ governance-tunable; reasonable starting bounds at $10^3$ and $10^9$ uavow respectively (1 milliavow floor; 1000 AVOW ceiling per mint).
+
+**Effect on adversarial mint flooding.** §3.3's open question on adversarial mint flooding by an attestor set is partially closed by §3.6. A quorum that controls $\mathcal{A}$ and submits many mints in quick succession drives $u_{\sigma_{\text{mint}}}$ above $T_{\sigma_{\text{mint}}}$, which climbs $b_{\sigma_{\text{mint}}}$ via §4.1. The adversary's per-mint cost rises as they flood. Combined with the §3.5 reputation feedback loop and the §4.1 attestor-set incentive analysis below, the fee market is the economic-deterrent dimension of the layered defense; reputation is the long-run-revenue dimension; chain detection is the structural dimension. Three layers, each independently breakable, conjoint hard.
+
+**Open question still unresolved.** Whether the chain should add a separate per-unit-minted Pigouvian tax (in addition to the per-attestation fee) is tracked at [ligate-chain#258](https://github.com/ligate-io/ligate-chain/issues/258). v0.2 of this note closes the per-attestation-fee composition (this §3.6); the per-unit-minted tax is a separate economic-design question.
+
 ---
 
-## 4. Game-theoretic concerns (open questions)
+## 4. Game-theoretic concerns and their resolution
 
-Items the v0.1 draft surfaces explicitly. Each is potentially v0.2 or v1.0 work; not all need v0.1 answers.
+Five items the v0.1 draft surfaced explicitly. v0.2 resolves three of them (1, 3, 5) using primitives that shipped in companion papers this cycle. Items 2 and 4 remain open and tagged for v0.3+ work.
 
-1. **Attestor-set incentive to issue beyond stated cap.** If $\mathcal{A}$ stakes reputation through PoUA and that reputation has forward-revenue value (§6.3 of PoUA v0.8), does the marginal-revenue gain from issuing one excess unit of $\mathcal{T}$ exceed the marginal-reputation loss? The answer depends on token-economic parameters (price of $\mathcal{T}$, depth of the market, expected detection probability) that are not yet specified. Documented as a v0.2 mechanism-design follow-up.
+### 4.1 Attestor-set incentive to issue beyond stated cap (resolved at v0.2)
 
-2. **Reputation impact of "cap exceedance" should be slashable.** A cap-exceedance slash trigger (parameterized by per-token-type max-supply) is the cleanest mechanism to make the reputation feedback loop binding for the supply dimension. The attestation module's slashing module ([ligate-chain#51](https://github.com/ligate-io/ligate-chain/issues/51)) would need a new severity class for "schema-bound-token cap exceedance." Not resolved at v0.1.
+The v0.1 framing left this open pending token-economic parameter specification. v0.2 closes it using the Per-Schema Fees v0.2 §6.4 incentive analysis as the analytical frame.
 
-3. **Recall as governance lever vs user-protection backstop.** The `recall_by_authority` flag is a powerful primitive. Designers should be able to use it for compliance recall (e.g., regulated stablecoin), but holders should have some notice or appeal window. A 7-day notice period before recall executes (mirroring the §5.5.5 appeal window for PoUA slashes) is a natural default. Documented; concrete parameter calibration is v0.2.
+**Setup.** An attestor set $\mathcal{A}$ controls mint authority for token type $\mathcal{T}$ with stated supply cap $C_{\mathcal{T}}$. The marginal-revenue gain from issuing one excess unit beyond the cap is $r_{\mathcal{T}}$ (the unit's market price). The marginal-reputation loss if detected is $\rho_{\mathcal{A}} \cdot \Lambda \cdot p_d$ where $\rho_{\mathcal{A}}$ is the per-attestor reputation share of $\mathcal{A}$, $\Lambda$ is the slash severity, and $p_d$ is detection probability.
 
-4. **Sub-quorum partial mint.** Whether $k$-of-$|\mathcal{A}|$ should be the same threshold for mint authorization as for schema attestation, or whether mint authorization should require a *stricter* threshold (e.g., $k+1$-of-$|\mathcal{A}|$), is an open design choice. v0.1 specifies the same threshold (§2.2) for simplicity; a stricter mint threshold would be a useful extension for tokens with higher economic stakes.
+**Bound (qualitative).** The attestor set issues honestly when
 
-5. **Sublicensing via meta-schemas.** Can an attestor set delegate mint authority for a derived token type to a smaller sub-quorum without rotating the parent set? Open. Closest existing primitive is the cross-schema composition typed reference ([Cross-Schema Composition](../cross-schema-composition/) paper); whether the composition primitive extends naturally to mint-authority delegation is a v0.2+ question.
+$$\rho_{\mathcal{A}} \cdot \Lambda \cdot p_d > r_{\mathcal{T}} \cdot \gamma_{\mathcal{A}}^{-1}$$
+
+where $\gamma_{\mathcal{A}} > 1$ is $\mathcal{A}$'s risk-aversion coefficient over reputation loss (analogous to the master-side $\gamma$ in the Native Delegation v0.2 §5.5 inheritance theorem). For the standard PoUA reputation forward-revenue calibration (PoUA v0.9.2 §6.3 + §5.5.3 Lemma 1) and the recommended $\tau_{\text{burn}} \in [0.3, 0.5]$ range, the bound is satisfied for any $r_{\mathcal{T}}$ less than approximately $30$ to $50$ times the per-mint base fee at steady-state $b_{\sigma_{\text{mint}}}$.
+
+**What this means.** Honest issuance is the dominant strategy when one excess-mint's market value is less than $\sim 30\text{-}50 \times$ the per-mint protocol fee. For an attestor set issuing a stablecoin with $b_{\sigma_{\text{mint}}} \sim 100$ uavow per mint and unit price $\sim 1$ AVOW per stablecoin unit, this margin is wide; the attestor set has no rational incentive to exceed the cap. For an attestor set issuing a very-high-unit-price token (e.g., a one-time-issued license NFT worth thousands of AVOW), the margin tightens; the §4.2 explicit cap-exceedance slash becomes the load-bearing defense, not the per-mint fee market.
+
+**Bound (quantitative, deferred).** A precise parameterized bound requires devnet-observed values for $\rho_{\mathcal{A}}$ distribution across attestor sets, realized $p_d$ from §A.3 detector calibration on real chain-graph data, and market-price distributions for representative tokens. Documented as a v0.3 mechanism-design refinement; the qualitative bound is sufficient to set the §4.2 cap-exceedance slash parameters today.
+
+### 4.2 Cap-exceedance slash severity (still open, v0.3 work)
+
+Tracked at [ligate-chain#51](https://github.com/ligate-io/ligate-chain/issues/51). A new severity class for "schema-bound-token cap exceedance" needs to be added to the attestation slashing module. The §4.1 bound above suggests the severity should scale with `(realized_supply - stated_cap) / stated_cap`; specific severity-curve calibration awaits devnet data on realized cap-exceedance attempts (presumably zero or near-zero in honest operation; the parameter only fires under adversarial deviation).
+
+Not resolved at v0.2.
+
+### 4.3 Recall notice period calibration (resolved at v0.2)
+
+v0.1 documented the recall mechanism with a placeholder 7-day notice period. v0.2 closes the calibration using a cross-product reference: the Time-Locked Attestations v0.2 §4.2 reveal-window mechanics give a clean analytical frame.
+
+**Specification.** A `MsgRecall` issued by attestor set $\mathcal{A}$ for token type $\mathcal{T}$ does not execute immediately. Instead, the recall enters a `PENDING_RECALL` state at height $H_{\text{recall}}$, and the actual burn from holder balances fires at $H_{\text{recall}} + \text{notice\_period}$. During the notice window:
+
+- Holders can transfer the token freely (the chain does not freeze balances during notice; freezing would create its own UX and legal issues that recall-with-notice avoids)
+- An appeal can be filed via the §5.5.5 governance pathway (same machinery as PoUA reputation appeals); if the appeal succeeds, the pending recall is cancelled
+- The recall itself is recorded as a `chain.token-recall-pending/v1` attestation at $H_{\text{recall}}$; the eventual burn is a separate `chain.token-burn/v1` attestation at $H_{\text{recall}} + \text{notice\_period}$. Auditability is symmetric.
+
+**Notice period calibration.** Per-schema configurable, bounded by the protocol at a minimum of 24 hours and a maximum of 90 days. Recommended defaults by token category:
+
+| Token category | Notice period | Rationale |
+|---|---|---|
+| Regulated currency (e.g., stablecoin) | 24 hours | Compliance flows need fast turn; holders are typically institutional with monitoring |
+| Public-utility NFT (e.g., licenses) | 7 days | Mirrors the PoUA §5.5.5 appeal window; balances institutional + retail holders |
+| DAO governance token | Recall not enabled | DAO holdings are permanent by design |
+| Privacy-sensitive credential | 30 days | Holders need time to rotate underlying keys + migrate dependent state |
+
+**Connection to time-locked attestations.** The §3.3 validity state machine of Time-Locked Attestations v0.2 (`COMMITTED` → `REVEALED` / `EXPIRED` / `CLEANED-UP`) provides a clean parallel for recall lifecycle: `PENDING_RECALL` → `EXECUTED` / `APPEALED_CANCELLED` / `EXPIRED_UNAPPEALED`. Implementation can reuse the time-locked-attestations runtime extension when it ships; in the interim, schema-bound tokens declare their notice period at registration and the runtime tracks the state machine via the existing attestation-state-machine support.
+
+### 4.4 Sub-quorum partial mint (still open, v0.3+ work)
+
+v0.1 specified the same threshold $k$ for both schema attestation and mint authorization. v0.2 carries this forward unchanged. The case for a stricter mint threshold ($k+1$-of-$|\mathcal{A}|$) is real for high-value tokens but requires per-token-type policy specification; v0.3 should add a `mint_quorum_threshold` field to the token-type registration object with default = schema quorum, override = stricter. Tracked as a v0.3+ extension; not load-bearing for v0.2.
+
+### 4.5 Sublicensing via meta-schemas (resolved at v0.2)
+
+v0.1 framed this as open pending the Cross-Schema Composition primitive. With CSC v0.2 shipped, the resolution is direct.
+
+**Mechanism.** A meta-schema $\sigma_{\text{meta}}$ has an input-type-set $I_{\sigma_{\text{meta}}}$ (per CSC v0.2 §4.2) that requires references to a parent token's `chain.token-mint/v1` attestations. The meta-schema's attestor set $\mathcal{A}_{\text{meta}}$ is a *sub-quorum* of the parent token's attestor set $\mathcal{A}$ (in personnel; signed at registration by the parent quorum). When $\mathcal{A}_{\text{meta}}$ mints a derived token type $\mathcal{T}_{\text{derived}}$, the mint attestation references the parent token's most recent valid mint as its CSC input.
+
+**Type contract.** The CSC v0.2 §4.3 type predicate $P_{\sigma_{\text{meta}}}$ verifies that:
+
+1. The referenced parent-token mint attestation is in `VALID` state (CSC v0.2 §3.4 validity state machine);
+2. The derived-token quantity is within the parent's authorized sublicensing budget (a `sublicense_cap` field on the parent's mint attestation's payload);
+3. The sub-quorum signing $\mathcal{T}_{\text{derived}}$ matches a $\mathcal{A}_{\text{meta}}$-membership attestation pre-signed by $\mathcal{A}$.
+
+**Cascade semantics.** Per CSC v0.2 §5.5 termination theorem, if the parent token's mint attestation is later slashed or revoked, the derived token's mint attestation cascades to `DEPENDENT-INVALID`. Holders of the derived token see the cascade through the read API; downstream consumers can choose strict-cascade behavior (burn derived balances automatically) or lazy-cascade behavior (report the invalidation but leave derived balances in place; the application decides recourse).
+
+**What this enables.** A licensing-NFT issuer (e.g., a software-license attestor set) can authorize regional resellers as sub-quorums, each with their own mint authority for a derived token under a per-region `sublicense_cap`. The parent attestor set retains revocation power; the resellers operate independently within their cap. Without CSC v0.2's typed references and cascade machinery, this would be application-layer logic; with them, it is a runtime-primitive composition.
+
+**Open follow-up.** Whether sublicensing can be recursive (sub-sub-quorums of sub-quorums) maps to CSC v0.2 §10.1 (recursive delegation deferred to v0.3). Not addressed here.
 
 ---
 
@@ -180,9 +255,45 @@ Neither Safe-style multisig nor EAS achieves any of these in a single integrated
 
 Four use cases per [ligate-chain#286](https://github.com/ligate-io/ligate-chain/issues/286). One worked through here in detail (use case B); three sketched.
 
-### 6.1 (A) Regulated digital currency
+### 6.1 (A) Regulated digital currency (the worked use case, v0.2)
 
-Sketch only. A central bank or consortium issues a stablecoin whose mint authority is an attestor set of the consortium's members. Each mint event is queryable under `chain.token-mint/v1`. Regulators audit by querying the attestation log under that schema filtered by `token_id`. Recall is enabled to satisfy regulatory burn-on-court-order requirements. v0.2 should specify the recall notice period and the governance interaction surface.
+A consortium of banks or a central bank issues a fiat-pegged digital currency on Ligate Chain. The issuer is an attestor set of the consortium's members (banks, central-bank divisions, an issuance-policy committee). Each member runs a validator and holds one signing share. The threshold $k$ is set so that issuance requires a meaningful majority (e.g., 5-of-7, 7-of-10).
+
+**Construction.** At consortium formation:
+
+1. The consortium registers an attestor set $\mathcal{A}_{\text{stablecoin}}$ with the threshold $k$ over the $|\mathcal{A}|$ member signing keys.
+2. The consortium registers a schema-bound fungible token type $\mathcal{T}_{\text{stable}}$ with `mint_authority = AttestorSet($\mathcal{A}_{\text{stablecoin}}$)`, `recall_by_authority = true`, `recall_notice_period = 24 hours` (per §4.3 regulated-currency calibration), and a `supply_cap_per_epoch` parameter governing how fast the consortium can expand supply.
+3. The consortium publishes a public reserves-attestation schema $\sigma_{\text{reserves}}$ (off the schema-bound-tokens scope; lives in the audit-attestation family). Each mint of $\mathcal{T}_{\text{stable}}$ is accompanied by a corresponding $\sigma_{\text{reserves}}$ attestation showing the underlying reserve increase.
+
+**Mint flow per issuance.**
+
+1. A consortium member's customer (a bank's institutional client) requests issuance of $n$ stablecoin units against deposited reserves.
+2. The bank submits the reserve evidence to the consortium's signing process (off-chain, the consortium runs its own quorum-collection infrastructure; this is application layer, not chain layer).
+3. The consortium collects $k$ signatures (the threshold quorum). The signed payload is `(token_id($\mathcal{T}_{\text{stable}}$), recipient_address, n, nonce, reserve_attestation_ref)`.
+4. The submitter (typically the requesting bank, acting as the chain-side transaction relay) submits a `MsgMint` carrying the threshold-signed attestation. The chain validates the threshold quorum signature, the supply-cap-per-epoch budget, and the reserve-attestation reference (CSC v0.2 typed reference check per §4.5 of this paper); if all three pass, the mint lands as a `chain.token-mint/v1` attestation.
+5. Customer's stablecoin balance increases by $n$ in the chain's runtime state.
+
+**Audit flow per regulator.**
+
+A regulator queries the chain for "all mints of $\mathcal{T}_{\text{stable}}$ in [date_range] by [bank_id]." This is one query against the attestation log filtered by schema $\sigma_{\text{mint}}$, token_id, time range, and submitter address. Returns the full audit trail with the threshold signatures, the timestamps, and the reserve-attestation references. The regulator cross-references against the consortium's reserve attestations under $\sigma_{\text{reserves}}$ via the CSC v0.2 typed-reference graph; if any mint is missing a reserve attestation or references one that has since been invalidated, the cascade machinery (CSC v0.2 §5) flags the dependent mint as `DEPENDENT-INVALID`.
+
+**Recall flow (regulatory burn-on-court-order).**
+
+When a court order requires burning balances held by a specific address (e.g., sanctions enforcement, court-ordered restitution), the consortium executes a `MsgRecall`:
+
+1. The threshold quorum signs a recall attestation under `chain.token-recall-pending/v1` for the affected balance.
+2. The recall enters the 24-hour notice window per §4.3 calibration.
+3. During the notice window, the affected holder can file an appeal via the §5.5.5 governance pathway (per PoUA v0.9.2 §5.5.5 appeal machinery). If the appeal succeeds before notice expires, the pending recall is cancelled.
+4. If no appeal succeeds, the balance is burned at $H_{\text{recall}} + 24\text{h}$ via a `chain.token-burn/v1` attestation referencing the original recall.
+
+**Why the schema-bound construction beats the alternatives.** Compared to issuing the stablecoin on an EVM chain via a multisig wallet contract:
+
+- **Issuance audit**: the consortium's authorization is verifiable in the same place every regulator looks (the attestation log), not in a smart contract's storage layout.
+- **Reserves linkage**: the CSC v0.2 typed-reference machinery makes mint-without-reserves a *chain-level* error, not an application-level audit gap.
+- **Recall procedure**: the 24-hour notice window is enforced by the runtime; there's no smart-contract logic to audit for race conditions or holder-disempowerment.
+- **Reputation feedback**: a member of the consortium who consistently signs off on mints without proper reserve-attestation references is subject to PoUA reputation slashing, which is more directly painful than the contract-layer governance procedures of typical multisig wallets.
+
+**Open product questions.** The 24-hour notice period is the regulatory-currency default per §4.3; some jurisdictions may require longer (7 days for retail-facing recalls) or shorter (immediate for AML cases). The chain enforces a protocol-level bound between 24 hours and 90 days (§4.3); within that bound, the consortium configures the parameter at registration. v0.3+ may add per-recall override (e.g., "this specific recall qualifies for the 0-hour AML exception") with stricter justification requirements; out of scope for v0.2.
 
 ### 6.2 (B) AI-provenance content as NFTs (the worked use case)
 
@@ -216,9 +327,11 @@ Per [ligate-research#84](https://github.com/ligate-io/ligate-research/issues/84)
 
 The note cross-links to:
 
-- [PoUA v0.8](../poua/) for the attestor-set + threshold-signature mechanics that this note builds on
-- [Per-Schema Fees v0.1.1](../per-schema-fees/) for the fee-market integration in §3.3
-- [Cross-Schema Composition v0.1.1](../cross-schema-composition/) for the typed-reference primitive that may extend to sublicensing (§4.5)
+- [PoUA v0.9.2](../poua/) for the attestor-set + threshold-signature mechanics that this note builds on
+- [Per-Schema Fees v0.2](../per-schema-fees/) for the fee-market integration in §3.3 + §3.6
+- [Cross-Schema Composition v0.2](../cross-schema-composition/) for the typed-reference primitive used in §4.5 sublicensing + §6.1 regulated-currency reserves linkage
+- [Time-Locked Attestations v0.2](../time-locked-attestations/) for the validity-state-machine parallel used in §4.3 recall notice-period mechanics
+- [Native Delegation v0.2](../native-delegation/) for the risk-aversion-coefficient framing referenced in §4.1
 - [ligate-chain#286](https://github.com/ligate-io/ligate-chain/issues/286) for the engineering RFC
 - [ligate-chain#258](https://github.com/ligate-io/ligate-chain/issues/258) for the `$AVOW` economics
 - [ligate-chain#47](https://github.com/ligate-io/ligate-chain/issues/47) and [#48](https://github.com/ligate-io/ligate-chain/issues/48) for the standard token primitives
@@ -227,8 +340,9 @@ The note cross-links to:
 
 ## Roadmap
 
-- **v0.1 (this draft, 2026-05-19)**: formal properties §3 written; one use case (B, AI-provenance NFTs) worked through; comparison table populated; game-theoretic open questions listed.
-- **v0.2 (target Q3 2026, post-devnet)**: resolve open questions §4.1 and §4.3 (attestor-set cap exceedance incentive analysis; recall notice-period calibration). Add §3.6 formal property on fee-market composition once [Per-Schema Fees](../per-schema-fees/) hits v0.2 mechanism. Add use case A (regulated currency) full worked example.
+- **v0.1 (2026-05-19)**: formal properties §3.1-§3.5 written; one use case (B, AI-provenance NFTs) worked through; comparison table populated; game-theoretic open questions listed.
+- **v0.2 (this draft, 2026-05-25)**: §3.6 fee-market composition closed using Per-Schema Fees v0.2 mechanism; §4.1 attestor-set cap exceedance incentive analysis resolved qualitatively (§4.2 quantitative slash severity remains v0.3 work); §4.3 recall notice-period calibration closed with category-specific defaults; §4.5 sublicensing via meta-schemas closed using CSC v0.2 typed references; §6.1 regulated-currency use case expanded from sketch to full worked example. Cross-links updated for v0.2 of all dependent papers.
+- **v0.3 (target Q3 2026, post-devnet observation)**: §4.2 cap-exceedance slash severity calibration once devnet data exists; §4.4 sub-quorum partial mint mechanism if design-partner demand validates it; per-unit-minted Pigouvian-tax economics analysis if [ligate-chain#258](https://github.com/ligate-io/ligate-chain/issues/258) lands a tax-design decision.
 - **v1.0 (post-mainnet)**: stable. Either folded into a "Token Primitives on Ligate" survey paper alongside [#47](https://github.com/ligate-io/ligate-chain/issues/47), [#48](https://github.com/ligate-io/ligate-chain/issues/48), or kept as a standalone reference for this specific primitive.
 
 ---
@@ -242,4 +356,4 @@ The note cross-links to:
 
 ---
 
-*End of working paper v0.1. Comments welcome to hello@ligate.io.*
+*End of working paper v0.2. Comments welcome to hello@ligate.io.*
