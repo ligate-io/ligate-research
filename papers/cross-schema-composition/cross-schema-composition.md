@@ -34,7 +34,7 @@ The thesis of this paper: for an attestation-native chain, **chain-enforced typi
 
 ### 1.2 Why Now (or Why Not)
 
-Honest framing first: cross-schema composition is **v2 protocol territory**. Ligate Chain v0 ships with single-schema attestations only. Themisra (proof of prompt), Mneme (wallet receipts), Iris (agent attestations), Kleidon (SaaS events): each of the four flagship products at v1 operates on its own schema with no need to reference attestations of other schemas. The single-schema primitive is sufficient for the first wave of products, and v1 engineering cost is finite.
+Honest framing first: cross-schema composition is **v2 protocol territory**. Ligate Chain v0 ships with single-schema attestations only. Themisra (proof of prompt), Mneme (wallet receipts), Iris (agent attestations), Atlas (verifier results): each of the four flagship products at v1 operates on its own schema with no need to reference attestations of other schemas. The single-schema primitive is sufficient for the first wave of products, and v1 engineering cost is finite.
 
 What changes in v2 is the gravitational pull of composition. Once the chain has 50+ registered schemas, the natural next layer is composition: workflows that consume attestations of one schema and produce attestations of another. Themisra wants to produce attribution attestations referencing prompt attestations. Iris wants to produce agent-action attestations referencing the Themisra attribution they were responding to. Compliance partners want to produce audit attestations referencing the financial attestations they audited. The pattern is universal once the schema count crosses a threshold.
 
@@ -517,7 +517,7 @@ We will not pay this cost on speculation. The engineering cycle for cross-schema
 
 Until then, this paper documents the design space, the security analysis, and the comparison with prior art. The mechanism is specification-only.
 
-This is a deliberate process choice. "Schemas as composable Lego" is a vibe; concrete workflow X needing schemas A, B, C to compose under chain-enforced typing is a use case. The paper exists so that, when the second category materializes, the design is captured and ready. Until it does, the chain ships with single-schema attestations only and the four flagship products at v1 (Themisra, Mneme, Iris, Kleidon) operate without this primitive.
+This is a deliberate process choice. "Schemas as composable Lego" is a vibe; concrete workflow X needing schemas A, B, C to compose under chain-enforced typing is a use case. The paper exists so that, when the second category materializes, the design is captured and ready. Until it does, the chain ships with single-schema attestations only and the four flagship products at v1 (Themisra, Mneme, Iris, Atlas) operate without this primitive.
 
 ### 6.2 Use Case Template
 
@@ -750,7 +750,7 @@ Cross-schema composition with chain-enforced typing and slashing-aware proof pro
 
 The paper's four contributions resolve the design space. (1) **Mechanism (§3 + §4)**: schemas as typed-graph nodes with declared input-type sets, semver-constrained edges, bounded-compute type predicates, and admission-time runtime type checks. (2) **Slashing-cascade termination theorem (§5.5)**: under acyclic graphs, the BFS cascade terminates in $O(d)$ deterministic steps with per-dependent deduplication and gas charged to the slash root. (3) **Security analysis (§8)**: three attack families (type confusion, slash amplification, cycle DoS) bounded by structural and economic defenses, with composition properties documented against native delegation, per-schema fees, and PoUA reputation. (4) **Use-case validation gate (§6)**: explicit framing that engineering work begins only when 2-3 design partners submit concrete use-case descriptions matching the §6.2 template.
 
-The mechanism is positioned as a **v2 protocol feature**, not v1 day-1. Ligate Chain v0 ships with single-schema attestations; the four flagship products at v1 (Themisra, Mneme, Iris, Kleidon) operate on single-schema attestations only. Cross-schema composition lands when the §6.1 gate is satisfied. This paper documents the design space and the security argument so that, when the gate opens, engineering work has a target to ship against.
+The mechanism is positioned as a **v2 protocol feature**, not v1 day-1. Ligate Chain v0 ships with single-schema attestations; the four flagship products at v1 (Themisra, Mneme, Iris, Atlas) operate on single-schema attestations only. Cross-schema composition lands when the §6.1 gate is satisfied. This paper documents the design space and the security argument so that, when the gate opens, engineering work has a target to ship against.
 
 **What this paper does not do.** It does not advocate for shipping cross-schema composition on day one. It does not claim that workflows currently using single-schema attestations should switch. It does not commit Ligate Chain to a v2 release date. It documents what the mechanism would look like, why the mechanism would be correct, and what the security argument would be, in the conditional voice the v2 status warrants.
 

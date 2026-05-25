@@ -55,7 +55,7 @@ The same argument applies to embargoed announcements (replace "auctioneer" with 
 
 ### 1.3 Why Now (or Why v1.5, Not v1)
 
-Ligate Chain v1 ships with single-phase attestations. The four flagship products (Themisra, Mneme, Iris, Kleidon) do not need commit-reveal at launch. v1 engineering cost is bounded by the minimum surface needed to ship.
+Ligate Chain v1 ships with single-phase attestations. The four flagship products (Themisra, Mneme, Iris, Atlas) do not need commit-reveal at launch. v1 engineering cost is bounded by the minimum surface needed to ship.
 
 Time-locked attestations matter when use cases like sealed-bid auctions, embargoed press releases, and regulatory filings ramp up. The v1.5 timing reflects this: post-devnet, post-Mneme-launch, when at least one design partner per category (auction, embargo, regulatory) has submitted a concrete use-case description matching the §6.2 template. The §6.1 gate enforces this discipline.
 

@@ -314,7 +314,7 @@ The target utilization $T_\sigma$ controls the trade-off between **predictabilit
 |---|---|---|
 | Stable, low-volume (e.g., regulatory filings) | 0.7 | Variance is low; can pack closer to demand peak without congestion |
 | High-volume, low-variance (e.g., Themisra prompts) | 0.5 | Default; balances predictability and revenue |
-| Bursty (e.g., Kleidon mint events around drops) | 0.3 | Heavy headroom to absorb spikes without triggering rapid base-fee climbs |
+| Bursty (e.g., schema-bound-token mint events around drops) | 0.3 | Heavy headroom to absorb spikes without triggering rapid base-fee climbs |
 | Real-time / time-critical (e.g., Iris agent actions) | 0.3 | Latency sensitivity demands immediate-inclusion guarantees during normal load |
 
 [**Measured at v0.2.5+:** these are architectural defaults; devnet observation will refine per-schema targets. Schemas can declare a preferred $T_\sigma$ at registration; the chain enforces governance bounds.]
