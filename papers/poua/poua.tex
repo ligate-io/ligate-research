@@ -92,7 +92,7 @@
 \subsection{A Consensus Primitive for Attestation-Native
 Chains}\label{a-consensus-primitive-for-attestation-native-chains}
 
-\textbf{Ligate Labs Research, Working Paper v0.8}
+\textbf{Ligate Labs Research, Working Paper v0.9}
 
 \textbf{Date:} 2026-05-19
 
@@ -2709,9 +2709,9 @@ known approximation; a tighter bound would integrate a time-varying
 \(w_v(t)/S(t)\) across the recovery, which closes to within a few
 percent for high-reputation validators (where \(r_v \approx r_{\max}\))
 but materially weakens for mid-reputation validators near the median.
-v0.8 will refine the bound; the qualitative claim (``time-locked
-incentive alignment that pure-stake PoS lacks'') is robust to this
-refinement.
+A future version will refine the bound; the qualitative claim
+(``time-locked incentive alignment that pure-stake PoS lacks'') is
+robust to this refinement.
 
 \paragraph{6.3.1 Volume-Dependence of the Slash
 Deterrent}\label{volume-dependence-of-the-slash-deterrent}
@@ -3019,7 +3019,7 @@ coupling, cost-to-attack, complexity, and production maturity.
 \textbf{Helium PoC} & Coverage proof & Hardware identity + coverage measurement & Direct & $> 1\times$, hard to compute (geographic) & High & Mainnet (Helium Network) \\
 \textbf{Filecoin PoSt} & Storage commitment proof + collateral & Storage hardware & Direct & $> 1\times$, varies & Very high & Mainnet \\
 \rowcolor{tablerowalt}
-\textbf{RepuCoin} (Yu et al.) & Reputation as first-class weight (derived from total blocks produced, activity, and contribution regularity) & PoW + stake & Indirect (mining $\neq$ application work) & Grows with elapsed chain time as reputation accumulates & High & Research only \\
+\textbf{RepuCoin} (Yu et al.) & Reputation as first-class weight (derived from total blocks produced, activity, and contribution regularity) & PoW + stake & Indirect (mining $\neq$ application work) & Grows with elapsed chain time as reputation accumulates & Low & Research only \\
 \bottomrule
 \end{longtable}
 \endgroup
@@ -3288,14 +3288,17 @@ the \emph{cost-to-grind} argument relies on.
   quantity derived from multiple aspects of historical contribution
   (total blocks created, activity and availability, regularity of
   contribution). The ``work'' being measured is hash computation plus
-  participation, which is \emph{externally anchored} (validators expend
-  out-of-protocol resources to acquire reputation). PoW-as-useful-work
-  is a generic signal: any chain whose validators also mine PoW can
-  adopt it. RepuCoin's cost-to-attack is \emph{time-dependent}: it grows
-  as honest reputation accumulates over chain history, so an attacker
-  faces a steadily rising bar rather than a fixed multiple. RepuCoin is
-  also research-stage; we are not aware of a production deployment.
-  PoUA's ``work'' is the chain's \emph{own paid productive workload}
+  participation, which is \emph{externally anchored}: the marginal cost
+  of acquiring reputation (electricity, mining hardware) is set by
+  commodity markets, not by a chain-controlled parameter. Cost-per-unit-
+  reputation in RepuCoin is therefore a function of off-chain energy and
+  hardware prices, not a chain parameter. PoW-as-useful-work is a
+  generic signal: any chain whose validators also mine PoW can adopt it.
+  RepuCoin's cost-to-attack is \emph{time-dependent}: it grows as honest
+  reputation accumulates over chain history, so an attacker faces a
+  steadily rising bar rather than a fixed multiple. RepuCoin is also
+  research-stage; we are not aware of a production deployment. PoUA's
+  ``work'' is the chain's \emph{own paid productive workload}
   (attestation processing), which is \emph{intrinsically anchored}: a
   different chain hosting the same attestation contracts cannot
   replicate the reputation premium without rebuilding consensus, because
@@ -3323,8 +3326,8 @@ the \emph{cost-to-grind} argument relies on.
   package. The cost-to-grind argument is
   \emph{economic-by-construction}: the chain's own non-recoverable burn
   floor (Lemma 1, §5.5.3) bounds the per-fee-unit cost of grinding from
-  below, independent of out-of-protocol resources or peer trust
-  transitivity.
+  below, independent of off-chain commodity prices (energy, hardware)
+  or peer-trust transitivity.
 \end{itemize}
 
 The differentiated property: \textbf{PoUA is the first
@@ -3332,8 +3335,8 @@ reputation-weighted BFT scheme where the ``work'' the reputation tracks
 is the protocol's own paid productive workload, not an
 externally-anchored signal (mining, storage, peer interactions), AND
 where the cost-to-grind floor is bounded by an intrinsic protocol
-parameter (\(\tau_{\text{burn}}\)) rather than depending on
-out-of-protocol scarcity assumptions.} This is what makes the moat
+parameter (\(\tau_{\text{burn}}\)) rather than by off-chain commodity
+scarcity (energy, hardware, peer-trust graph structure).} This is what makes the moat
 economic-by-construction. RepuCoin's moat depends on PoW capacity
 scarcity; EigenTrust's depends on the social-network-graph structure of
 who trusts whom; PoUA's depends on the chain's own fee-burn parameter,
@@ -3866,7 +3869,8 @@ re-derive the threshold against an empirical chain-graph baseline
 (Chung-Lu fit to the chain's own transaction history) rather than retain
 the ER assumption. Open issue
 \href{https://github.com/ligate-io/ligate-research/issues/16}{\#16}
-tracks the v0.8 reformulation.
+tracks the reformulation, deferred until devnet provides empirical
+chain-graph baseline data.
 
 \textbf{Synthetic-attestor saturation in TPR scans.} The simulator's
 \texttt{scripts/run\_a3\_tpr\_scan.py} runs a \(\beta_3\) sweep over the
@@ -3962,7 +3966,7 @@ reference at
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
-\emph{End of working paper v0.8. Comments welcome to hello@ligate.io.}
+\emph{End of working paper v0.9. Comments welcome to hello@ligate.io.}
 
 \emph{Roadmap: v0.9 will incorporate devnet calibration data once devnet
 stabilizes (mid-2026), reviewer feedback from the arXiv submission, and
