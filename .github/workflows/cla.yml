@@ -29,4 +29,7 @@ jobs:
           path-to-signatures: 'signatures/version1/cla.json'
           path-to-document: 'https://github.com/ligate-io/ligate-research/blob/main/CLA.md'
           branch: 'cla/signatures'
-          allowlist: 'sstefdev,dependabot[bot],*[bot]'
+          # Code-owner allowlist + bot allowlist. proofmancer is the
+          # primary code-owner login (Stefan Stefanović). sstefdev is
+          # kept for any older PRs authored under the legacy username.
+          allowlist: 'proofmancer,sstefdev,dependabot[bot],*[bot]'
