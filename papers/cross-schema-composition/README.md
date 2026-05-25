@@ -67,6 +67,6 @@ In the meantime, this scaffold reserves the directory and lays out the v0.2 stru
 
 ## Stance
 
-This is **v2 protocol territory**, explicitly. Single-schema attestations are sufficient for the four flagship products at v1 (Themisra, Mneme, Iris, Kleidon). Cross-schema composition is interesting and probably correct in the long run, but premature without specific design-partner asks.
+This is **v2 protocol territory**, explicitly. Single-schema attestations are sufficient for the four flagship products at v1 (Themisra, Mneme, Iris, Atlas). Cross-schema composition is interesting and probably correct in the long run, but premature without specific design-partner asks.
 
 "Schemas as composable Lego" is a vibe, not a use case. The default state is "do not author until external pull validates the demand." This scaffold exists so the design space is documented when that demand arrives.

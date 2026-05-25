@@ -858,7 +858,7 @@ This subsection's only forward-looking commitment: the grant encoding will reser
 
 ### 10.5 Privacy-Preserving Delegation
 
-The grant index is public chain state. Anyone can read it. This means the delegation graph (which masters delegate to which hot keys) is fully observable. For users running multiple agents (one Themisra agent for AI provenance, one Kleidon agent for SaaS, one Iris-relayed agent for autonomous flows), the graph reveals the user's tool stack to anyone watching the chain.
+The grant index is public chain state. Anyone can read it. This means the delegation graph (which masters delegate to which hot keys) is fully observable. For users running multiple agents (one Themisra agent for AI provenance, one Atlas agent for verifier crawls, one Iris-relayed agent for autonomous flows), the graph reveals the user's tool stack to anyone watching the chain.
 
 The mitigation paths:
 
@@ -880,7 +880,7 @@ The paper's three contributions resolve the three open questions the introductio
 
 The mechanism is the foundation for **Iris** (§7), Ligate's MCP relayer for autonomous agents. Iris composes native delegation (signing authority) with the per-schema fee market's fee-payer primitive (payment authority) to ship the user-signs-once, agent-acts-for-T-seconds UX as a single coherent product. The §7.5 worked example (a Themisra session under Iris) traces every chain transaction back to the §4 admission check and the §5.5 slashing accounting; the composition is clean enough that Iris's commercial viability reduces to subscription-pricing discipline rather than protocol-level innovation.
 
-The mechanism is also the foundation for any future product whose UX is "the user signed once, the agent acts for the next $T$ seconds." Themisra session-mode (one grant per AI provenance session), Kleidon's TokenForge minting-bot (one grant per mint campaign), Mneme's grant-issuance UX (the canonical interface for issuing grants), and the §9 incentive analysis verifies that honest delegation is the Nash equilibrium across all four parties (validators, users, agents, sponsors). Native delegation is not a special case of agent UX; it is the general primitive from which agent UX is built.
+The mechanism is also the foundation for any future product whose UX is "the user signed once, the agent acts for the next $T$ seconds." Themisra session-mode (one grant per AI provenance session), an Atlas crawler bot (one grant per crawl campaign), Mneme's grant-issuance UX (the canonical interface for issuing grants), and the §9 incentive analysis verifies that honest delegation is the Nash equilibrium across all four parties (validators, users, agents, sponsors). Native delegation is not a special case of agent UX; it is the general primitive from which agent UX is built.
 
 **What ships in v1.** The protocol mechanism (§4), the slashing-inheritance calibration (§5.5 at $(0.7, 0.3)$), the simulator (M1 + M2 covered, M3-M5 on the roadmap), Iris MCP integration (§7), and Mneme grant-issuance UX. The mechanism is feature-complete for the agent UX targeted in §1.1; subsequent v1.x releases will tune the calibration based on observed compromise rates (§5.5's $p_c$ stochastic adversary becomes empirical once the chain has live grants) and extend the test surface to the §10 limitations.
 

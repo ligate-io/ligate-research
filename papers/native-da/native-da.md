@@ -125,7 +125,7 @@ Section 1.6.1 separates proven, bounded, and empirical claims. Section 2 surveys
 
 ### 1.9 Stance: Not Advocacy
 
-This paper is not advocacy for migration off Celestia. Ligate Chain stays on Celestia through v1. The four flagship products at v1 (Themisra, Mneme, Iris, Kleidon) operate on Celestia DA without disruption.
+This paper is not advocacy for migration off Celestia. Ligate Chain stays on Celestia through v1. The four flagship products at v1 (Themisra, Mneme, Iris, Atlas) operate on Celestia DA without disruption.
 
 The paper exists because designing a specialized fallback before you need one is the right discipline. The §12 criteria explicitly state the thresholds (sustained throughput, light-client growth, fee-cost ratio) under which a future migration decision becomes worth considering; until those criteria are met, this paper is reference material, not a roadmap.
 
@@ -232,11 +232,11 @@ The signature is the dominant size term. Ed25519 threshold signatures at thresho
 \texttt{mneme.tx/v1} & 300 & 600 & Tx receipt: amount, recipient, sigs \\
 \texttt{iris.agent-action/v1} & 450 & 1100 & Action + provenance refs \\
 \rowcolor{tablerowalt}
-\texttt{kleidon.subscription/v1} & 250 & 500 & Subscription state-change \\
-\texttt{kleidon.asset-mint/v1} & 380 & 900 & Mint: token-id, owner, metadata hash \\
+\texttt{atlas.verification-result/v1} & 250 & 500 & Verdict + artifact hash \\
+\texttt{atlas.crawl-record/v1} & 380 & 900 & URL, content hash, crawler sig \\
 \rowcolor{tablerowalt}
-\texttt{kleidon.token-deploy/v1} & 600 & 1500 & Full token configuration digest \\
-\texttt{kleidon.marketplace-sale/v1} & 320 & 700 & Sale: tokens, price, buyer, seller \\
+\texttt{chain.token-mint/v1} & 600 & 1500 & Schema-bound-token mint event \\
+\texttt{atlas.user-report/v1} & 320 & 700 & User-submitted content report \\
 \bottomrule
 \end{longtable}
 \endgroup
@@ -268,7 +268,7 @@ This is closer to a high-write-rate database than a blob-storage workload.
 | Phase | Aggregate $A$ (atts/sec) | Driver | Block size implication |
 |---|---|---|---|
 | v0 devnet | 50-100 | Themisra design partners + early adopters | ~0.5 MB/block at 12-sec blocks (median size) |
-| v1 mainnet (year 1) | 200-500 | Themisra + Mneme + Kleidon launches | ~2 MB/block |
+| v1 mainnet (year 1) | 200-500 | Themisra + Mneme + Atlas launches | ~2 MB/block |
 | v2 mainnet (year 2-3) | 1000-5000 | Iris agent traffic dominates; 100s of agents per user | ~20 MB/block at sustained peak |
 | v3 mature | 10000+ | Full agent ecosystem; AI-action attestation per second per user | ~100 MB/block; native DA becomes binding |
 
