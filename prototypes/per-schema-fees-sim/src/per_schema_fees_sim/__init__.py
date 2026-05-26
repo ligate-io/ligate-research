@@ -1,11 +1,22 @@
 """Reference simulator for Per-Schema Fee Markets on Ligate Chain.
 
 Implements the §4.1 EIP-1559-style per-schema base-fee adjustment dynamics,
-the §5.1 cost-to-grind preservation theorem, and the §5.5 stochastic-arrival
-adversary model for sponsored-gas patterns from the per-schema-fees v0.2
-paper at ``papers/per-schema-fees/``.
+the §5.1 cost-to-grind preservation theorem, the §5.5 stochastic-arrival
+adversary model for sponsored-gas patterns, and the M3 cross-schema slot
+allocation + §A.1 KL-divergence detector calibration from the
+per-schema-fees v0.2 paper at ``papers/per-schema-fees/``.
 
-M2 (this release, v0.2.0) extends M1 with:
+M3 (this release, v0.3.0, 2026-05-26) extends M2 with:
+
+- :class:`SchemaProfile`, :func:`allocate_slots`,
+  :func:`simulate_cross_schema_trajectory`: cross-schema slot
+  allocation under per-schema budget caps + spillover.
+- :func:`kl_divergence`, :func:`honest_kl_samples`,
+  :func:`cheating_kl_samples`, :func:`detector_roc`,
+  :func:`calibrate_threshold`: §A.1 KL-divergence detector
+  calibration for schema-mix enforcement.
+
+M2 (v0.2.0) shipped:
 
 - :class:`PoissonArrival`: per-block attestation arrival model
 - :func:`simulate_with_arrivals`: stochastic multi-block simulation
@@ -27,6 +38,13 @@ from per_schema_fees_sim.adversary import (
     estimate_pattern_b_attack_cost,
     simulate_with_arrivals,
 )
+from per_schema_fees_sim.cross_schema import (
+    BlockResult,
+    PendingAttestation,
+    SchemaProfile,
+    allocate_slots,
+    simulate_cross_schema_trajectory,
+)
 from per_schema_fees_sim.fee_market import (
     FeeMarketState,
     adjust_base_fee,
@@ -34,12 +52,21 @@ from per_schema_fees_sim.fee_market import (
     simulate_trajectory,
     validator_income,
 )
+from per_schema_fees_sim.kl_detector import (
+    ROCPoint,
+    calibrate_threshold,
+    cheating_kl_samples,
+    detector_roc,
+    empirical_distribution,
+    honest_kl_samples,
+    kl_divergence,
+)
 from per_schema_fees_sim.security import (
     cost_to_grind,
     verify_cost_to_grind_preservation,
 )
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     # M1 fee-market primitives
@@ -56,4 +83,18 @@ __all__ = [
     "SimulationResult",
     "simulate_with_arrivals",
     "estimate_pattern_b_attack_cost",
+    # M3 cross-schema allocation
+    "BlockResult",
+    "PendingAttestation",
+    "SchemaProfile",
+    "allocate_slots",
+    "simulate_cross_schema_trajectory",
+    # M3 KL detector
+    "ROCPoint",
+    "calibrate_threshold",
+    "cheating_kl_samples",
+    "detector_roc",
+    "empirical_distribution",
+    "honest_kl_samples",
+    "kl_divergence",
 ]
