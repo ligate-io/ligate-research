@@ -2,9 +2,23 @@
 
 Reference simulator for **Native Delegation**, the runtime primitive specified in [`papers/native-delegation`](../../papers/native-delegation/).
 
-**Latest**: v0.3.0 (2026-05-22). M3 closed: canonical grant encoding (paper §3.4 + Appendix B) with `GrantSpec`, `encode_grant_spec`, `decode_grant_spec`, full bound checks, and cross-language test vectors. 91 tests passing.
+**Latest**: v0.4.0 (2026-05-26). M4 closed: EV-maximizing strategic adversary (paper §5.5 satisfying-region robustness) with `MisbehaviorAction`, `StrategicAdversary`, `run_strategic_search`, two reference action sets, and the M4 finding that aggressive G_misbehave defeats the recommended (0.7, 0.3) calibration while typical-consumer scope deters all attacks. 111 tests passing.
 
-**Status**: M1 + M2 + M3 substantive. M4 (strategic-adversary extension where the hot key picks misbehavior actions to maximize $G_{\text{misbehave}} - w_h \cdot \Lambda$) is post-M3 work; M5 (full chain integration test against `ligate-chain`) is planned once the chain ships native delegation.
+**Status**: M1 + M2 + M3 + M4 substantive. M5 (full chain integration test against `ligate-chain`) is planned once the chain ships native delegation.
+
+## v0.4 (M4): strategic adversary
+
+The M4 milestone adds an EV-maximizing strategic adversary that picks from a finite set of `MisbehaviorAction`s to maximize $G_{\text{misbehave}} - p_c \cdot w_h \cdot \Lambda$. Where M2's stochastic adversary samples $p_c$ from a distribution, M4's strategic adversary pins $p_c$ to the action with the highest adversary expected utility.
+
+What ships:
+
+- `MisbehaviorAction(name, g_misbehave, p_c)`: one discrete option in the adversary's action set.
+- `StrategicAdversary(actions)`: chooses the action with maximum `g_misbehave - p_c * w_h * lambda`.
+- `run_strategic_search(...)`: grid sweep over `(w_m, w_h)` under the strategic adversary's optimal play, computing per-cell master EU and P1 satisfaction.
+- `typical_consumer_action_set()`: realistic consumer-scope action set; deterred by recommended calibration.
+- `aggressive_action_set()`: broader-scope action set that defeats recommended (0.7, 0.3) and motivates the §A.5 detector layer.
+
+**M4 finding.** The strategic-adversary safe region is a *strict subset* of the M1 baseline-p_c satisfying region. At low w_h, the adversary escalates to a high-p_c action and breaks P1 even where the M1 baseline check said the cell was safe. The recommended (0.7, 0.3) calibration holds when hot-key scope (§3.3) bounds $G_{\text{misbehave}}$, but fails under aggressive action sets. This motivates the §A.5 detector as defense-in-depth beyond §5.5 slashing-inheritance alone.
 
 ## v0.3 (M3): canonical grant encoding
 
