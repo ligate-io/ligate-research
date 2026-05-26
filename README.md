@@ -24,15 +24,16 @@ This repository is the upstream of the technical claims our marketing surface (l
 
 | Paper | Status | Latest version | Topic |
 |---|---|---|---|
-| [Proof of Useful Attestation (PoUA)](papers/poua/) | Working draft | v0.7.2 (2026-05-03) | Consensus weighting primitive that aligns validator influence with the production of valid attestation work |
-| [Per-Schema Fee Markets](papers/per-schema-fees/) | Outline | v0.1 (2026-05-02) | EIP-1559-style demand curves per attestation schema, with sponsored-gas integration |
-
-Future papers planned (filed as issues in this repo):
-
-- Per-schema fee markets (EIP-1559-style demand curves per attestation schema)
-- Native delegation primitives (hot-key / master-key separation as a runtime primitive, foundation for the Iris MCP relayer)
-- Cross-schema composition (typed attestation references with slashing-aware proof propagation)
-- Time-locked / commit-reveal attestations (sealed-bid auctions, embargoed press, regulatory time-locks)
+| [Proof of Useful Attestation (PoUA)](papers/poua/) | Working paper, [arXiv:2605.25844](https://arxiv.org/abs/2605.25844) | v0.9.2 (2026-05-25) | Consensus weighting primitive that aligns validator influence with valid attestation work |
+| [Native Delegation](papers/native-delegation/) | Working paper | v0.2 (2026-05-25) | Hot-key / master-key separation as a runtime primitive (Iris foundation) |
+| [Per-Schema Fee Markets](papers/per-schema-fees/) | Working paper | v0.2 (2026-05-25) | EIP-1559-style per-schema base fees with PoUA-coupled burn |
+| [Cross-Schema Composition](papers/cross-schema-composition/) | Working paper | v0.2 (2026-05-25) | Typed attestation references with slashing-aware proof propagation |
+| [Time-Locked Attestations](papers/time-locked-attestations/) | Working paper | v0.2 (2026-05-25) | Commit-reveal as a runtime primitive |
+| [Native DA Layer](papers/native-da/) | Working paper | v0.2 (2026-05-25) | A native DA layer specialized for the attestation workload (post-Celestia track) |
+| [Schema-Bound Tokens](papers/schema-bound-tokens/) | Research note | v0.2 (2026-05-25) | Attestor sets as mint authority on attestation-native chains |
+| [EAS Comparison](papers/eas-comparison/) | Outline | v0.1 (2026-05-25) | Ligate Chain vs Ethereum Attestation Service |
+| [Themisra Licensing Schemas](papers/themisra-licensing-schemas/) | Planning | v0.0 (2026-05-05) | Prompt + content licensing schemas riding on Proof of Prompt |
+| [Verifiable Content Provenance](papers/verifiable-content-provenance/) | Planning | v0.0 (2026-05-05) | Detection, embedding, and watermarking for the Ligate receipt layer |
 
 ## Reading and contributing
 

@@ -12,6 +12,8 @@ No content changes. The author was always Stefan Stefanović; v0.9.2 just makes 
 
 Files touched: `poua.md` title page, footer line, `poua.tex` regenerated, `poua.pdf` regenerated, `poua-arxiv.tar.gz` rebuilt from updated source for re-upload.
 
+**Submitted to arXiv on 2026-05-25 as [`arXiv:2605.25844`](https://arxiv.org/abs/2605.25844) (cs.CR primary, cs.DC + cs.GT cross-lists).**
+
 ---
 
 ## v0.9.1 (2026-05-25): reviewer follow-up clarity pass + release-prep tightening
