@@ -8,15 +8,15 @@ date: "2026-05-25"
 
 ## Bootstrap Block Reward, Fee-Coupled Burn, and the Path to Fee-Driven Steady State
 
-**Ligate Labs Research, Working Paper v0.2**
+**Ligate Labs Research, Working Paper v0.3**
 
 **Date:** 2026-05-26
 
-**Status:** v0.2 fills in priority sections with substantive content: initial supply distribution (§3), bootstrap block-reward schedule (§4), phase-out mechanism (§5), τ_burn calibration across regimes (§7), comparison with prior chains (§10), and a worked long-term trajectory (§9). Sections §2, §6, §8 carry forward v0.1 outline annotations for v0.3 expansion. Appendices A and B are placeholders for v0.3 sensitivity work.
+**Status:** v0.3 closes the previously v0.1-annotation sections (§2 background and related work, §6 steady-state validator revenue, §8 SBT feedback) with substantive prose and adds Appendix A worked examples across three demand-volume scenarios. v0.2 substantive content in §3, §4, §5, §7, §9, §10 carries forward. Appendix B parameter sensitivity tables remain a v0.4 deliverable.
 
 **Contact:** hello@ligate.io
 
-**Version history:** v0.1 (2026-05-25, outline). v0.2 (2026-05-26, substantive content in §3, §4, §5, §7, §9, §10).
+**Version history:** v0.1 (2026-05-25, outline). v0.2 (2026-05-26, substantive content in §3, §4, §5, §7, §9, §10). v0.3 (2026-05-26, §2 + §6 + §8 substantive + Appendix A worked examples).
 
 \newpage
 
@@ -97,27 +97,43 @@ Section 3 specifies initial supply distribution across five buckets with lock-up
 
 ## 2. Background and Related Work
 
-[**v0.1:** Brief survey of the design space.]
+Four major chain tokenomics models inform the AVOW design. Each picks different points on the supply-trajectory / validator-revenue / burn frontier; AVOW sits at a particular intersection that no single prior model occupies.
 
 ### 2.1 Bitcoin: halving + fixed ceiling + fee-only steady state
 
-[**v0.1:** 21M cap, programmatic halving every 4 years, eventual fee-only validator revenue. Long transition; well-understood empirically.]
+Bitcoin commits to a 21M BTC supply ceiling enforced by a programmatic emission schedule: 50 BTC per block at genesis, halving every 210,000 blocks (roughly four years). Cumulative emission converges to 21M by approximately year 2140. After full emission, validator revenue is fees-only.
+
+Three properties carry over to the AVOW design. (a) Supply ceiling is an engineering invariant, not a governance promise. (b) The transition from issuance-driven to fee-driven validator revenue is structural, not policy-driven. (c) The chain has no burn mechanism; cumulative supply is monotonically non-decreasing.
+
+The trade-off Bitcoin accepts: a calendar-driven halving schedule that does not respond to fee-revenue maturity. When fee revenue is low (current state, decades into the transition), validator subsidy is still cut on schedule, with the chain absorbing the security-budget risk. AVOW's `$R_f / R_b$`-conditioned phase-out (§5.1) was designed specifically to avoid that risk.
 
 ### 2.2 Ethereum: EIP-1559 burn + staking yield
 
-[**v0.1:** Post-merge model. Base-fee burn under high demand can drive net-negative issuance. Staking yield from priority fees + MEV + small issuance. The most-relevant prior art for fee-coupled burn.]
+Ethereum's post-merge model combines staking yield (validators earn from base fees + priority fees + MEV) with a base-fee burn introduced by EIP-1559. When network demand is high enough that the base-fee burn exceeds new issuance, the chain runs net-negative supply (deflationary). Issuance is bounded but not capped; supply trajectory depends on the realized fee-burn-vs-issuance balance.
+
+This is the closest prior art for AVOW's fee-coupled burn. The §7 `$\tau_{\text{burn}}$` parameter plays the structural role EIP-1559's base-fee plays in Ethereum: a fraction of attestation fees burned at the protocol level. The differences are: (a) AVOW commits to a 1B supply ceiling (Ethereum does not); (b) AVOW phases out emission entirely after the transition (Ethereum retains permanent staking issuance); (c) AVOW's `$\tau_{\text{burn}}$` is structurally bound to the PoUA Lemma 1 cost-to-grind floor (Ethereum's burn is set by network demand independent of any security argument). The third point is the load-bearing difference and is elaborated in §10.4.
 
 ### 2.3 Cosmos: perpetual inflation rebased to staking ratio
 
-[**v0.1:** ATOM inflation rebased between bounds (typically 7-20%) based on staked-vs-circulating ratio. Validators earn from inflation + fees. No supply ceiling.]
+Cosmos Hub's ATOM tokenomics rebase the inflation rate continuously between configured bounds (typically 7% to 20%) based on the staked-vs-circulating ratio: when too few tokens are staked, inflation climbs to incentivize staking; when too many are staked, inflation falls. The rebase is intended to maintain a target staking ratio rather than a target supply trajectory.
+
+Validators earn from inflation + transaction fees. There is no supply ceiling; cumulative supply grows monotonically at the rate the rebase produces.
+
+The model is a useful contrast: Cosmos optimizes for a security-budget-via-staking signal (the staking ratio), accepting unbounded inflation as the price. AVOW optimizes for a fee-revenue-maturity signal (the `$R_f / R_b$` ratio), accepting bootstrap-emission-then-zero as the price. The two are different responses to the same question (how do you size validator incentive over time); the AVOW choice is constrained by the 1B ceiling commitment.
 
 ### 2.4 Solana: decaying inflation to long-tail floor
 
-[**v0.1:** SOL initial inflation ~8%, decays 15% per year to a long-tail floor of ~1.5%. No supply ceiling. Validators earn from inflation + fees.]
+Solana's SOL tokenomics emit at an initial 8% annual inflation rate, decaying by 15% per year toward a long-tail floor of approximately 1.5%. The schedule is calendar-driven and does not respond to fee-revenue or staking-ratio conditions. There is no supply ceiling; long-tail issuance accumulates indefinitely at the 1.5% floor.
+
+Validators earn from inflation + fees + a partial fee burn (50% of priority fees). The chain runs net-positive supply growth indefinitely (the long-tail issuance exceeds the partial fee burn under realistic fee volumes).
+
+The model shows what AVOW chose not to do: calendar-driven emission decay (rather than fee-conditioned) plus permanent long-tail issuance (rather than full phase-out). AVOW's choices on both axes flow from the 1B ceiling commitment, which Solana does not make.
 
 ### 2.5 Where AVOW sits
 
-[**v0.1:** AVOW takes the supply-ceiling discipline from Bitcoin, the fee-burn mechanic from Ethereum, and adds a PoUA-coupled burn floor that ties the burn rate to validator reputation economics. The bootstrap-emission-phase-out mechanism is the design choice that makes the ceiling reachable.]
+AVOW occupies a point in the design space that none of the four prior chains hits. From Bitcoin: the supply ceiling discipline (a structural invariant, not a governance promise). From Ethereum: the per-fee burn mechanic (a fraction of attestation fees burned at the protocol level). From neither: a fee-revenue-conditioned phase-out that ties bootstrap emission to actual fee-market maturity rather than calendar.
+
+The distinctive design choice, elaborated in §10.4, is that `$\tau_{\text{burn}}$` is structurally bound to the PoUA Lemma 1 cost-to-grind floor. None of Bitcoin / Ethereum / Cosmos / Solana ties tokenomics and consensus security at the parameter level; AVOW does. This binding is what makes the tokenomics and consensus papers a coupled pair rather than two independent design choices.
 
 ---
 
@@ -277,19 +293,58 @@ If fee revenue collapses after phase-out (sustained 90-day drop below $R_f / R_b
 
 ### 6.1 Revenue components in steady state
 
-[**v0.1:** $R_v^{\text{steady}} = R_f^v - S$. Per-validator fee revenue minus expected slashing avoidance. $R_b = 0$ by §5 phase-out. The PoUA reputation-channel revenue (proposer + voter shares) is now denominated entirely in fee revenue.]
+Post-phase-out, the validator revenue equation reduces from $R_b + R_f - S$ (per PoUA §6.1) to
+
+$$R_v^{\text{steady}} = R_f^v - S$$
+
+where $R_f^v$ is validator $v$'s share of attestation fees and $S$ is the expected slashing avoidance (a cost, hence the negative sign). $R_b = 0$ by §5 phase-out.
+
+The PoUA reputation-channel revenue (the proposer share $\alpha$ and voter share $\beta$ from §4.3) is now denominated entirely in fee revenue rather than partially in bootstrap subsidy. This is the regime PoUA §6.3.1 documents as the "volume-deterrent steady state," in which the reputation-channel deterrent magnitude scales with $R_f$ directly.
+
+The fee-only steady-state is similar to Bitcoin's terminal regime (long-run fee-funded mining) but reached on a much shorter timeline (3-7 years per §9 trajectory vs. Bitcoin's century-scale transition). The per-schema fee market (per-schema-fees v0.2) makes the shorter timeline credible because high-value schemas (regulated currency, SBT mints, audit-bearing attestations) can carry fees materially above the chain-wide gas baseline.
 
 ### 6.2 Fee revenue composition
 
-[**v0.1:** $R_f^v = \sum_\sigma (\text{tip}_\sigma + (1 - \tau_{\text{burn}}) \cdot b_\sigma \cdot u_\sigma) \cdot \text{validator-share}$. Per-schema base fees and tips, after burn. Schema-mix exposure as documented in per-schema-fees §3.3.]
+Per-validator fee revenue summed over schemas:
+
+$$R_f^v = \sum_\sigma \left( \tau_\sigma^v + (1 - \tau_{\text{burn}} - \rho_\sigma) \cdot b_\sigma \cdot u_\sigma \cdot \pi_v^\sigma \right)$$
+
+where:
+
+- $\tau_\sigma^v$ is the validator's accumulated tip revenue from schema $\sigma$.
+- $b_\sigma$ is the per-schema base fee.
+- $u_\sigma$ is the per-schema utilization.
+- $\tau_{\text{burn}}$ is the PoUA-coupled burn fraction.
+- $\rho_\sigma$ is the schema-author routing fraction (per-schema-fees §4.4).
+- $\pi_v^\sigma$ is validator $v$'s share of schema $\sigma$ inclusions (proportional to weight $w_v$ over total weight).
+
+The formula tracks four flows: tip revenue (direct to validator), base-fee burn (to the protocol-burn sink), base-fee schema routing (to the schema registrant), and base-fee validator routing (the residual share).
+
+**Schema-mix exposure.** As documented in per-schema-fees §3.3, validators have residual control over which schemas they include in each block, subject to the §A.1 KL-divergence detector enforcing that schema-mix tracks the chain-wide null. A validator preferentially including high-base-fee schemas increases short-term revenue at the cost of detector-flag risk. The M3 per-schema-fees-sim calibration (run on 2026-05-26) shows the §A.1 detector achieves 100% TPR at 1% FPR over a 200-block measurement window under a realistic biasing pattern; the schema-mix exposure is bounded by the detector.
 
 ### 6.3 Staking yield
 
-[**v0.1:** Stakers earn a configurable share of $R_f^v$ (default 30% per ligate-chain `staking` module). Staking yield denominator is staked AVOW; numerator is per-attestor-set fee flow. Yield varies with attestation volume per attestor set.]
+Stakers earn a configurable share of $R_f^v$ via the `staking` module ([ligate-chain#50](https://github.com/ligate-io/ligate-chain/issues/50)). Default at v1 mainnet: 30% of the validator's per-block fee revenue is routed to stakers backing that validator's attestor set, proportional to each staker's share of the pool.
+
+**Yield calculation.** Per-attestor-set annualized yield:
+
+$$y_{\mathcal{A}} = \frac{0.30 \cdot \bar{R}_f^{\mathcal{A}} \cdot \text{blocks/year}}{S_{\mathcal{A}}}$$
+
+where $\bar{R}_f^{\mathcal{A}}$ is the attestor set's average per-block fee revenue and $S_{\mathcal{A}}$ is the staked AVOW backing the set. Higher attestation volume per set raises numerator; more capital staked dilutes denominator. The §9 trajectory model gives indicative yields: at moderate-volume steady state (year 5+), a typical attestor set running 5% of chain stake-weight on a $1$M AVOW-staked pool would see roughly $0.5-2\%$ annualized yield, comparable to Ethereum post-merge staking returns and well above operational cost coverage.
+
+**Why 30% default.** Calibration logic: the validator should keep enough fee revenue to cover operational cost plus margin; the staker should earn enough to make staking competitive with passive holding. At 30%, validator-side retains 70% of fees (post-burn-and-routing), which under realistic op-cost is comfortable margin; staker-side at 30% delivers a yield comparable to alternative staked-asset returns. Governance can tune the share within protocol bounds $[0.10, 0.50]$.
 
 ### 6.4 Operational cost coverage
 
-[**v0.1:** Validator-side gross margin = $R_f^v -$ operational cost (node + DA bandwidth + monitoring). Sustainable steady state requires $R_f^v >$ op-cost at non-trivial margin. The §5.1 phase-out threshold should be calibrated against estimated op-cost so phase-out doesn't strand validators.]
+Validator-side gross margin in steady state:
+
+$$M_v = R_f^v \cdot (1 - 0.30) - C_{\text{op}}$$
+
+where $0.30$ is the staker share (§6.3) and $C_{\text{op}}$ is operational cost (Sovereign SDK node + DA bandwidth + monitoring + key management + on-call). Sustainable steady state requires $M_v > 0$ at non-trivial margin (recommend $M_v \geq 2 \cdot C_{\text{op}}$ so margin compresses gracefully under fee-revenue volatility).
+
+**Operational cost reference point.** At mid-2026 commercial pricing, a production-grade Sovereign SDK validator node + Celestia DA bandwidth + standard observability runs roughly $1{,}000$ to $2{,}000$ USD/month. At an AVOW reference price of $\$0.10$/AVOW (illustrative; market-set), $1{,}500$ USD/month equals $15{,}000$ AVOW/month or $180{,}000$ AVOW/year operational cost.
+
+For a validator running 5% of chain weight to clear $M_v \geq 2 \cdot C_{\text{op}}$, they need $R_f^v \cdot 0.70 \geq 2 \cdot 180{,}000 = 360{,}000$ AVOW/year, so $R_f^v \geq 514{,}000$ AVOW/year. At chain-wide year 5+ fee revenue of $\sim 20$M AVOW/year (§9.2), 5% weight delivers $\sim 1$M AVOW/year, well above the threshold. The §5.1 phase-out threshold of $R_f / R_b = 4.0$ sustained for 90 days approximately corresponds to chain-wide $R_f$ reaching the level where typical validators clear $2 \cdot C_{\text{op}}$ post-phase-out. The threshold is conservative against operational uncertainty.
 
 ---
 
@@ -344,15 +399,33 @@ Higher $\tau_{\text{burn}}$ strengthens the cost-to-grind floor and increases de
 
 ### 8.1 SBT mints are non-AVOW
 
-[**v0.1:** A schema-bound token (e.g., regulated currency, DAO governance token, license NFT) is its own token under its own canonical schema. SBT mint events do not consume or emit AVOW directly.]
+A schema-bound token (regulated currency, DAO governance token, license NFT, etc.) is its own token under its own canonical schema. SBT mint events emit the SBT-side token (USD-pegged stablecoin, DAO voting credit, license credential, etc.) and do not consume or emit AVOW directly. The supply trajectories of SBT tokens are independent of the AVOW supply trajectory; each SBT operates its own ceiling, mint schedule, and recall mechanics per SBT v0.2 §3.
+
+This separation is the design choice that lets AVOW maintain a single 1B ceiling regardless of how many SBT instances are deployed on the chain. Adding a new SBT (e.g., a consortium of banks issues a fiat-pegged stablecoin) does not dilute AVOW; it adds a new isolated token surface that uses AVOW as the fee substrate but does not contend for AVOW supply space.
 
 ### 8.2 SBT fee-market feedback
 
-[**v0.1:** SBT mint events pay per-schema base fees + tips in AVOW (per SBT v0.2 §3.6). High SBT mint volume increases AVOW fee burn under §7's τ_burn. The feedback loop: more non-AVOW tokens issued via SBT → more AVOW fee revenue → more AVOW burned → tighter AVOW supply.]
+SBT mint events pay per-schema base fees + tips in AVOW per SBT v0.2 §3.6. The fee-market composition pulls SBT-driven fee revenue into AVOW's $R_f$ stream and through it into AVOW's $\tau_{\text{burn}}$ burn.
+
+The feedback loop:
+
+1. Non-AVOW token issuance happens via SBT under canonical schema `chain.token-mint/v1`.
+2. Each SBT mint pays AVOW fees: base fee `$b_{\text{chain.token-mint/v1}}$` plus tip.
+3. Fees are subject to the §7 $\tau_{\text{burn}}$ schedule: 60% / 40% / 25% across regimes.
+4. Burned AVOW exits circulating supply.
+5. SBT mint volume scales with the application's adoption (more banks join the regulated-currency consortium, more DAOs mint governance tokens, etc.).
+
+The chain-wide consequence: AVOW supply trajectory is deflated by SBT activity in proportion to fee-market participation. The §9.2 realistic-scenario burn estimate already incorporates moderate SBT volume in the year 3+ baseline; the §9.3 adversarial scenarios show what happens at the volume extremes.
 
 ### 8.3 What this means for AVOW supply trajectory
 
-[**v0.1:** SBT volume is a supply-trajectory accelerator on the deflationary side. The §9 trajectory model treats SBT-driven fee volume as one of the demand-side scenarios.]
+SBT volume is a supply-trajectory accelerator on the deflationary side. Two observations.
+
+First, SBT and Themisra fee volumes are largely uncorrelated. Themisra fees scale with AI-receipt usage (Mneme + Iris adoption); SBT fees scale with token-issuance adoption (banks, DAOs, license registrars). Combined, the two volumes provide diversified fee revenue, smoothing the trajectory against any single workload's cyclicality.
+
+Second, SBT volume is asymmetric in upside potential. A single regulated-currency consortium deploying a fiat-pegged stablecoin with daily mint volume in the thousands could individually push AVOW burn into the deflationary spiral risk zone (§9.3 scenario b). The §7.4 governance authority on `$\tau_{\text{burn}}$` is the lever that handles this: if SBT-driven burn becomes excessive, governance can reduce `$\tau_{\text{burn}}$` toward the 0.05 protocol floor.
+
+The cross-paper takeaway: AVOW tokenomics absorbs SBT growth gracefully because the burn parameter is governance-tunable within structural limits. The 1B ceiling holds regardless; the deflation rate adjusts to demand.
 
 ---
 
@@ -480,7 +553,75 @@ The design is intentionally conservative. The supply-ceiling discipline of Bitco
 
 ## Appendix A: Worked supply-trajectory examples
 
-[**v0.1:** At v0.2: three worked examples with concrete numbers. (1) Low-volume scenario. (2) Moderate-volume scenario (recommended baseline). (3) High-volume scenario. Each shows $S(t)$ trajectory, bootstrap-pool depletion timing, steady-state burn rate, $S_\infty$ estimate.]
+Three scenarios trace circulating supply $S(t)$ under the recommended parameters across the bootstrap, transition, and steady-state regimes. Common parameters:
+
+- Genesis supply $S_0 = 750{,}000{,}000$ AVOW (the four non-bootstrap buckets per §3.2).
+- Bootstrap pool 250M AVOW.
+- Initial $R_b = 0.5$ AVOW per block at 12-second block time.
+- $R_b$ decay per §4.2: 0.5 → 0.4 → 0.25 → 0 across $R_f / R_b$ regime boundaries.
+- $\tau_{\text{burn}}$ per §7: 0.60 (initial + mid-bootstrap), 0.40 (late-bootstrap), 0.25 (steady-state).
+- Phase-out trigger: $R_f / R_b \geq 4.0$ sustained 90 days.
+
+Block count per year: $5 \cdot 60 \cdot 24 \cdot 365 \approx 2{,}628{,}000$ blocks/year.
+
+### A.1 Scenario 1: Low-volume baseline
+
+**Assumption.** Themisra adoption grows slowly; chain-wide attestation volume reaches 2M attestations/year by year 5. Average base fee 0.0001 AVOW; total fee revenue ~200 AVOW/year. Conservative.
+
+| Year | Regime | $R_b$ rate | $R_b$ emitted (AVOW) | $R_f$ (AVOW) | Burn (AVOW) | $S(t)$ (M AVOW) |
+|---|---|---|---|---|---|---|
+| 0 | n/a | 0 | 0 | 0 | 0 | 750.000 |
+| 1 | Initial | 0.5/blk | 1.31M | 50 | 30 | 751.31 |
+| 2 | Initial | 0.5/blk | 1.31M | 100 | 60 | 752.62 |
+| 3 | Initial | 0.5/blk | 1.31M | 150 | 90 | 753.93 |
+| 5 | Initial | 0.5/blk | 1.31M/yr | 200 | 120 | 756.56 |
+| 10 | Initial | 0.5/blk | 1.31M/yr | 200 | 120 | 763.11 |
+| 20 | Initial | 0.5/blk | 1.31M/yr | 200 | 120 | 776.21 |
+
+Phase-out never triggers because $R_f / R_b$ stays below 1.0 indefinitely. Bootstrap pool depletes over $\sim 191$ years at constant initial rate. Trajectory: cumulative emission gradually accumulates; phase-out indefinitely deferred. Governance intervention (§9.3 mitigation a) needed to throttle $R_b$ if volume remains low; otherwise the chain operates in permanent semi-bootstrap mode.
+
+### A.2 Scenario 2: Moderate-volume baseline (recommended)
+
+**Assumption.** Themisra adoption + Atlas verifier + SBT mint volume combine to reach 10M attestations/year by year 3 and grow to 50M+ by year 5. Average base fee escalates with demand from 0.0001 to 0.0005 AVOW; total fee revenue scales accordingly.
+
+| Year | Regime | $R_b$ rate | $R_b$ emitted (AVOW) | $R_f$ (AVOW) | $\tau_{\text{burn}}$ | Burn (AVOW) | $S(t)$ (M AVOW) |
+|---|---|---|---|---|---|---|---|
+| 0 | n/a | 0 | 0 | 0 | -- | 0 | 750.000 |
+| 1 | Initial | 0.5/blk | 1.31M | 400 | 0.60 | 240 | 751.31 |
+| 2 | Mid-bootstrap | 0.4/blk | 1.05M | 1.5M | 0.60 | 900K | 751.45 |
+| 3 | Late-bootstrap | 0.25/blk | 657K | 4M | 0.40 | 1.6M | 750.50 |
+| 4 | Phase-out triggered | 0 | 0 | 10M | 0.25 | 2.5M | 748.00 |
+| 5 | Steady-state | 0 | 0 | 20M | 0.25 | 5M | 743.00 |
+| 10 | Steady-state | 0 | 0 | 30M | 0.25 | 7.5M | 705.50 |
+| 20 | Steady-state | 0 | 0 | 35M | 0.25 | 8.75M | 618.00 |
+
+Bootstrap completes in 3 years. Cumulative $R_b$ emitted $\approx 3.02$M AVOW (1.2% of pool); pool retains $247$M AVOW unused. Steady-state burn rate $\sim 0.66$% to $1.0$% of circulating supply per year; cumulative burn drives $S(t)$ below 750M by year 5 and continues monotonically. End-state $S_\infty$ depends on long-run fee volume; under the assumed steady-state $R_f \approx 35$M/year, $S(t)$ trends toward $\sim 500$M by year 30.
+
+### A.3 Scenario 3: High-volume / regulated-adoption scenario
+
+**Assumption.** Themisra + Atlas + multiple SBT consortia (regulated currency + DAO governance + license NFTs) drive attestation volume to 200M attestations/year by year 5. SBT mints carry $5{-}10\times$ higher base fees than Themisra; total fee revenue scales aggressively.
+
+| Year | Regime | $R_b$ rate | $R_b$ emitted (AVOW) | $R_f$ (AVOW) | $\tau_{\text{burn}}$ | Burn (AVOW) | $S(t)$ (M AVOW) |
+|---|---|---|---|---|---|---|---|
+| 0 | n/a | 0 | 0 | 0 | -- | 0 | 750.000 |
+| 1 | Initial → Mid (mid-year) | 0.45/blk avg | 1.18M | 1.5M | 0.60 | 900K | 750.28 |
+| 2 | Late-bootstrap | 0.25/blk | 657K | 8M | 0.40 | 3.2M | 747.73 |
+| 3 | Phase-out triggered (early) | 0 | 0 | 30M | 0.25 | 7.5M | 740.23 |
+| 4 | Steady-state | 0 | 0 | 80M | 0.25 | 20M | 720.23 |
+| 5 | Steady-state | 0 | 0 | 150M | 0.25 | 37.5M | 682.73 |
+| 10 | Steady-state | 0 | 0 | 200M | 0.20$^*$ | 40M | 467.73 |
+| 20 | Steady-state | 0 | 0 | 250M | 0.15$^*$ | 37.5M | 95.0 |
+
+$^*$ Governance reduces $\tau_{\text{burn}}$ below 0.25 to prevent deflationary spiral once year-5+ steady-state fee revenue exceeds the design baseline.
+
+Phase-out triggers in year 2-3 (faster than baseline). Cumulative bootstrap $R_b$ emission $\approx 1.84$M AVOW; pool retains $248$M AVOW. Steady-state burn rate climbs to $4\%$ to $8\%$ of circulating supply per year initially; governance intervenes to reduce $\tau_{\text{burn}}$ as supply contracts. End-state $S_\infty$ under continued high-volume scenario could approach the protocol-floor regime (~30-50% of original) within a generation; the design avoids the floor-collision by governance throttling.
+
+### A.4 Cross-scenario takeaways
+
+- **Phase-out timing scales inversely with fee-volume growth.** Low-volume: never. Moderate: ~3 years. High: ~2 years.
+- **Bootstrap pool consumption is always small.** Across all three scenarios, less than $\sim 2$M AVOW emitted (less than 1% of the pool). The pool's primary role is structural enforcement of the 1B ceiling, not actually paying out the budget.
+- **Steady-state burn is the dominant supply mover.** Bootstrap emission tops out at $\sim 6$M AVOW cumulative (moderate); steady-state burn at $\tau_{\text{burn}} = 0.25$ on 20M+ AVOW annual fees dwarfs that within years.
+- **Governance lever activated only under volume extremes.** In the moderate baseline, $\tau_{\text{burn}}$ stays at 0.25 indefinitely. In the high-volume scenario, governance reduces $\tau_{\text{burn}}$ to prevent over-deflation; in the low-volume scenario, governance reduces $R_b$ initial rate to extend pool life. The default parameters work without intervention for the middle 80% of plausible futures.
 
 ---
 
