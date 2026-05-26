@@ -4,10 +4,11 @@ Detection, embedding, and watermarking for the Ligate Chain receipt layer. Speci
 
 ## Latest
 
-- **Working paper**: not yet drafted. Folder reserved at v0.0 (planning).
-- **Version**: v0.0 (planning stage)
-- **Status**: **Planning.** No outline file yet. Authoring begins when Atlas (the public verifier and registry product, ligate-marketing #96) reaches design-doc phase. The detection-side narrative needs Atlas's consumption surface to be specifiable before the paper can lock its embedding-spec recommendations.
-- **Date**: 2026-05-05
+- **Working paper**: [`verifiable-content-provenance.md`](verifiable-content-provenance.md) (v0.1 outline; substantive content lands at v0.2)
+- **Version**: v0.1 (2026-05-26)
+- **Author**: Stefan Stefanović (Ligate Labs)
+- **Status**: Research note v0.1 scaffolds the structure and intent across 8 sections + 2 appendices. Each section carries a `[**v0.1:** intent annotation]` describing what v0.2 will fill in. Authoring opens because the cross-schema-composition v0.2 dependency for typed references to TEE / C2PA receipts is now satisfied (2026-05-25 ship). Atlas (`ligate-marketing#96`) reaching design-doc phase is the remaining external gate; v0.2 substantive content should land after Atlas's read pipeline can be specified concretely.
+- **Date**: 2026-05-26
 
 ## Why this paper exists
 
