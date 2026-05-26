@@ -101,7 +101,7 @@ date: "2026-05-25"
 
 ### 2.4 Adoption footprint as of 2026-05
 
-[**v0.1:** Production deployment in DALL-E 3, Adobe Creative Cloud, Adobe Stock, Microsoft Bing + Designer, Sony Alpha 1 / α7 IV (firmware 2024+), Canon EOS R5C / R5 Mark II / R6 Mark II, Nikon Z9 + Z8. News: BBC News production, NYT moving pilot → production 2026, Reuters / AP wire signed 2025+. EU AI Act Article 50 is the regulatory anchor.]
+[**v0.1:** Production deployment in DALL-E 3, Adobe Creative Cloud, Adobe Stock, Microsoft Bing + Designer, Sony Alpha 1 / Alpha 7 IV (firmware 2024+), Canon EOS R5C / R5 Mark II / R6 Mark II, Nikon Z9 + Z8. News: BBC News production, NYT moving pilot to production 2026, Reuters / AP wire signed 2025+. EU AI Act Article 50 is the regulatory anchor.]
 
 ### 2.5 Structural strengths
 
