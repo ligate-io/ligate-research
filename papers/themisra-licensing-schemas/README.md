@@ -4,10 +4,11 @@ Two licensing schemas that ride on top of Proof of Prompt under the Themisra umb
 
 ## Latest
 
-- **Working paper**: not yet drafted. Folder reserved at v0.0 (planning).
-- **Version**: v0.0 (planning stage)
-- **Status**: **Planning.** No outline file yet. Authoring begins when Themisra umbrella positioning lands (ligate-marketing #95) and the per-schema fees paper reaches v0.2+ (the royalty-routing mechanics in §4 of this paper depend on the per-schema fee primitive).
-- **Date**: 2026-05-05
+- **Working paper**: [`themisra-licensing-schemas.md`](themisra-licensing-schemas.md) (v0.1 outline; substantive content lands at v0.2)
+- **Version**: v0.1 (2026-05-26)
+- **Author**: Stefan Stefanović (Ligate Labs)
+- **Status**: Research note v0.1 scaffolds the structure and intent across 9 sections + 2 appendices. Each section carries a `[**v0.1:** intent annotation]` describing what v0.2 will fill in. Authoring opens because per-schema-fees v0.2 (2026-05-25 ship) and cross-schema-composition v0.2 (2026-05-25 ship) are both now satisfied. The ligate-marketing#95 Themisra umbrella positioning is the remaining external gate; v0.2 substantive content should land after that resolves so terminology stays consistent.
+- **Date**: 2026-05-26
 
 ## Why this paper exists
 
