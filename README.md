@@ -31,7 +31,11 @@ This repository is the upstream of the technical claims our marketing surface (l
 | [Time-Locked Attestations](papers/time-locked-attestations/) | Working paper | v0.2 (2026-05-25) | Commit-reveal as a runtime primitive |
 | [Native DA Layer](papers/native-da/) | Working paper | v0.2 (2026-05-25) | A native DA layer specialized for the attestation workload (post-Celestia track) |
 | [Schema-Bound Tokens](papers/schema-bound-tokens/) | Research note | v0.2 (2026-05-25) | Attestor sets as mint authority on attestation-native chains |
+| [AVOW Tokenomics](papers/tokenomics/) | Outline | v0.1 (2026-05-25) | Bootstrap block reward, fee-coupled burn, path to fee-driven steady state |
 | [EAS Comparison](papers/eas-comparison/) | Outline | v0.1 (2026-05-25) | Ligate Chain vs Ethereum Attestation Service |
+| [C2PA Co-existence](papers/c2pa-composition/) | Outline | v0.1 (2026-05-25) | Chain attestation as adversarially-robust companion to platform metadata |
+| [TEE Composition](papers/tee-composition/) | Outline | v0.1 (2026-05-25) | Hardware attestation as typed input to chain attestations |
+| [PQ Migration](papers/pq-migration/) | Outline | v0.1 (2026-05-25) | Post-quantum cryptographic migration for attestation-native chains |
 | [Themisra Licensing Schemas](papers/themisra-licensing-schemas/) | Planning | v0.0 (2026-05-05) | Prompt + content licensing schemas riding on Proof of Prompt |
 | [Verifiable Content Provenance](papers/verifiable-content-provenance/) | Planning | v0.0 (2026-05-05) | Detection, embedding, and watermarking for the Ligate receipt layer |
 
