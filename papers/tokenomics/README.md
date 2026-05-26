@@ -4,10 +4,10 @@ The supply trajectory and validator revenue model for `$AVOW`, the native token 
 
 ## Latest
 
-- **Working paper**: [`tokenomics.md`](tokenomics.md) (v0.1 outline; substantive content lands at v0.2)
-- **Version**: v0.1 (2026-05-25)
+- **Working paper**: [`tokenomics.md`](tokenomics.md)
+- **Version**: v0.2 (2026-05-26)
 - **Author**: Stefan Stefanović (Ligate Labs)
-- **Status**: Research note v0.1 scaffolds the structure and intent. Each section carries a `[**v0.1:** intent annotation]` describing what v0.2 will fill in. No formal claims yet.
+- **Status**: Research note v0.2 fills in priority sections with substantive content: initial supply distribution (§3, five buckets totaling 1B AVOW), bootstrap block-reward schedule (§4, 0.5 AVOW/block initial with $R_f / R_b$-conditioned decay), phase-out mechanism (§5, threshold 4.0 sustained 90 days), $\tau_{\text{burn}}$ calibration across regimes (§7, 0.60 / 0.40 / 0.25 step-down), comparison with Bitcoin / Ethereum (post-merge) / Cosmos / Solana (§10 table), and a worked long-term trajectory (§9). Sections §2, §6, §8 carry forward v0.1 outline annotations for v0.3 expansion. Appendices A and B are placeholders for v0.3 sensitivity work.
 
 ## Why this note exists
 
