@@ -23,8 +23,23 @@ The simulator at [`prototypes/poua-sim/`](../../prototypes/poua-sim/) produces t
 - **Working paper**: [`poua.pdf`](poua.pdf) (compiled) / [`poua.md`](poua.md) (markdown source) / [`poua.tex`](poua.tex) (LaTeX source for arXiv)
 - **Version**: v0.9.2
 - **Author**: Stefan Stefanović (Ligate Labs)
-- **Status**: Author attribution on title page (aligns PDF with arXiv metadata); v0.9.1 reviewer clarity pass + release-prep tightening carried forward; arXiv preprint in flight (cs.CR, pending endorsement)
+- **arXiv**: [`arXiv:2605.25844`](https://arxiv.org/abs/2605.25844) (cs.CR primary, cs.DC + cs.GT cross-lists; submitted 2026-05-25)
+- **Status**: Author attribution on title page (aligns PDF with arXiv metadata); v0.9.1 reviewer clarity pass + release-prep tightening carried forward; preprint listed on arXiv
 - **Date**: 2026-05-25
+
+## How to cite
+
+```bibtex
+@misc{stefanovic2026poua,
+  title         = {Proof of Useful Attestation: A Consensus Primitive for Attestation-Native Chains},
+  author        = {Stefanović, Stefan},
+  year          = {2026},
+  eprint        = {2605.25844},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CR},
+  url           = {https://arxiv.org/abs/2605.25844}
+}
+```
 
 ## Abstract
 
