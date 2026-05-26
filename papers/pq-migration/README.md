@@ -91,3 +91,6 @@ The note shares the PoUA paper's `header-includes.tex` for LaTeX styling.
 ## License
 
 Apache-2.0 OR MIT for any code, CC-BY-4.0 for the paper text. Matches the parent repository.
+
+<!-- ci-nudge: 2026-05-26 -->
+
