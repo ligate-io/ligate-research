@@ -9,9 +9,23 @@ cost-to-grind preservation theorem.
 | Milestone | Status | Scope |
 |---|---|---|
 | **M1** | shipped (2026-05-22) | §3.1 fee-market state, §3.2 validator income, §4.1 adjustment, §4.4 burn split, §5.1 cost-to-grind theorem, cross-language test vectors |
-| **M2** | **shipped (this release)** | §5.5 stochastic-arrival adversary model: Poisson arrivals + multi-block simulation + Pattern B (base-fee surge) attack-cost quantification |
-| M3 | planned | Cross-schema slot-allocation dynamics + KL-divergence detector calibration |
+| **M2** | shipped (2026-05-22) | §5.5 stochastic-arrival adversary model: Poisson arrivals + multi-block simulation + Pattern B (base-fee surge) attack-cost quantification |
+| **M3** | **shipped (this release, 2026-05-26)** | §3.1 cross-schema slot allocation (per-schema caps + spillover) + §A.1 KL-divergence detector calibration with ROC curve and threshold helper |
 | M4 | planned | Multi-resource within-schema pricing (paper §9.3) |
+
+## M3 surface
+
+- **`SchemaProfile`**, **`PendingAttestation`**, **`BlockResult`**: types describing one schema's profile, a pending attestation in the mempool, and one block's allocation outcome.
+- **`allocate_slots()`**: deterministic single-block slot allocation across multiple schemas. Per-schema cap from `budget_share * total_slots`, plus spillover phase that fills remaining slots with the highest-tipping leftover attestations across all schemas. Utilization (= `min(included, cap) / cap`) feeds back into `adjust_base_fee` for the next block.
+- **`simulate_cross_schema_trajectory()`**: multi-block cross-schema simulation. Per-block Poisson arrivals per schema, slot allocation, base-fee update.
+- **`kl_divergence()`**, **`empirical_distribution()`**: §A.1 KL statistic + helpers.
+- **`honest_kl_samples()`**, **`cheating_kl_samples()`**: Monte Carlo distributions of `D_KL` under the null (honest) and biased (cheating) hypotheses.
+- **`detector_roc()`**: ROC curve over a threshold grid. Returns `[ROCPoint(threshold, fpr, tpr), ...]`.
+- **`calibrate_threshold()`**: pick the threshold achieving a target false-positive rate (returns the `1 - target_fpr` quantile of the honest KL distribution).
+
+Headline M3 result: at the recommended chain-wide null distribution (Themisra / Atlas / SBT / Mneme = `[0.45, 0.25, 0.15, 0.15]`) and a cheating validator biased toward the high-fee SBT schema (`[0.20, 0.15, 0.45, 0.20]`), the §A.1 detector at 1% FPR achieves 100% TPR over a 200-block measurement window with 2000 Monte Carlo seeds. Honest mean KL = 0.0075; cheating mean KL = 0.318; separation > 40x.
+
+Figure `out/kl_detector_roc.png` shows the KL distributions side-by-side and the ROC curve with the 1% FPR operating point.
 
 ## M2 surface
 
