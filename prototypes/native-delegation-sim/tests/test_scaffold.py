@@ -1,11 +1,13 @@
 """Smoke test: package importable, version present, public API matches the
 current milestone scope.
 
-v0.3 (2026-05-22) bumps version to 0.3.0 and adds the M3 surface: the
-§3.4 + Appendix B canonical grant encoding (``GrantSpec``,
-``encode_grant_spec``, ``decode_grant_spec``) for cross-language
-conformance. The real correctness coverage lives in
-``test_encoding.py``.
+v0.4 (2026-05-26) bumps version to 0.4.0 and adds the M4 surface: the
+EV-maximizing strategic adversary for §5.5 satisfying-region
+robustness validation. Real correctness coverage in
+``test_strategic_adversary.py``.
+
+v0.3 (2026-05-22) added the M3 surface: the §3.4 + Appendix B canonical
+grant encoding for cross-language conformance.
 
 v0.2 (2026-05-20) added the M2 surface: lifecycle (paper §4.4) +
 strategy search (Monte Carlo over §5.5 with stochastic compromise
@@ -19,11 +21,11 @@ from __future__ import annotations
 def test_package_imports():
     import native_delegation_sim
 
-    assert native_delegation_sim.__version__ == "0.3.0"
+    assert native_delegation_sim.__version__ == "0.4.0"
 
 
-def test_public_api_matches_m3_scope():
-    """v0.3 (M3) extends the M2 surface with canonical grant encoding."""
+def test_public_api_matches_m4_scope():
+    """v0.4 (M4) extends the M3 surface with strategic adversary."""
     import native_delegation_sim
 
     expected = {
@@ -52,5 +54,12 @@ def test_public_api_matches_m3_scope():
         "RuleTag",
         "encode_grant_spec",
         "decode_grant_spec",
+        # M4
+        "MisbehaviorAction",
+        "StrategicAdversary",
+        "adversary_utility",
+        "run_strategic_search",
+        "typical_consumer_action_set",
+        "aggressive_action_set",
     }
     assert set(native_delegation_sim.__all__) == expected
