@@ -348,9 +348,9 @@ For a validator running 5% of chain weight to clear $M_v \geq 2 \cdot C_{\text{o
 
 ---
 
-## 7. PoUA τ_burn Calibration Across Volume Regimes
+## 7. PoUA $\tau_{\text{burn}}$ Calibration Across Volume Regimes
 
-[**v0.1:** PoUA §5.5.3 Lemma 1 sets the cost-to-grind floor as $\tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha_{\text{eff}})$. τ_burn is the load-bearing parameter; this section specifies how it should be calibrated as volume scales.]
+[**v0.1:** PoUA §5.5.3 Lemma 1 sets the cost-to-grind floor as $\tau_{\text{burn}} \cdot \Delta r / (\eta \cdot \alpha_{\text{eff}})$. $\tau_{\text{burn}}$ is the load-bearing parameter; this section specifies how it should be calibrated as volume scales.]
 
 ### 7.1 Low-volume bootstrap regime
 
@@ -431,7 +431,7 @@ The cross-paper takeaway: AVOW tokenomics absorbs SBT growth gracefully because 
 
 ## 9. Long-Term Supply Trajectory
 
-[**v0.1:** Cumulative emission over bootstrap window vs cumulative burn over steady-state. End-state supply as a function of fee-volume integral and τ_burn.]
+[**v0.1:** Cumulative emission over bootstrap window vs cumulative burn over steady-state. End-state supply as a function of fee-volume integral and $\tau_{\text{burn}}$.]
 
 ### 9.1 The supply equation
 
@@ -479,7 +479,7 @@ The 1B ceiling is enforced structurally: $B(\infty) \leq 250\text{M}$ by §4.4, 
 
 ### 9.4 Sensitivity analysis
 
-[**v0.1:** v0.2 includes parameter sensitivity tables: $S_\infty$ as function of (initial $R_b$ rate, decay curve choice, phase-out threshold, steady-state τ_burn). Shows the design space and the recommended operating point.]
+[**v0.1:** v0.2 includes parameter sensitivity tables: $S_\infty$ as function of (initial $R_b$ rate, decay curve choice, phase-out threshold, steady-state $\tau_{\text{burn}}$). Shows the design space and the recommended operating point.]
 
 ---
 
@@ -627,4 +627,4 @@ Phase-out triggers in year 2-3 (faster than baseline). Cumulative bootstrap $R_b
 
 ## Appendix B: Parameter sensitivity tables
 
-[**v0.1:** At v0.2: tabular sensitivity analysis. $S_\infty$ as function of (initial $R_b$, decay-curve shape, phase-out threshold, steady-state τ_burn). Identifies the parameter combinations that respect the 1B ceiling under reasonable fee-volume assumptions.]
+[**v0.1:** At v0.2: tabular sensitivity analysis. $S_\infty$ as function of (initial $R_b$, decay-curve shape, phase-out threshold, steady-state $\tau_{\text{burn}}$). Identifies the parameter combinations that respect the 1B ceiling under reasonable fee-volume assumptions.]
