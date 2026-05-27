@@ -4,10 +4,10 @@ A research note positioning Ligate Chain's attestation primitive alongside C2PA 
 
 ## Latest
 
-- **Working paper**: [`c2pa-composition.md`](c2pa-composition.md) (v0.1 outline; substantive content lands at v0.2)
-- **Version**: v0.1 (2026-05-25)
+- **Working paper**: [`c2pa-composition.md`](c2pa-composition.md) + [`c2pa-composition.pdf`](c2pa-composition.pdf)
+- **Version**: v0.2 (2026-05-27)
 - **Author**: Stefan Stefanović (Ligate Labs)
-- **Status**: Research note v0.1 scaffolds the structure and intent. Each section carries a `[**v0.1:** intent annotation]` describing what v0.2 will fill in. No formal claims yet.
+- **Status**: Research note v0.2 promotes the v0.1 outline to substantive content across all sections. §2 surveys C2PA architecture with adoption-footprint detail (6,000+ coalition members, 15 major adopters, EU AI Act Article 50 regulatory anchor). §2.6 catalogs four structural weaknesses (metadata strippability, platform-rooted trust, no user-side signature, no economic accountability) that motivate the composition. §4 carries the four-gap complementarity analysis. §5 specifies the composition mechanism + the chain-side C2PA trust list mirror. §6 maps three concrete use cases under Article 50.
 
 ## Why this note exists
 
