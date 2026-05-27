@@ -4,10 +4,10 @@ A research note positioning Ligate Chain's attestation primitive against the Eth
 
 ## Latest
 
-- **Working paper**: [`eas-comparison.md`](eas-comparison.md) (v0.1 outline; substantive content lands at v0.2)
-- **Version**: v0.1 (2026-05-25)
+- **Working paper**: [`eas-comparison.md`](eas-comparison.md) + [`eas-comparison.pdf`](eas-comparison.pdf)
+- **Version**: v0.2 (2026-05-27)
 - **Author**: Stefan Stefanović (Ligate Labs)
-- **Status**: Research note v0.1 scaffolds the structure and intent. Each section carries a `[**v0.1:** intent annotation]` describing what v0.2 will fill in. No formal claims yet.
+- **Status**: Research note v0.2 promotes the v0.1 outline to substantive content across all sections. §2 surveys EAS architecture in detail (two-contract design, tokenless economic model, schema collaboration, SDK + deployment footprint). §3 quotes Ligate primitives from the v0.2 paper portfolio. §4 fills the six-axis comparison table with documented EAS behavior + citations. §5 maps representative use-case profiles. §6 sketches cross-chain composition between the two architectures. Appendix A (EAS deployment-footprint snapshot) deferred to v0.3 pending data collection.
 
 ## Why this note exists
 
