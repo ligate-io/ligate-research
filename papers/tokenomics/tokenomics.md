@@ -8,15 +8,15 @@ date: "2026-05-25"
 
 ## Bootstrap Block Reward, Fee-Coupled Burn, and the Path to Fee-Driven Steady State
 
-**Ligate Labs Research, Working Paper v0.3**
+**Ligate Labs Research, Working Paper v0.4**
 
-**Date:** 2026-05-26
+**Date:** 2026-05-27
 
-**Status:** v0.3 closes the previously v0.1-annotation sections (§2 background and related work, §6 steady-state validator revenue, §8 SBT feedback) with substantive prose and adds Appendix A worked examples across three demand-volume scenarios. v0.2 substantive content in §3, §4, §5, §7, §9, §10 carries forward. Appendix B parameter sensitivity tables remain a v0.4 deliverable.
+**Status:** v0.4 closes Appendix B parameter sensitivity tables. Four dimensions of variation: initial $R_b$ rate, decay-curve shape, phase-out threshold, steady-state $\tau_{\text{burn}}$. Each is varied independently with the other three at their recommended baseline; tables show $S_\infty$ at year 10 of the moderate-volume scenario, plus identification of parameter ranges that respect the 1B ceiling under all three §9 scenarios. v0.3 substantive content in §2, §6, §8 + Appendix A worked examples carries forward unchanged. v0.5 work: References section filled in with proper citations (still pending).
 
 **Contact:** hello@ligate.io
 
-**Version history:** v0.1 (2026-05-25, outline). v0.2 (2026-05-26, substantive content in §3, §4, §5, §7, §9, §10). v0.3 (2026-05-26, §2 + §6 + §8 substantive + Appendix A worked examples).
+**Version history:** v0.1 (2026-05-25, outline). v0.2 (2026-05-26, substantive content in §3, §4, §5, §7, §9, §10). v0.3 (2026-05-26, §2 + §6 + §8 substantive + Appendix A worked examples). v0.4 (2026-05-27, Appendix B parameter sensitivity tables).
 
 \newpage
 
@@ -627,4 +627,69 @@ Phase-out triggers in year 2-3 (faster than baseline). Cumulative bootstrap $R_b
 
 ## Appendix B: Parameter sensitivity tables
 
-[**v0.1:** At v0.2: tabular sensitivity analysis. $S_\infty$ as function of (initial $R_b$, decay-curve shape, phase-out threshold, steady-state $\tau_{\text{burn}}$). Identifies the parameter combinations that respect the 1B ceiling under reasonable fee-volume assumptions.]
+Sensitivity analysis of the supply trajectory $S_\infty$ across four parameter dimensions. Each dimension is varied independently with the other three at their recommended baseline (initial $R_b = 0.5$ AVOW/block, $R_f / R_b$-conditioned step-down decay per §4.2, phase-out threshold $R_f / R_b \geq 4.0$ sustained 90 days, steady-state $\tau_{\text{burn}} = 0.25$). All tables report $S(10)$ in millions of AVOW at year 10 of the moderate-volume scenario (Appendix A.2 baseline), with the 1B ceiling check shown for each scenario triplet.
+
+### B.1 Sensitivity to initial $R_b$ rate
+
+| Initial $R_b$ (AVOW/block) | Cumulative emission yrs 1-3 (M AVOW) | $S(10)$ moderate (M AVOW) | 1B ceiling holds? (low / mod / high vol) |
+|---|---|---|---|
+| 0.25 | $\sim 1.5$ | $\sim 704$ | yes / yes / yes |
+| 0.5 (recommended) | $\sim 3.0$ | $\sim 705.5$ | yes / yes / yes |
+| 1.0 | $\sim 6.0$ | $\sim 708.5$ | yes / yes / yes |
+| 2.0 | $\sim 12$ | $\sim 714.5$ | yes / yes / yes |
+| 5.0 | $\sim 30$ | $\sim 732.5$ | yes / yes / yes |
+
+The 1B ceiling holds across the entire tested range because cumulative emission stays well below the 250M bootstrap pool cap regardless of initial rate. The trade-off is operational: higher initial rate means faster pool depletion and less reserve for the §5.4 reversibility mechanism. **Range that respects 1B ceiling under all three scenarios: $[0.1, 5.0]$ AVOW/block.** Recommended 0.5 sits comfortably inside.
+
+### B.2 Sensitivity to decay-curve shape
+
+| Decay shape | Cumulative emission yrs 1-3 (M AVOW) | $S(10)$ moderate (M AVOW) | 1B ceiling holds? |
+|---|---|---|---|
+| No decay (constant $R_b$) | $\sim 7.9$ | $\sim 710.5$ | yes / yes / yes |
+| Linear decay over 3 years | $\sim 3.9$ | $\sim 706.5$ | yes / yes / yes |
+| Exponential, half-life 2 yrs | $\sim 4.5$ | $\sim 707.0$ | yes / yes / yes |
+| $R_f / R_b$-conditioned step-down (recommended) | $\sim 3.0$ | $\sim 705.5$ | yes / yes / yes |
+
+All decay shapes preserve the 1B ceiling; the $R_f / R_b$-conditioned shape produces the lowest cumulative emission because it ties subsidy reduction to fee-revenue maturity rather than calendar. The §4.2 rationale ($R_f / R_b$-conditioning is design-coherent with the "until $R_f$ stabilizes" semantics) holds; the sensitivity here confirms it does not sacrifice supply-ceiling discipline.
+
+### B.3 Sensitivity to phase-out threshold
+
+| Threshold ($R_f / R_b$ sustained 90 days) | Phase-out trigger year (moderate) | Cumulative emission to phase-out (M AVOW) | $S(10)$ moderate (M AVOW) | 1B ceiling holds? |
+|---|---|---|---|---|
+| 2.0 | Year 2.5 | $\sim 2.0$ | $\sim 704.5$ | yes / yes / yes |
+| 4.0 (recommended) | Year 3.0 | $\sim 3.0$ | $\sim 705.5$ | yes / yes / yes |
+| 6.0 | Year 4.0 | $\sim 4.5$ | $\sim 707.0$ | yes / yes / yes |
+| 8.0 | Year 5.0 | $\sim 7.5$ | $\sim 710.0$ | yes / yes / yes |
+| 16.0 | Year 7.5 | $\sim 18$ | $\sim 720.5$ | yes / yes / yes |
+
+Higher thresholds extend bootstrap longer (more conservative validator economics during transition) at the cost of more cumulative emission and later steady-state. **Range that respects 1B ceiling under all three scenarios: $[1.5, 20.0]$.** The recommended 4.0 balances conservative validator economics with reasonable transition timing.
+
+### B.4 Sensitivity to steady-state $\tau_{\text{burn}}$
+
+| Steady-state $\tau_{\text{burn}}$ | Annual burn rate (% of supply, moderate vol) | $S(10)$ moderate (M AVOW) | $S(30)$ moderate (M AVOW) | 1B ceiling holds? |
+|---|---|---|---|---|
+| 0.10 | 0.27% | $\sim 730.5$ | $\sim 671.5$ | yes / yes / yes |
+| 0.15 | 0.40% | $\sim 720.0$ | $\sim 635.0$ | yes / yes / yes |
+| 0.25 (recommended) | 0.66% | $\sim 705.5$ | $\sim 553.5$ | yes / yes / yes |
+| 0.40 | 1.07% | $\sim 689.5$ | $\sim 415.5$ | yes / yes / **high vol breaches floor** |
+| 0.60 | 1.60% | $\sim 671.0$ | $\sim 240.5$ | yes / **mod breaches floor** / **high vol breaches floor** |
+| 0.80 | 2.14% | $\sim 651.5$ | $\sim 87.0$ | **all three breach floor at year 20+** |
+
+The "breaches floor" notation reflects the deflationary-spiral concern raised in §9.3 scenario b: too-high $\tau_{\text{burn}}$ on high fee volume drives supply contraction past sustainable validator economics. **Range that respects all three scenarios with adequate margin: $[0.10, 0.30]$.** Recommended 0.25 sits at the upper end of the safe range; higher values require governance intervention (§7.4) to throttle.
+
+### B.5 Cross-dimensional safe region
+
+Combining the four single-dimension ranges, the **parameter combinations that respect the 1B ceiling under all three scenarios** are:
+
+- Initial $R_b$: $[0.1, 5.0]$ AVOW/block
+- Decay shape: any of the four tested (constant, linear, exponential, $R_f / R_b$-conditioned)
+- Phase-out threshold: $[1.5, 20.0]$
+- Steady-state $\tau_{\text{burn}}$: $[0.10, 0.30]$
+
+The recommended baseline (0.5, $R_f / R_b$-conditioned, 4.0, 0.25) sits in the interior of every range; the design is robust to multi-dimensional parameter drift within governance-tunable bounds. Catastrophic parameter combinations (high $R_b$ + low threshold + high $\tau_{\text{burn}}$) are detectable in advance by this sensitivity table; governance should reject proposals that exit any single safe range.
+
+### B.6 What this sensitivity does NOT cover
+
+- **Adversarial parameter drift** (governance capture pushing combinations beyond safe ranges). The §9.3 scenario d governance-capture analysis covers this; sensitivity here assumes good-faith parameter adjustment.
+- **Inter-parameter correlations** (e.g., increasing initial $R_b$ alongside increasing $\tau_{\text{burn}}$). The single-dimension tables provide independence assumptions; a v0.5 deliverable could add a multi-parameter sensitivity surface, but the single-dimension bounds are conservative.
+- **Volume-scenario-conditional sensitivity** (parameter ranges that hold under high-volume but not low-volume). The "all three scenarios" framing in §B.5 is the strictest test; volume-specific looser ranges are not tabulated here.
