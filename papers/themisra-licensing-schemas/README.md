@@ -4,11 +4,10 @@ Two licensing schemas that ride on top of Proof of Prompt under the Themisra umb
 
 ## Latest
 
-- **Working paper**: [`themisra-licensing-schemas.md`](themisra-licensing-schemas.md) (v0.1 outline; substantive content lands at v0.2)
-- **Version**: v0.1 (2026-05-26)
+- **Working paper**: [`themisra-licensing-schemas.md`](themisra-licensing-schemas.md) + [`themisra-licensing-schemas.pdf`](themisra-licensing-schemas.pdf)
+- **Version**: v0.2 (2026-05-27)
 - **Author**: Stefan Stefanović (Ligate Labs)
-- **Status**: Research note v0.1 scaffolds the structure and intent across 9 sections + 2 appendices. Each section carries a `[**v0.1:** intent annotation]` describing what v0.2 will fill in. Authoring opens because per-schema-fees v0.2 (2026-05-25 ship) and cross-schema-composition v0.2 (2026-05-25 ship) are both now satisfied. The ligate-marketing#95 Themisra umbrella positioning is the remaining external gate; v0.2 substantive content should land after that resolves so terminology stays consistent.
-- **Date**: 2026-05-26
+- **Status**: Research note v0.2 promotes the v0.1 outline to substantive content across all sections. §2 surveys prior art (NFT-as-content, ASCAP/BMI off-chain music licensing, Story Protocol IP-on-chain, EAS revocable attestations). §3 + §4 specify both licensing schemas (8 fields + invariants + version-bumping). §5 specifies cross-schema composition mechanics. §6 specifies royalty distribution with 25/35/30/10 split + per-license-type `royalty_bps` calibration table. §7 specifies adversarial considerations (license stripping, derivative-work bright-line rule, bounded sublicensing). Appendix A walks a worked creator-economy round trip end to end (Alice creates prompt → licenses it → Bob derives + commercially uses → fee split traced through chain state). Appendix B (formal CSC v0.2 §3.1 schema declarations) reserved for v0.3.
 
 ## Why this paper exists
 
