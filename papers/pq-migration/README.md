@@ -4,10 +4,10 @@ A research note specifying the cryptographic-agility roadmap for Ligate Chain. A
 
 ## Latest
 
-- **Working paper**: [`pq-migration.md`](pq-migration.md) (v0.1 outline; substantive content lands at v0.2)
-- **Version**: v0.1 (2026-05-25)
+- **Working paper**: [`pq-migration.md`](pq-migration.md) + [`pq-migration.pdf`](pq-migration.pdf)
+- **Version**: v0.2 (2026-05-27)
 - **Author**: Stefan Stefanović (Ligate Labs)
-- **Status**: Research note v0.1 scaffolds the structure and intent. Each section carries a `[**v0.1:** intent annotation]` describing what v0.2 will fill in. No formal claims yet.
+- **Status**: Research note v0.2 promotes the v0.1 outline to substantive content across all sections + adds the Lemma 1 primitive-agnosticism proof trace in Appendix A. The proof trace is the load-bearing technical claim: PoUA economic security survives a crypto swap intact because no step in the Lemma 1 proof depends on signature-scheme properties. Concrete NIST FIPS 204 / 205 migration targets specified in §5 (ML-DSA-65 for validator + attestor signatures, SLH-DSA-SHA2-192s for long-lived root keys). Mneme dual-key UX, dual-stack signature acceptance, and cutover conditions specified in §7. Appendix B parameter migration-cost estimates remain a v0.3 deliverable pending PQ-signature benchmark data.
 
 ## Why this note exists
 
