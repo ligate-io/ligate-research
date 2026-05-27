@@ -4,11 +4,10 @@ Detection, embedding, and watermarking for the Ligate Chain receipt layer. Speci
 
 ## Latest
 
-- **Working paper**: [`verifiable-content-provenance.md`](verifiable-content-provenance.md) (v0.1 outline; substantive content lands at v0.2)
-- **Version**: v0.1 (2026-05-26)
+- **Working paper**: [`verifiable-content-provenance.md`](verifiable-content-provenance.md) + [`verifiable-content-provenance.pdf`](verifiable-content-provenance.pdf)
+- **Version**: v0.2 (2026-05-27)
 - **Author**: Stefan Stefanović (Ligate Labs)
-- **Status**: Research note v0.1 scaffolds the structure and intent across 8 sections + 2 appendices. Each section carries a `[**v0.1:** intent annotation]` describing what v0.2 will fill in. Authoring opens because the cross-schema-composition v0.2 dependency for typed references to TEE / C2PA receipts is now satisfied (2026-05-25 ship). Atlas (`ligate-marketing#96`) reaching design-doc phase is the remaining external gate; v0.2 substantive content should land after Atlas's read pipeline can be specified concretely.
-- **Date**: 2026-05-26
+- **Status**: Research note v0.2 promotes the v0.1 outline to substantive content across all sections. §2 specifies the six-path detection model with §2.7 path-coverage matrix (cost / latency / robustness per path). §3 specifies the canonical embedding spec across all major media formats. §4 specifies the watermarking-primitive interface with a survey of SynthID / Stable Signature / Stanford alternatives. §5 walks the coverage analysis with quantitative per-path ranges (combined union 40-60% at v1 mainnet, 70-90% at v2 mature). §6 specifies the adversarial model with soundness-vs-coverage decomposition. §7 lays out the phased roadmap. Appendix A (per-format embedding examples with byte-layouts) and Appendix B (formal Atlas integration contract) reserved for v0.3 once Atlas reaches design-doc phase.
 
 ## Why this paper exists
 
