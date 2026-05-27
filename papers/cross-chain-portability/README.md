@@ -4,10 +4,10 @@ A unified research note specifying the chain-side mechanism for porting Ligate C
 
 ## Latest
 
-- **Working paper**: [`cross-chain-portability.md`](cross-chain-portability.md) (v0.1 outline; substantive content lands at v0.2)
-- **Version**: v0.1 (2026-05-26)
+- **Working paper**: [`cross-chain-portability.md`](cross-chain-portability.md) + [`cross-chain-portability.pdf`](cross-chain-portability.pdf)
+- **Version**: v0.2 (2026-05-27)
 - **Author**: Stefan Stefanović (Ligate Labs)
-- **Status**: Research note v0.1 scaffolds the structure and intent across 8 sections + 2 appendices. Each section carries a `[**v0.1:** intent annotation]` describing what v0.2 will fill in. Authoring opens because all five upstream papers (native-delegation v0.2, per-schema-fees v0.2, cross-schema-composition v0.2, time-locked-attestations v0.2, native-da v0.2) are now substantive, each referencing this paper as the unified follow-up for their cross-chain extension. The Hyperlane / IBC integration target choice is the remaining design dependency; v0.2 substantive content commits to one target.
+- **Status**: Research note v0.2 promotes the v0.1 outline to substantive content across all sections. §3 specifies the unified IBC-style light-client proof primitive (four components: attestation object, inclusion proof, signed header, freshness commitment). §3.2 specifies the freshness window: recommended 30 minutes for high-stakes compositions, 1 hour for low-stakes. §3.3 specifies the revocation-status query operation. §3.4 specifies cascade adaptation with three paths (IBC update, explicit query, push notification as v0.3+ extension). §4 walks the five per-extension mechanisms. §5 carries the per-extension damage analysis table. §6 specifies cross-chain slashing-event validation. Stays target-agnostic at v0.2; v0.3 commits to IBC vs Hyperlane vs restaking once engineering decision lands. Appendix A (worked Iris-on-Cosmos example) and Appendix B (byte-level IBC packet format) reserved for v0.3.
 
 ## Why this paper exists
 
