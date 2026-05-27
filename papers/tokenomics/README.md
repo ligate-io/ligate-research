@@ -4,10 +4,10 @@ The supply trajectory and validator revenue model for `$AVOW`, the native token 
 
 ## Latest
 
-- **Working paper**: [`tokenomics.md`](tokenomics.md)
-- **Version**: v0.3 (2026-05-26)
+- **Working paper**: [`tokenomics.md`](tokenomics.md) + [`tokenomics.pdf`](tokenomics.pdf)
+- **Version**: v0.4 (2026-05-27)
 - **Author**: Stefan Stefanović (Ligate Labs)
-- **Status**: Research note v0.3 closes the previously v0.1-annotation sections with substantive content: §2 Background and Related Work (Bitcoin / Ethereum post-merge / Cosmos / Solana surveys + AVOW positioning), §6 Steady-State Validator Revenue (revenue equation, fee composition formula, 30% staker yield rationale, operational cost coverage), §8 SBT Feedback (mint-event mechanics, fee-market feedback loop, supply-trajectory accelerator). Appendix A walks three scenarios (low / moderate / high volume) with concrete year-by-year tables. v0.2 substantive content in §3, §4, §5, §7, §9, §10 carries forward. Appendix B parameter sensitivity tables remain a v0.4 deliverable.
+- **Status**: Research note v0.4 closes Appendix B parameter sensitivity tables across four dimensions (initial `$R_b`, decay-curve shape, phase-out threshold, steady-state `$\tau_{\text{burn}}$`). Each is varied independently with the other three at recommended baseline; tables show $S_\infty$ at year 10 of the moderate-volume scenario plus the 1B-ceiling check across all three §9 scenarios. §B.5 identifies the cross-dimensional safe region. §B.6 documents what the sensitivity analysis does NOT cover. v0.3 substantive content (§2 + §6 + §8 + Appendix A) carries forward unchanged. References section remains a v0.5 deliverable.
 
 ## Why this note exists
 
