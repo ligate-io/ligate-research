@@ -4,10 +4,10 @@ A research note specifying how Trusted Execution Environment (TEE) attestations 
 
 ## Latest
 
-- **Working paper**: [`tee-composition.md`](tee-composition.md) (v0.1 outline; substantive content lands at v0.2)
-- **Version**: v0.1 (2026-05-25)
+- **Working paper**: [`tee-composition.md`](tee-composition.md) + [`tee-composition.pdf`](tee-composition.pdf)
+- **Version**: v0.2 (2026-05-27)
 - **Author**: Stefan Stefanović (Ligate Labs)
-- **Status**: Research note v0.1 scaffolds the structure and intent. Each section carries a `[**v0.1:** intent annotation]` describing what v0.2 will fill in. No formal claims yet.
+- **Status**: Research note v0.2 promotes the v0.1 outline to substantive content across all sections. §2 surveys TEE architecture with vendor-specific detail (Intel TDX, AMD SEV-SNP, NVIDIA H100 CC, ARM TrustZone, AWS Nitro, plus integration partners Phala + NEAR AI Cloud). §4 carries the side-channel attack catalog with peer-reviewed citations (Foreshadow, Plundervolt, SGAxe, ÆPIC Leak, Downfall, TDX-side-channels). §4.4 specifies four failure modes (case analysis) showing graceful degradation under partial compromise. §5 specifies the composition mechanism including nonce-binding for replay-resistance. §6 specifies the chain-side vendor root mirror schema. Appendix A reserves space for the formal `tee.vendor-root/v1` schema spec; Appendix B reserves space for a worked composition example. Both deferred to v0.3.
 
 ## Why this note exists
 
