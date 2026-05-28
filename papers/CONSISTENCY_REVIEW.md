@@ -9,14 +9,13 @@
 
 ## Summary
 
-**The portfolio is in good shape.** The two notation collisions flagged in the 2026-05-04 review were both resolved during the v0.2 promotion sweep. Shared mechanisms (the per-schema fee-routing fraction, the PoUA Lemma 1 cost-to-grind floor, the risk-aversion coefficient) are used consistently across the papers that reference them, with explicit cross-citations to the canonical source. The drift this review found is concentrated in one paper (schema-bound-tokens, which was promoted from v0.1 without fully refreshing its cross-references) plus two stale README boilerplate blocks; all of that is fixed in this pass. One genuine numeric inconsistency (a τ_burn range) is flagged for author decision because it touches a derived bound.
+**The portfolio is in good shape.** The two notation collisions flagged in the 2026-05-04 review were both resolved during the v0.2 promotion sweep. Shared mechanisms (the per-schema fee-routing fraction, the PoUA Lemma 1 cost-to-grind floor, the risk-aversion coefficient) are used consistently across the papers that reference them, with explicit cross-citations to the canonical source. The drift this review found is concentrated in one paper (schema-bound-tokens, which was promoted from v0.1 without fully refreshing its cross-references) plus two stale README boilerplate blocks; all of that is fixed in this pass, including the one genuine numeric inconsistency (a τ_burn range that contradicted the canonical tokenomics schedule).
 
 - **Resolved since 2026-05-04**: 2 (Λ overload, ρ overload)
 - **Consistent shared mechanisms verified**: 5 (ρ_σ, η, τ_burn/Lemma 1, γ, schema σ / attestor set 𝒜)
 - **Tolerable context-separated overloads**: 2 (α, σ-as-index)
 - **Cross-references checked**: all cited PoUA sections exist (no broken refs); only stale version *tags*
-- **Drift fixed in this pass**: schema-bound-tokens version tags (PoUA v0.8 → v0.9.2 ×4, per-schema-fees v0.1.1 → v0.2, README v0.8+ → v0.9.2+); 2 stale README outline blocks
-- **Flagged for author decision**: 1 (schema-bound-tokens τ_burn range vs tokenomics schedule)
+- **Drift fixed in this pass**: schema-bound-tokens version tags (PoUA v0.8 → v0.9.2 ×4, per-schema-fees v0.1.1 → v0.2, README v0.8+ → v0.9.2+); the SBT τ_burn range (re-anchored to the tokenomics schedule, §5); 2 stale README outline blocks
 
 ---
 
@@ -101,14 +100,14 @@ cross-schema-composition, native-delegation, and per-schema-fees each say "Follo
 | Total AVOW supply ceiling | 1,000,000,000 (1B) | tokenomics, schema-bound-tokens (+ chain genesis) | ✓ agree |
 | Schema-author fee cap | 50% (ρ_σ ≤ 0.5) | per-schema-fees, tokenomics, schema-bound-tokens, CSC | ✓ agree |
 | Licensing royalty split | 25/35/30/10 (burn/attestor/creator/builder) | themisra-licensing-schemas §6 | ✓ internally consistent; the 25% burn = τ_burn 0.25 ties to tokenomics steady-state |
-| τ_burn schedule | 0.60 → 0.40 → 0.25 (bootstrap → late → steady) | tokenomics §7 (canonical) | ⚠ see below |
+| τ_burn schedule | 0.60 → 0.40 → 0.25 (bootstrap → late → steady) | tokenomics §7 (canonical) | ✓ resolved (was SBT drift; see below) |
 | κ cost-to-attack premium | r_max/r_min ∈ [4, 10] | PoUA only | ✓ PoUA-local, not a cross-paper constant |
 
-### ⚠ Flagged for author decision: τ_burn range in schema-bound-tokens
+### τ_burn range in schema-bound-tokens: RESOLVED
 
-schema-bound-tokens §4.1 (line 163) states "the recommended **τ_burn ∈ [0.3, 0.5]** range." The canonical source (tokenomics §7) specifies a volume-dependent **schedule {0.60, 0.40, 0.25}**, and themisra-licensing-schemas uses **0.25** as its burn share. SBT's [0.3, 0.5] band contains neither the steady-state 0.25 nor the bootstrap 0.60, only the late-bootstrap 0.40.
+schema-bound-tokens §4.1 (line 163) previously stated "recommended **τ_burn ∈ [0.3, 0.5]**," which contradicted the canonical tokenomics §7 schedule **{0.60, 0.40, 0.25}** and themisra-licensing-schemas' **0.25** burn share. SBT's band contained neither the steady-state 0.25 nor the bootstrap 0.60.
 
-This is **not auto-fixed** because SBT's bound calculation ("r_𝒯 less than approximately 30 to 50 times the per-mint base fee") is derived *for* the [0.3, 0.5] range; changing the range may change the derived multiplier. The author should either (a) re-anchor SBT to the tokenomics schedule and recompute the 30–50× bound, or (b) explicitly frame [0.3, 0.5] as an illustrative band for the §4.1 worked bound, decoupled from the tokenomics recommendation. Recommend (a).
+**Fixed in this pass.** SBT §4.1 now anchors on the AVOW Tokenomics §7 schedule (steady-state 0.25, rising to 0.60 during bootstrap). The qualitative bound was re-stated at the binding steady-state case: the original used a transparent 100×τ_burn mapping (0.3→30, 0.5→50), so the steady-state τ_burn = 0.25 gives **~25×** the per-mint base fee, with bootstrap phases only loosening the constraint. This corrects the value (the old "30-50×" overstated the steady-state margin) and the cross-paper inconsistency at once. The precise parameterized bound remains a v0.3 deliverable per SBT §4.1 (gated on devnet data), unchanged.
 
 ---
 
@@ -121,9 +120,10 @@ This is **not auto-fixed** because SBT's bound calculation ("r_𝒯 less than ap
 
 ## 7. Open items flagged (not fixed here)
 
-1. **schema-bound-tokens τ_burn range** (§5): needs author decision; touches a derived bound.
-2. **"PoUA v0.7 discipline" version tags** (§4.3): optional unversioning; low priority.
-3. **Whether the portfolio should bump all PoUA cross-refs from v0.9.2 to v0.10**; currently the portfolio cites v0.9.2 (the arXiv-canonical version) while the repo PoUA is v0.10 (arXiv v2 held). Left at v0.9.2 deliberately for now; revisit when arXiv v2 ships.
+1. **"PoUA v0.7 discipline" version tags** (§4.3): optional unversioning; low priority.
+2. **Whether the portfolio should bump all PoUA cross-refs from v0.9.2 to v0.10**; currently the portfolio cites v0.9.2 (the arXiv-canonical version) while the repo PoUA is v0.10 (arXiv v2 held). Left at v0.9.2 deliberately for now; revisit when arXiv v2 ships.
+
+(The schema-bound-tokens τ_burn range, flagged in the first cut of this review, was resolved in the same pass; see §5.)
 
 ---
 
