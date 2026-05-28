@@ -278,19 +278,17 @@ Two paragraphs. (1) Cross-chain attestation portability is one shared mechanism,
 
 ## References
 
-[**v0.1:** References to fill in at v0.2. Anchors:]
-
-1. PoUA paper (this repo, papers/poua/), arXiv:2605.25844.
-2. Native Delegation paper (this repo, papers/native-delegation/) §10.2.
-3. Per-Schema Fees paper (this repo, papers/per-schema-fees/) §9.4.
-4. Cross-Schema Composition paper (this repo, papers/cross-schema-composition/) §9.1.
-5. Time-Locked Attestations paper (this repo, papers/time-locked-attestations/) §9.2.
-6. Native DA Layer paper (this repo, papers/native-da/) §13.4.
-7. Cosmos IBC specification.
-8. Hyperlane technical documentation.
-9. EIP-7002 (Ethereum triggerable exits) specification.
-10. EIP-7251 (Ethereum max effective balance) specification.
-11. EigenLayer restaking specification.
+1. Ligate Labs (2026). *Proof of Useful Attestation*. arXiv:2605.25844; this repo, [`papers/poua/`](../poua/).
+2. Ligate Labs (2026). *Native Delegation*. This repo, [`papers/native-delegation/`](../native-delegation/). §10.2 cross-chain delegation extension.
+3. Ligate Labs (2026). *Per-Schema Fee Markets*. This repo, [`papers/per-schema-fees/`](../per-schema-fees/). §9.4 cross-chain fee-market portability extension.
+4. Ligate Labs (2026). *Cross-Schema Composition*. This repo, [`papers/cross-schema-composition/`](../cross-schema-composition/). §9.1 cross-chain composition extension.
+5. Ligate Labs (2026). *Time-Locked Attestations*. This repo, [`papers/time-locked-attestations/`](../time-locked-attestations/). §9.2 cross-chain time-locks extension.
+6. Ligate Labs (2026). *Native DA Layer*. This repo, [`papers/native-da/`](../native-da/). §13.4 cross-chain attestation portability extension.
+7. Goes, C. (2020). *The Interblockchain Communication Protocol: An Overview*. arXiv:2006.15918. Cosmos / Interchain Foundation.
+8. Hyperlane (2024). *Hyperlane Permissionless Interoperability Documentation*. docs.hyperlane.xyz.
+9. Buterin, V., Hancock, M., Stokes, D., Edgington, B. (2024). *EIP-7002: Execution Layer Triggerable Withdrawals*. Ethereum Improvement Proposals.
+10. Edgington, B., Buterin, V., Hancock, M., Stokes, D., Ryan, D. (2024). *EIP-7251: Increase the MAX_EFFECTIVE_BALANCE*. Ethereum Improvement Proposals.
+11. EigenLabs (2023). *EigenLayer: The Restaking Collective*. Whitepaper. eigenlayer.xyz.
 
 ---
 

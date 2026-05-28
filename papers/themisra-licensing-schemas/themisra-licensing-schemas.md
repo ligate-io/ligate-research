@@ -337,16 +337,14 @@ Two paragraphs. (1) Licensing belongs as a schema, not a chain-layer token primi
 
 ## References
 
-[**v0.1:** References to fill in at v0.2. Anchors:]
-
-1. PoUA paper (this repo, papers/poua/), arXiv:2605.25844.
-2. Cross-Schema Composition paper (this repo, papers/cross-schema-composition/) §3.1, §4.3, §5.
-3. Per-Schema Fees paper (this repo, papers/per-schema-fees/) §4.4 (base-fee routing).
-4. Tokenomics paper (this repo, papers/tokenomics/) §7 (tau_burn calibration).
-5. Verifiable Content Provenance paper (this repo, papers/verifiable-content-provenance/) (planning).
-6. EAS (Ethereum Attestation Service) revocable-attestation documentation.
-7. Story Protocol whitepaper.
-8. ASCAP technical documentation on royalty distribution.
+1. Ligate Labs (2026). *Proof of Useful Attestation*. arXiv:2605.25844; this repo, [`papers/poua/`](../poua/).
+2. Ligate Labs (2026). *Cross-Schema Composition*. This repo, [`papers/cross-schema-composition/`](../cross-schema-composition/). §3.1 typed schema declarations, §4.3 typed references, §5 cascade semantics.
+3. Ligate Labs (2026). *Per-Schema Fee Markets*. This repo, [`papers/per-schema-fees/`](../per-schema-fees/). §4.4 base-fee routing.
+4. Ligate Labs (2026). *AVOW Tokenomics*. This repo, [`papers/tokenomics/`](../tokenomics/). §7 $\tau_{\text{burn}}$ calibration across volume regimes.
+5. Ligate Labs (2026). *Verifiable Content Provenance*. This repo, [`papers/verifiable-content-provenance/`](../verifiable-content-provenance/).
+6. Ethereum Attestation Service (2024). *EAS Documentation: Revocable Attestations*. docs.attest.org.
+7. PIP Labs (2024). *Story Protocol Whitepaper: The Internet of Agents Needs a Programmable IP Layer*. story.foundation.
+8. American Society of Composers, Authors and Publishers (2024). *ASCAP Distribution Rules and Royalty Distribution Methodology*. ascap.com/help/royalties-and-payment.
 
 ---
 

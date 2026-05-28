@@ -390,19 +390,17 @@ Two paragraphs. (1) Post-quantum migration is engineering work, not theoretical 
 
 ## References
 
-[**v0.1:** References to fill in at v0.2. Anchors:]
-
-1. PoUA paper (this repo, papers/poua/), arXiv:2605.25844.
-2. Cross-Schema Composition paper (this repo, papers/cross-schema-composition/).
-3. Native Delegation paper (this repo, papers/native-delegation/) §10.4.
-4. Native DA Layer paper (this repo, papers/native-da/) §13.3.
-5. TEE Composition note (this repo, papers/tee-composition/).
-6. NIST FIPS 204 (ML-DSA / CRYSTALS-Dilithium). 2024.
-7. NIST FIPS 205 (SLH-DSA / SPHINCS+). 2024.
-8. NIST post-quantum cryptography migration guidance. 2024.
-9. Shor (1994). Algorithms for quantum computation: discrete logarithms and factoring.
-10. Grover (1996). A fast quantum mechanical algorithm for database search.
-11. Threshold Dilithium variants (cite at v0.2 from current research literature).
+1. Ligate Labs (2026). *Proof of Useful Attestation*. arXiv:2605.25844; this repo, [`papers/poua/`](../poua/).
+2. Ligate Labs (2026). *Cross-Schema Composition*. This repo, [`papers/cross-schema-composition/`](../cross-schema-composition/).
+3. Ligate Labs (2026). *Native Delegation*. This repo, [`papers/native-delegation/`](../native-delegation/). §10.4 PQ migration considerations.
+4. Ligate Labs (2026). *Native DA Layer*. This repo, [`papers/native-da/`](../native-da/). §13.3 PQ migration considerations.
+5. Ligate Labs (2026). *TEE Composition*. This repo, [`papers/tee-composition/`](../tee-composition/).
+6. National Institute of Standards and Technology (2024). *FIPS 204: Module-Lattice-Based Digital Signature Standard (ML-DSA)*. csrc.nist.gov/pubs/fips/204/final.
+7. National Institute of Standards and Technology (2024). *FIPS 205: Stateless Hash-Based Digital Signature Standard (SLH-DSA)*. csrc.nist.gov/pubs/fips/205/final.
+8. Cybersecurity and Infrastructure Security Agency, National Security Agency, National Institute of Standards and Technology (2023). *Quantum-Readiness: Migration to Post-Quantum Cryptography*. CISA / NSA / NIST joint publication.
+9. Shor, P. W. (1994). *Algorithms for Quantum Computation: Discrete Logarithms and Factoring*. Proceedings of the 35th Annual Symposium on Foundations of Computer Science (FOCS).
+10. Grover, L. K. (1996). *A Fast Quantum Mechanical Algorithm for Database Search*. Proceedings of the 28th Annual ACM Symposium on Theory of Computing (STOC).
+11. Cozzo, D., Smart, N. P. (2019). *Sharing the LUOV: Threshold Post-Quantum Signatures*. IMA International Conference on Cryptography and Coding. (See also Bonte, C., Smart, N. P., Tabia, T. (2021). *Thresholdizing HashEdDSA: MPC to the Rescue*. IACR ePrint 2021/1340.)
 
 ---
 
