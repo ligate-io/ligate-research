@@ -280,20 +280,18 @@ Two paragraphs. (1) Detection is the harder half of the system. Six paths combin
 
 ## References
 
-[**v0.1:** References to fill in at v0.2. Anchors:]
-
-1. PoUA paper (this repo, papers/poua/), arXiv:2605.25844.
-2. Cross-Schema Composition paper (this repo, papers/cross-schema-composition/) §4.3 typed references.
-3. C2PA Composition note (this repo, papers/c2pa-composition/).
-4. Themisra Licensing Schemas paper (this repo, papers/themisra-licensing-schemas/) for the content-licensing composition.
-5. SynthID (Google DeepMind) technical documentation.
-6. Meta AI Stable Signature paper.
-7. Kirchenbauer et al. text watermarking.
-8. C2PA technical specification.
-9. EXIF specification (CIPA DC-008).
-10. ID3v2.4 specification.
-11. EU AI Act, Article 50.
-12. ligate-marketing#96 (Atlas product issue).
+1. Ligate Labs (2026). *Proof of Useful Attestation*. arXiv:2605.25844; this repo, [`papers/poua/`](../poua/).
+2. Ligate Labs (2026). *Cross-Schema Composition*. This repo, [`papers/cross-schema-composition/`](../cross-schema-composition/). §4.3 typed references.
+3. Ligate Labs (2026). *C2PA Co-existence*. This repo, [`papers/c2pa-composition/`](../c2pa-composition/).
+4. Ligate Labs (2026). *Themisra Licensing Schemas*. This repo, [`papers/themisra-licensing-schemas/`](../themisra-licensing-schemas/).
+5. Google DeepMind (2024). *SynthID: Tools for Watermarking and Identifying AI-Generated Content*. deepmind.google/technologies/synthid.
+6. Fernandez, P., Couairon, G., Jegou, H., Douze, M., Furon, T. (2023). *The Stable Signature: Rooting Watermarks in Latent Diffusion Models*. ICCV 2023. arXiv:2303.15435.
+7. Kirchenbauer, J., Geiping, J., Wen, Y., Katz, J., Miers, I., Goldstein, T. (2023). *A Watermark for Large Language Models*. ICML 2023. arXiv:2301.10226.
+8. Coalition for Content Provenance and Authenticity (2025). *C2PA Technical Specification v2.1*. c2pa.org/specifications.
+9. Camera and Imaging Products Association (2023). *CIPA DC-008-2023: Exchangeable Image File Format for Digital Still Cameras (Exif Version 3.0)*.
+10. Nilsson, M. (2000). *ID3 Tag Specification: ID3v2.4.0 Native Frames*. id3.org/id3v2.4.0-frames.
+11. European Parliament and Council (2024). *Regulation (EU) 2024/1689 (Artificial Intelligence Act), Article 50: Transparency Obligations for Providers and Deployers of Certain AI Systems*. Official Journal of the European Union.
+12. Ligate Labs (2026). *Atlas Verifier Platform*. ligate-marketing#96.
 
 ---
 

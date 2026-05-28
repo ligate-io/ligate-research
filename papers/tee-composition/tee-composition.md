@@ -346,21 +346,19 @@ Two paragraphs. (1) TEE attestation and Themisra attestation answer different qu
 
 ## References
 
-[**v0.1:** References to fill in at v0.2. Anchors:]
-
-1. PoUA paper (this repo, papers/poua/), arXiv:2605.25844.
-2. Cross-Schema Composition paper (this repo, papers/cross-schema-composition/).
-3. C2PA composition note (this repo, papers/c2pa-composition/).
-4. Intel TDX specification.
-5. AMD SEV-SNP specification.
-6. NVIDIA H100 Confidential Computing documentation.
-7. ARM TrustZone documentation.
-8. Phala Network technical documentation.
-9. NEAR AI Cloud technical documentation.
-10. Van Bulck et al. (2018). Foreshadow: Extracting the Keys to the Intel SGX Kingdom with Transient Out-of-Order Execution. USENIX Security.
-11. Murdock et al. (2020). Plundervolt: Software-based Fault Injection Attacks against Intel SGX. IEEE S&P.
-12. Van Schaik et al. (2020). SGAxe: How SGX Fails in Practice.
-13. Borrello et al. (2022). ÆPIC Leak: Architecturally Leaking Uninitialized Data from the Microarchitecture. USENIX Security.
+1. Ligate Labs (2026). *Proof of Useful Attestation*. arXiv:2605.25844; this repo, [`papers/poua/`](../poua/).
+2. Ligate Labs (2026). *Cross-Schema Composition*. This repo, [`papers/cross-schema-composition/`](../cross-schema-composition/).
+3. Ligate Labs (2026). *C2PA Co-existence*. This repo, [`papers/c2pa-composition/`](../c2pa-composition/).
+4. Intel Corporation (2024). *Intel Trust Domain Extensions (Intel TDX) Architecture Specification*. intel.com/content/www/us/en/developer/tools/trust-domain-extensions.
+5. Advanced Micro Devices (2024). *AMD SEV-SNP: Strengthening VM Isolation with Integrity Protection and More*. amd.com/system/files/TechDocs/SEV-SNP-strengthening-vm-isolation-with-integrity-protection-and-more.pdf.
+6. NVIDIA Corporation (2024). *NVIDIA H100 Tensor Core GPU Architecture: Confidential Computing on Hopper*. nvidia.com/en-us/data-center/h100.
+7. ARM Limited (2023). *Arm TrustZone Technology Documentation*. developer.arm.com/documentation/100690.
+8. Phala Network (2024). *Phala Network Technical Documentation: Confidential Smart Contracts*. docs.phala.network.
+9. NEAR Foundation (2024). *NEAR AI Cloud Technical Documentation*. near.ai.
+10. Van Bulck, J., Minkin, M., Weisse, O., Genkin, D., Kasikci, B., Piessens, F., Silberstein, M., Wenisch, T. F., Yarom, Y., Strackx, R. (2018). *Foreshadow: Extracting the Keys to the Intel SGX Kingdom with Transient Out-of-Order Execution*. USENIX Security Symposium 2018.
+11. Murdock, K., Oswald, D., Garcia, F. D., Van Bulck, J., Gruss, D., Piessens, F. (2020). *Plundervolt: Software-based Fault Injection Attacks against Intel SGX*. IEEE Symposium on Security and Privacy 2020.
+12. Van Schaik, S., Kwong, A., Genkin, D., Yarom, Y. (2020). *SGAxe: How SGX Fails in Practice*. sgaxe.com.
+13. Borrello, P., Kogler, A., Schwarzl, M., Lipp, M., Gruss, D., Schwarz, M. (2022). *ÆPIC Leak: Architecturally Leaking Uninitialized Data from the Microarchitecture*. USENIX Security Symposium 2022.
 
 ---
 

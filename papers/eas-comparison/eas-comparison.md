@@ -353,17 +353,15 @@ Composition between the two is plausible and interesting. A Themisra attestation
 
 ## References
 
-[**v0.1:** References to fill in at v0.2. Anchors:]
-
-1. EAS (Ethereum Attestation Service) official documentation. https://docs.attest.org/
-2. EAS specification repository. https://github.com/ethereum-attestation-service
-3. Sign Protocol (EAS-variant attestation network).
-4. Verax (Ethereum attestation registry, Linea-flavored).
-5. PoUA paper (this repo, papers/poua/).
-6. Per-Schema Fees paper (this repo, papers/per-schema-fees/).
-7. Cross-Schema Composition paper (this repo, papers/cross-schema-composition/).
-8. Schema-Bound Tokens paper (this repo, papers/schema-bound-tokens/).
-9. Time-Locked Attestations paper (this repo, papers/time-locked-attestations/).
+1. Ethereum Attestation Service (2024). *EAS Documentation: Attestation Primitive on Ethereum*. docs.attest.org.
+2. Ethereum Attestation Service (2024). *EAS Specification Repository*. github.com/ethereum-attestation-service.
+3. Sign Protocol (2024). *Sign Protocol Documentation: Omnichain Attestation Layer*. sign.global.
+4. Verax (2024). *Verax: Onchain Attestation Registry for Linea*. docs.ver.ax.
+5. Ligate Labs (2026). *Proof of Useful Attestation*. arXiv:2605.25844; this repo, [`papers/poua/`](../poua/).
+6. Ligate Labs (2026). *Per-Schema Fee Markets*. This repo, [`papers/per-schema-fees/`](../per-schema-fees/).
+7. Ligate Labs (2026). *Cross-Schema Composition*. This repo, [`papers/cross-schema-composition/`](../cross-schema-composition/).
+8. Ligate Labs (2026). *Schema-Bound Tokens*. This repo, [`papers/schema-bound-tokens/`](../schema-bound-tokens/).
+9. Ligate Labs (2026). *Time-Locked Attestations*. This repo, [`papers/time-locked-attestations/`](../time-locked-attestations/).
 
 ---
 

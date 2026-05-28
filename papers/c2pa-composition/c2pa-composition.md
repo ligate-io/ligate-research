@@ -275,16 +275,14 @@ Two paragraphs. (1) C2PA and Themisra solve different halves of the AI-provenanc
 
 ## References
 
-[**v0.1:** References to fill in at v0.2. Anchors:]
-
-1. C2PA Specification (Coalition for Content Provenance and Authenticity). https://c2pa.org/specifications/
-2. Content Credentials homepage. https://contentcredentials.org/
-3. EU AI Act, Article 50 (transparency obligations for AI-generated content).
-4. PoUA paper (this repo, papers/poua/).
-5. Cross-Schema Composition paper (this repo, papers/cross-schema-composition/).
-6. Schema-Bound Tokens paper (this repo, papers/schema-bound-tokens/).
-7. EAS comparison note (this repo, papers/eas-comparison/).
-8. Verifiable Content Provenance paper (this repo, papers/verifiable-content-provenance/).
+1. Coalition for Content Provenance and Authenticity (2025). *C2PA Technical Specification v2.1*. c2pa.org/specifications.
+2. Content Authenticity Initiative (2024). *Content Credentials*. contentcredentials.org.
+3. European Parliament and Council (2024). *Regulation (EU) 2024/1689 (Artificial Intelligence Act), Article 50: Transparency Obligations for Providers and Deployers of Certain AI Systems*. Official Journal of the European Union.
+4. Ligate Labs (2026). *Proof of Useful Attestation*. arXiv:2605.25844; this repo, [`papers/poua/`](../poua/).
+5. Ligate Labs (2026). *Cross-Schema Composition*. This repo, [`papers/cross-schema-composition/`](../cross-schema-composition/).
+6. Ligate Labs (2026). *Schema-Bound Tokens*. This repo, [`papers/schema-bound-tokens/`](../schema-bound-tokens/).
+7. Ligate Labs (2026). *EAS Comparison*. This repo, [`papers/eas-comparison/`](../eas-comparison/).
+8. Ligate Labs (2026). *Verifiable Content Provenance*. This repo, [`papers/verifiable-content-provenance/`](../verifiable-content-provenance/).
 
 ---
 

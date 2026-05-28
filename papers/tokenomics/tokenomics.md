@@ -12,7 +12,7 @@ date: "2026-05-25"
 
 **Date:** 2026-05-27
 
-**Status:** v0.4 closes Appendix B parameter sensitivity tables. Four dimensions of variation: initial $R_b$ rate, decay-curve shape, phase-out threshold, steady-state $\tau_{\text{burn}}$. Each is varied independently with the other three at their recommended baseline; tables show $S_\infty$ at year 10 of the moderate-volume scenario, plus identification of parameter ranges that respect the 1B ceiling under all three §9 scenarios. v0.3 substantive content in §2, §6, §8 + Appendix A worked examples carries forward unchanged. v0.5 work: References section filled in with proper citations (still pending).
+**Status:** v0.4 closes Appendix B parameter sensitivity tables. Four dimensions of variation: initial $R_b$ rate, decay-curve shape, phase-out threshold, steady-state $\tau_{\text{burn}}$. Each is varied independently with the other three at their recommended baseline; tables show $S_\infty$ at year 10 of the moderate-volume scenario, plus identification of parameter ranges that respect the 1B ceiling under all three §9 scenarios. v0.3 substantive content in §2, §6, §8 + Appendix A worked examples carries forward unchanged. References section populated with canonical academic citations.
 
 **Contact:** hello@ligate.io
 
@@ -537,17 +537,15 @@ The design is intentionally conservative. The supply-ceiling discipline of Bitco
 
 ## References
 
-[**v0.1:** References to fill in at v0.2. Anchors:]
-
-1. PoUA paper (this repo, papers/poua/), arXiv:2605.25844, §6.1 + §6.3.1.
-2. Per-Schema Fees paper (this repo, papers/per-schema-fees/), §3.2 + §4.4.
-3. Schema-Bound Tokens paper (this repo, papers/schema-bound-tokens/), §3.6.
-4. Native Delegation paper (this repo, papers/native-delegation/), §7.
-5. Nakamoto (2008). Bitcoin: A Peer-to-Peer Electronic Cash System.
-6. EIP-1559 specification.
-7. Cosmos Hub ATOM tokenomics documentation.
-8. Solana SOL tokenomics documentation.
-9. ligate-chain#258 ($AVOW economics tracking).
+1. Ligate Labs (2026). *Proof of Useful Attestation*. arXiv:2605.25844; this repo, [`papers/poua/`](../poua/). §6.1 validator revenue decomposition, §6.3.1 volume-deterrent analysis.
+2. Ligate Labs (2026). *Per-Schema Fee Markets*. This repo, [`papers/per-schema-fees/`](../per-schema-fees/). §3.2 protocol block reward $R_b$, §4.4 per-schema base-fee burn.
+3. Ligate Labs (2026). *Schema-Bound Tokens*. This repo, [`papers/schema-bound-tokens/`](../schema-bound-tokens/). §3.6 fee-market composition for SBT mint events.
+4. Ligate Labs (2026). *Native Delegation*. This repo, [`papers/native-delegation/`](../native-delegation/). §7 Iris USD-priced relayer.
+5. Nakamoto, S. (2008). *Bitcoin: A Peer-to-Peer Electronic Cash System*. bitcoin.org/bitcoin.pdf.
+6. Buterin, V., Conner, E., Dudley, R., Slipper, M., Norden, I., Bakhta, A. (2019). *EIP-1559: Fee Market Change for ETH 1.0 Chain*. Ethereum Improvement Proposals.
+7. Cosmos Hub (2024). *ATOM Tokenomics*. hub.cosmos.network/main/tokenomics/tokenomics.
+8. Solana Foundation (2024). *Solana Economics Overview: SOL Inflation Schedule*. docs.solana.com/economics_overview.
+9. Ligate Labs (2026). *AVOW Economics and Governance Fee Parameters*. ligate-chain#258.
 
 ---
 
