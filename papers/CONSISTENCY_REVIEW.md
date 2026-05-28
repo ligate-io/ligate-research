@@ -1,211 +1,143 @@
 # Cross-Paper Consistency Review
 
-**Last full review:** 2026-05-04
-**Scope of full review:** PoUA v0.7.2 + 5 supplementary papers (per-schema-fees, native-delegation, native-da, cross-schema-composition, time-locked-attestations) at v0.1.1.
-**Method:** read each paper's substantive sections and check notation, terminology, cross-references, and style against PoUA as the canonical baseline.
-
-This document captures findings. Specific fixes are filed as inline edits (where clear-cut) or follow-up issues (where they need discussion).
-
-## Status note as of 2026-05-28
-
-The portfolio has grown substantially since the 2026-05-04 full review. Current state:
-
-- **PoUA**: v0.9.2 (arXiv:2605.25844)
-- **Five papers reviewed in the 2026-05-04 full pass**: all at v0.2 (substantive draft complete) on 2026-05-25
-- **Nine new papers since the full pass** (added 2026-05-25 to 2026-05-28): schema-bound-tokens v0.2, cross-chain-portability v0.2, tokenomics v0.4, eas-comparison v0.2, c2pa-composition v0.2, tee-composition v0.2, pq-migration v0.2, themisra-licensing-schemas v0.2, verifiable-content-provenance v0.2
-- **time-locked-attestations**: bumped v0.2 → v0.2.1 on 2026-05-28 with the M1 reference simulator
-- **Three reference simulators** validate headline claims: PoUA, native-delegation, per-schema-fees. M1 time-locked-attestations simulator shipped 2026-05-28.
-
-A full re-audit across all 15 papers is queued; this status note is the bridge until that lands. Spot-checks during the v0.2 promotion sweep (References sweep PR #163, simulator-shipping PR #164) did not surface load-bearing notation drift; the 2026-05-04 conflicts catalogued below remain the canonical list of known issues.
+**Last full review:** 2026-05-28 (this document)
+**Prior full review:** 2026-05-04 (PoUA v0.7.2 + 5 papers at v0.1.1)
+**Scope:** all 15 papers in `papers/`, at their current versions (PoUA v0.10; native-delegation, per-schema-fees, cross-schema-composition, time-locked-attestations v0.2.1, native-da, schema-bound-tokens at v0.2; tokenomics v0.4; eas-comparison, c2pa-composition, tee-composition, pq-migration, themisra-licensing-schemas, verifiable-content-provenance, cross-chain-portability at v0.2).
+**Method:** grep-based notation extraction (symbol → papers map), cross-reference and version-tag sweep, shared-numeric-constant reconciliation, against the canonical-source paper for each concept. Per §8.
 
 ---
 
 ## Summary
 
-The papers are largely consistent. PoUA v0.7.2 establishes the canonical notation; supplementary papers extend it with paper-specific symbols. The few drift points are minor and easily fixable. No load-bearing conflict found.
+**The portfolio is in good shape.** The two notation collisions flagged in the 2026-05-04 review were both resolved during the v0.2 promotion sweep. Shared mechanisms (the per-schema fee-routing fraction, the PoUA Lemma 1 cost-to-grind floor, the risk-aversion coefficient) are used consistently across the papers that reference them, with explicit cross-citations to the canonical source. The drift this review found is concentrated in one paper (schema-bound-tokens, which was promoted from v0.1 without fully refreshing its cross-references) plus two stale README boilerplate blocks; all of that is fixed in this pass. One genuine numeric inconsistency (a τ_burn range) is flagged for author decision because it touches a derived bound.
 
-**Notation conflicts found**: 3 (one resolved inline, two flagged for v0.2).
-**Cross-reference issues**: 0 broken; 3 missing forward-references suggested.
-**Style consistency**: all 6 papers follow the established pattern (YAML front-matter, §1.6.1 status panel placeholder, `[**v0.2:** ...]` annotations).
-
----
-
-## 1. Notation conflicts
-
-### 1.1 $\Lambda$ overloaded across PoUA and native-da
-
-**Conflict.**
-
-- **PoUA §4.5**: $\Lambda_1, \Lambda_2, \Lambda_3$ are per-class slash severities (severe / moderate / mild).
-- **native-delegation §5**: $\Lambda$ is per-slash severity in PoUA reputation units. Consistent with PoUA when subscripted as $\Lambda_i$; the paper uses bare $\Lambda$ as a generic "slash severity" placeholder.
-- **native-da §3.2**: $\Lambda(t) = \sum_\sigma \lambda_\sigma$ is **aggregate attestation throughput** (per second). Different concept entirely.
-
-**Severity.** Low. Reader confusion possible but the contexts are distinct (slashing analysis vs throughput analysis). Subscripts on PoUA's $\Lambda_i$ disambiguate within PoUA; bare $\Lambda$ in native-delegation is fine in context.
-
-**Recommendation for v0.2.**
-
-- native-da: rename $\Lambda(t)$ to $A(t)$ or $T_{\text{agg}}(t)$ for "aggregate attestation throughput." Avoids the overload entirely.
-- native-delegation: keep bare $\Lambda$ (consistent with PoUA convention when severity class is unspecified).
-- PoUA: no change needed.
-
-### 1.2 $\rho$ overloaded across PoUA, native-delegation, and per-schema-fees
-
-**Conflict.**
-
-- **PoUA §5.3**: $\rho$ is adversary stake share ($\rho \in [0, 1/3]$ at Byzantine threshold).
-- **PoUA §6.3.1**: $\rho_{\text{vol}}$ is the volume-deterrent ratio. Subscripted, distinct.
-- **native-delegation §5.5**: $\rho$ is master's risk-aversion coefficient ($\rho > 1$ typical).
-- **per-schema-fees §4.4**: $\rho_\sigma$ is the per-schema fee-routing fraction ($\rho_\sigma \in [0, 0.5]$). Subscripted, distinct from bare $\rho$.
-
-**Severity.** Medium. Three distinct concepts using bare or subscripted $\rho$. The subscripted forms ($\rho_{\text{vol}}$, $\rho_\sigma$) are unambiguous; the bare $\rho$ in PoUA §5.3 (stake share) and native-delegation §5.5 (risk aversion) could be confused if both papers are read together.
-
-**Recommendation for v0.2.**
-
-- native-delegation §5.5: rename risk-aversion coefficient from $\rho$ to $\gamma$ (matches utility-theory convention). Update Theorem 1 statement and proof accordingly.
-- PoUA §5.3: keep $\rho$ for stake share (load-bearing throughout the paper; renaming would have wider impact).
-- per-schema-fees: keep $\rho_\sigma$ subscripted (already disambiguated).
-
-**Filed as:** issue #TBD "v0.2 paper: rename native-delegation $\rho$ to $\gamma$."
-
-### 1.3 $G$ overloaded
-
-**Conflict.**
-
-- **PoUA §4.3**: $G_v^{\text{prop}}, G_v^{\text{vote}}, G_{\max}$ are good-behavior accumulators.
-- **native-delegation §5.5**: $G_{\text{delegate}}, G_{\text{hot}}$ are utility values. Subscripted with text labels, distinct.
-- **cross-schema-composition §3.2**: $G = (\Sigma, E)$ is the dependency graph. **Bare $G$**.
-
-**Severity.** Low. The graph $G$ in cross-schema-composition is unambiguous within that paper (no reputation accounting). The bare $G$ does conflict with PoUA's good-behavior shorthand in mixed-context discussions.
-
-**Recommendation for v0.2.**
-
-- cross-schema-composition: rename dependency graph from $G$ to $\mathcal{G}$ (calligraphic; matches graph-theory convention for distinguished graphs). Trivial mechanical change.
-
-**Filed as:** to fix inline in this PR (mechanical, no discussion needed).
+- **Resolved since 2026-05-04**: 2 (Λ overload, ρ overload)
+- **Consistent shared mechanisms verified**: 5 (ρ_σ, η, τ_burn/Lemma 1, γ, schema σ / attestor set 𝒜)
+- **Tolerable context-separated overloads**: 2 (α, σ-as-index)
+- **Cross-references checked**: all cited PoUA sections exist (no broken refs); only stale version *tags*
+- **Drift fixed in this pass**: schema-bound-tokens version tags (PoUA v0.8 → v0.9.2 ×4, per-schema-fees v0.1.1 → v0.2, README v0.8+ → v0.9.2+); 2 stale README outline blocks
+- **Flagged for author decision**: 1 (schema-bound-tokens τ_burn range vs tokenomics schedule)
 
 ---
 
-## 2. Cross-reference status
+## 1. Resolved since the 2026-05-04 audit
 
-### 2.1 Existing cross-references (all valid)
+The v0.2 promotion sweep applied both notation recommendations from the prior review.
 
-| From | To | Reason |
-|---|---|---|
-| per-schema-fees §4.1 | PoUA §4.4.2 + spec doc §5.2 | Drift interaction with τ_burn rebase ✓ |
-| per-schema-fees §4.4 | PoUA §5.5.3 | Lemma 1 cost-to-grind preservation ✓ |
-| per-schema-fees §4.5 | PoUA §4.3, §6.1, §A.1 | Reputation, validator income, KL detector ✓ |
-| native-delegation §5 | PoUA §4.3, §4.5 | Reputation update, slashing ✓ |
-| native-da §3 | PoUA §A.1, §A.2, §A.3 | Detector calibration ✓ |
-| cross-schema-composition §3 | PoUA primitives | Schema, attestor set, attestation ✓ |
-| time-locked-attestations §4 | PoUA §4.3, §4.5 | Reputation accrual, slashing on non-conforming proposer ✓ |
+### 1.1 Λ overload: RESOLVED
 
-### 2.2 Missing forward-references (suggested for v0.2)
+The 2026-05-04 audit flagged Λ used for both PoUA slash-severity (Λ_i) and native-da aggregate throughput (Λ(t)). The recommendation was to rename native-da's throughput symbol.
 
-These are not bugs; they are connections that would strengthen the cross-paper narrative.
+**Status: applied.** `native-da` §3.2 now uses `$$A(t) = \sum_\sigma \lambda_\sigma$$` for aggregate attestation throughput (line 260). Λ is now unambiguously slash-severity (PoUA Λ_i, native-delegation, schema-bound-tokens), always in reputation units.
 
-**(a) per-schema-fees §4.3 (sponsored gas) ↔ native-delegation §4.1 (delegation tx)**
+### 1.2 ρ overload: RESOLVED
 
-Currently per-schema-fees §4.3 references native-delegation [#5](https://github.com/ligate-io/ligate-research/issues/5) but doesn't anchor to the formal delegation tx (since native-delegation §4 is still placeholder at v0.1.1). When native-delegation §4 ships substantive in v0.2, per-schema-fees should reference §4.1 `MsgDelegate` schema directly.
+The prior audit flagged bare ρ used for both PoUA adversary stake-share (§5.3) and native-delegation master risk-aversion (§5.5). The recommendation was to rename native-delegation's coefficient to γ.
 
-**(b) native-delegation §5 ↔ per-schema-fees §4.3 (paymaster pattern)**
+**Status: applied.** `native-delegation` now uses `$\gamma$` for the master's risk-aversion coefficient ("$\gamma$: master's risk-aversion coefficient over reputation loss; $\gamma > 1$", line 430). native-delegation no longer uses `\rho` at all. Bare ρ is now unambiguously the PoUA adversary weight-fraction.
 
-native-delegation §5 doesn't reference per-schema-fees §4.3 sponsored-gas mechanism. They compose: a delegated hot key submits attestations whose fees are paid by a third-party paymaster. v0.2 of native-delegation should add a forward reference in §7 (Iris Integration).
+### 1.3 Bare G (CSC dependency graph): effectively moot
 
-**(c) cross-schema-composition §3 ↔ time-locked-attestations + per-schema-fees**
-
-cross-schema-composition §3 does not mention time-locked-attestations or per-schema-fees as graph-edge use cases. v0.2 of cross-schema §6 (Use Cases) should include "time-locked attestations as commitment-reveal edges" and "fee-market schemas as referenceable nodes."
+The prior audit flagged CSC's bare `G` dependency graph against PoUA's good-behavior `G` accumulators. CSC now refers to "the schema dependency graph" in prose throughout §1/§5 and carries the formal model in §3; there is no mixed-context reputation accounting in CSC, so the concern is low-severity and effectively moot. No change needed.
 
 ---
 
-## 3. Terminology consistency
+## 2. Consistent shared mechanisms (verified)
 
-### 3.1 Consistently used
+These are the cross-paper load-bearing quantities. Each is used identically across the papers that reference it, with explicit citation to the canonical source. This is what consistency should look like.
 
-| Term | Used in | Consistent? |
-|---|---|---|
-| Schema $\sigma$ | All 6 papers | ✓ |
-| Attestor set $\mathcal{A}_\sigma$ | All 6 papers | ✓ |
-| Attestation $a$ or $\alpha$ | All 6 papers | ⚠ minor: PoUA uses $\alpha$ for attestation in §A formulas; cross-schema uses $a$. Not a conflict, just different conventions. |
-| Validator $v$ | All papers using consensus | ✓ |
-| Reputation $r_v$ | PoUA, native-delegation | ✓ |
-| Stake $s_v$ | PoUA, per-schema-fees | ✓ |
-| Weight $w_v = s_v \cdot r_v$ | PoUA | ✓ canonical |
-| Block height $t$ | All papers | ✓ |
-
-### 3.2 Term-definition drift
-
-**Attestation symbol.** PoUA uses $\alpha$ in §A formulas (e.g., $\alpha \in B$ for attestations in block $B$). cross-schema-composition uses $a$ (e.g., $a = (\sigma, K^{\text{signer}}, ...)$). Both are reasonable conventions but inconsistent.
-
-**Recommendation.** Pick one and propagate. $a$ is more readable in prose; $\alpha$ is more compact in formulas. Pragmatic choice: keep $\alpha$ in formulas, $a$ when referring to a single named attestation in prose. Matches existing PoUA usage. cross-schema-composition is consistent with prose-name convention.
-
-**No change recommended.** This is a stylistic difference, not a definitional conflict.
+| Quantity | Canonical source | Used consistently by | Notes |
+|---|---|---|---|
+| ρ_σ: schema-author fee-routing fraction, ∈ [0, 0.5] | per-schema-fees §4.4 | tokenomics §6, cross-schema-composition §9, schema-bound-tokens §3.6 | All subscripted, all cite §4.4. 50% cap agrees everywhere. |
+| η: reputation growth rate | PoUA §4.3 | tokenomics, per-schema-fees, pq-migration, tee-composition, eas-comparison | Appears in the Lemma 1 floor; all uses cite PoUA §5.5.3. |
+| τ_burn / Lemma 1 floor `F^net ≥ τ_burn·Δr/(η·α_eff)` | PoUA §5.5.3 | tokenomics §6/§8, per-schema-fees, pq-migration, tee-composition, eas-comparison, schema-bound-tokens | Formula reproduced identically with citation. (τ_burn *value* drift in SBT, see §5.) |
+| γ: risk-aversion coefficient, > 1 | native-delegation §5.5 | schema-bound-tokens §4.1 | SBT §4.1 uses γ_𝒜 and explicitly says "analogous to the master-side γ in Native Delegation v0.2 §5.5." Deliberate alignment. |
+| schema σ, attestor set 𝒜_σ | PoUA §3 | all 15 papers | Universal, consistent. |
 
 ---
 
-## 4. Style consistency
+## 3. Tolerable context-separated overloads
 
-### 4.1 Conformant across all 6 papers
+These are symbols used for more than one concept, but always in disjoint contexts, the same tolerance class the prior audit accepted. No change recommended.
 
-- **YAML front matter**: title, author, date ✓
-- **§1.6.1 status panel**: placeholder text "Same panel as PoUA v0.7 §1.6.1" ✓
-- **`[**v0.2:** ...]` annotations**: used consistently for placeholder content ✓
-- **No em dashes**: verified (PR #58 + #59) ✓
-- **One-line commit messages**: per memory rule ✓
-- **Markdown headings**: hierarchical, consistent depth ✓
+### 3.1 α
 
-### 4.2 Minor variations
+- **PoUA §4.4 / tokenomics / pq-migration / tee / eas**: proposer reputation-share scalar (α = 0.7), and the cartel-effective α_eff in the Lemma 1 floor. Used consistently (via Lemma 1 citation).
+- **PoUA §A.4**: power-law exponent for the Chung-Lu null (α ∈ {2.0, 2.5, 3.0}; empirical α̂ ≈ 1.95–2.26 in v0.10). Intra-paper, appendix-scoped, no collision with the body's proposer-share.
+- **per-schema-fees §3.2**: τ_α is the tip for *attestation α*, where α indexes an attestation. This is α-as-index, conventional and context-distinct from α-as-scalar.
 
-- **PDF generation policy**: papers/per-schema-fees/README.md says "PDF to be generated when v0.2 has substantive content." Other v0.1.1 READMEs say "PDF to be generated when v0.2 substantive content lands across §X + §Y." Slight phrasing variation. Not a bug.
+The prior audit already noted the attestation-index use as "minor, not a conflict." Still true.
 
----
+### 3.2 σ
 
-## 5. Recommended actions
-
-### 5.1 Inline fixes (applied)
-
-- [x] cross-schema-composition: rename graph $G \to \mathcal{G}$ (PR #63, 2 occurrences). Mechanical.
-- [x] native-da §3.2: rename $\Lambda(t) \to A(t)$ for aggregate throughput (PR #64, 7 occurrences). Avoids PoUA $\Lambda_i$ overload.
-- [x] native-delegation §5.5: rename risk-aversion $\rho \to \gamma$ (PR #64, 10 occurrences). Avoids PoUA $\rho$ stake-share overload.
-
-### 5.2 v0.2 paper-cycle items (will land alongside reviewer feedback)
-
-- [ ] per-schema-fees §4.3: anchor to native-delegation §4.1 `MsgDelegate` once that lands substantive
-- [ ] native-delegation §7: forward-reference per-schema-fees §4.3 paymaster pattern in Iris Integration
-- [ ] cross-schema-composition §6: add use cases referencing time-locked-attestations and per-schema-fees as graph edges
-
-### 5.3 No-action items
-
-- $\rho_{\text{vol}}$ vs $\rho_\sigma$ vs $\rho$ stake share: subscripts disambiguate; no rename needed
-- $G$ subscripted variants ($G_v, G_{\max}, G_{\text{delegate}}$): subscripts disambiguate; no rename needed
-- $\alpha$ vs $a$ for attestations: stylistic; no rename needed
-- $\tau_\alpha$ tip vs $\tau_{\text{burn}}$ burn fraction: subscripts disambiguate
+Universally the schema index. Also appears as a subscript on many quantities (b_σ, ρ_σ, 𝒜_σ). No collision; it always means "schema."
 
 ---
 
-## 6. Process notes
+## 4. Cross-references and versions
 
-### 6.1 Going forward
+### 4.1 Section references: all valid
 
-- New papers should be reviewed against this document before declaring v0.1.1+
-- Notation conflicts caught at v0.1 are easy to fix; conflicts caught at v1.0 are painful
-- The v0.2 cycle (post-reviewer-feedback) is a natural moment to apply the §5.2 recommendations
+Every inter-paper section reference checked points to a section that exists in the current target paper. Spot-checked the most-cited PoUA anchors: §3.7 (System Diagram), §4.3 (Reputation Update), §5.5.3 (Layer 3 / Lemma 1), §5.5.5 (appeal), §6.3 (Reputation as Future Revenue), §A.1 (KL detector), §A.2 (A3 detection), §A.3, §A.4, all present. **No broken section references.**
 
-### 6.2 What was not reviewed
+### 4.2 Version tags: drift fixed in this pass
 
-- v0.1 outline-only sections: these are placeholder text, not yet substantive. Notation can drift here without consequence.
-- The PoUA simulator code (`prototypes/poua-sim/`): code is consistent within itself; cross-paper notation is the focus here.
-- The CONVENTIONS.md scope discussion: that doc is about paper-vs-chain boundaries, not within-paper notation.
+schema-bound-tokens was promoted from v0.1 (2026-05-19) without refreshing its cross-reference version tags. Fixed in this PR:
 
-### 6.3 How this review is maintained
+- 4× `[PoUA v0.8](../poua/)` → `[PoUA v0.9.2](../poua/)` (body §1.3, §3.2, §3.4, §3.5); matches the portfolio convention (v0.9.2 is the dominant citation form, 11 uses; the only v0.8 refs were SBT's).
+- 1× `Per-Schema Fees ... v0.1.1` → `v0.2` (body §3.3).
+- README "PoUA at v0.8+" → "v0.9.2+" (the Dependencies line, missed in the 2026-05-28 References-section pass).
 
-- Update this document each time a paper bumps a version (v0.1 → v0.1.1 → v0.2 etc.)
-- Re-run grep-based notation extraction (`grep -E "\\\\Lambda" papers/*.md papers/*/*.md` and similar) at each cycle
-- Cross-paper review is part of the v0.2 paper-cycle deliverables
+### 4.3 "Following PoUA v0.7's discipline": acceptable, left as-is
+
+cross-schema-composition, native-delegation, and per-schema-fees each say "Following PoUA v0.7's discipline of separating claim categories" (and per-schema-fees cites "v0.7 §A.4 / v0.7.2 §A.1" for the detector). These are *historical-methodology* references: the claims-link-to-tests discipline was in fact established at PoUA v0.7, and the cited sections still exist. They read as provenance, not currency claims, so they are not stale in the way the SBT tags were. Optional future cleanup: unversion to "Following PoUA's discipline." Not done here to keep the fix scoped.
 
 ---
 
-## 7. Conclusion
+## 5. Shared numeric constants
 
-The 6 papers are notationally coherent at v0.1.1. The 3 minor conflicts identified are fixable mechanically; no load-bearing claim depends on the specific symbol used. The cross-paper narrative would benefit from 5 forward-references suggested in §2.2 once destination sections become substantive in v0.2.
+| Constant | Value | Papers | Status |
+|---|---|---|---|
+| Total AVOW supply ceiling | 1,000,000,000 (1B) | tokenomics, schema-bound-tokens (+ chain genesis) | ✓ agree |
+| Schema-author fee cap | 50% (ρ_σ ≤ 0.5) | per-schema-fees, tokenomics, schema-bound-tokens, CSC | ✓ agree |
+| Licensing royalty split | 25/35/30/10 (burn/attestor/creator/builder) | themisra-licensing-schemas §6 | ✓ internally consistent; the 25% burn = τ_burn 0.25 ties to tokenomics steady-state |
+| τ_burn schedule | 0.60 → 0.40 → 0.25 (bootstrap → late → steady) | tokenomics §7 (canonical) | ⚠ see below |
+| κ cost-to-attack premium | r_max/r_min ∈ [4, 10] | PoUA only | ✓ PoUA-local, not a cross-paper constant |
 
-This document is a working artifact, not a paper. It will be revised at each paper-version cycle.
+### ⚠ Flagged for author decision: τ_burn range in schema-bound-tokens
+
+schema-bound-tokens §4.1 (line 163) states "the recommended **τ_burn ∈ [0.3, 0.5]** range." The canonical source (tokenomics §7) specifies a volume-dependent **schedule {0.60, 0.40, 0.25}**, and themisra-licensing-schemas uses **0.25** as its burn share. SBT's [0.3, 0.5] band contains neither the steady-state 0.25 nor the bootstrap 0.60, only the late-bootstrap 0.40.
+
+This is **not auto-fixed** because SBT's bound calculation ("r_𝒯 less than approximately 30 to 50 times the per-mint base fee") is derived *for* the [0.3, 0.5] range; changing the range may change the derived multiplier. The author should either (a) re-anchor SBT to the tokenomics schedule and recompute the 30–50× bound, or (b) explicitly frame [0.3, 0.5] as an illustrative band for the §4.1 worked bound, decoupled from the tokenomics recommendation. Recommend (a).
+
+---
+
+## 6. Drift fixed in this pass
+
+- schema-bound-tokens: 6 stale version tags (§4.2 above).
+- themisra-licensing-schemas README + verifiable-content-provenance README: both carried "## Planned outline / When v0.1 authoring opens ... only at v0.0" boilerplate despite being substantive v0.2 papers. Reframed to "## Section structure / The paper is substantive at v0.2 and follows this section structure:".
+
+---
+
+## 7. Open items flagged (not fixed here)
+
+1. **schema-bound-tokens τ_burn range** (§5): needs author decision; touches a derived bound.
+2. **"PoUA v0.7 discipline" version tags** (§4.3): optional unversioning; low priority.
+3. **Whether the portfolio should bump all PoUA cross-refs from v0.9.2 to v0.10**; currently the portfolio cites v0.9.2 (the arXiv-canonical version) while the repo PoUA is v0.10 (arXiv v2 held). Left at v0.9.2 deliberately for now; revisit when arXiv v2 ships.
+
+---
+
+## 8. Process and maintenance
+
+- **Re-run at each version cycle**, or after any burst of paper promotions. The fast v0.1 → v0.2 sweep is exactly the kind of event that introduces version-tag drift (as it did in schema-bound-tokens).
+- **Extraction method**: per-symbol grep across `papers/*/[a-z]*.md` to build the symbol → papers map; cross-reference sweep for inter-paper `§` and version tags; shared-constant grep for the load-bearing numbers in §5.
+- **Canonical-source rule**: each shared quantity has one authoritative paper (ρ_σ → per-schema-fees, τ_burn → tokenomics + PoUA Lemma 1, γ → native-delegation, κ → PoUA). Other papers cite it; they do not redefine it. The τ_burn drift in §5 is a violation of this rule.
+- **Drafts cite explicit versions** (e.g., "PoUA v0.9.2 §5.5.3"). This is the portfolio convention; keep it, and refresh the tags when a dependency bumps.
+
+---
+
+## 9. Conclusion
+
+The 15-paper portfolio is notationally and referentially coherent. The prior audit's two collisions are resolved; shared mechanisms are consistent with explicit canonical-source citations; cited sections all exist. The only real inconsistency is the schema-bound-tokens τ_burn range (§5), flagged for the author. Everything else found was version-tag staleness or stale README boilerplate, fixed in this pass.
+
+This document is a working artifact, not a paper. Revise it at each version cycle.

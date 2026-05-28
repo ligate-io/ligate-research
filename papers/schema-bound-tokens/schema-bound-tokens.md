@@ -45,7 +45,7 @@ A chain whose runtime already runs attestor sets as first-class state objects ca
 
 ### 1.3 Position relative to PoUA
 
-[PoUA v0.8](../poua/) establishes attestor sets as the primary trust primitive for application-layer correctness, with non-transferable reputation tied to the validators who include valid attestations. Schema-bound tokens reuse the same attestor-set object and inherit the same reputation feedback loop: if an attestor set authorizes a fraudulent mint, the validators who include that attestation are subject to the same reputation mechanics that govern any §A.3 grinding behavior. The reputation layer is not retrofitted to handle tokens; tokens are simply another application of the layered defense PoUA already specifies.
+[PoUA v0.9.2](../poua/) establishes attestor sets as the primary trust primitive for application-layer correctness, with non-transferable reputation tied to the validators who include valid attestations. Schema-bound tokens reuse the same attestor-set object and inherit the same reputation feedback loop: if an attestor set authorizes a fraudulent mint, the validators who include that attestation are subject to the same reputation mechanics that govern any §A.3 grinding behavior. The reputation layer is not retrofitted to handle tokens; tokens are simply another application of the layered defense PoUA already specifies.
 
 ---
 
@@ -97,7 +97,7 @@ This is the priority section: what's actually provable about the primitive once 
 
 **Claim.** For any token type $\mathcal{T}$ schema-bound to $\mathcal{A}$, the full set of mint events that contributed to any holder's balance is queryable as a finite set of attestations under $\sigma_{\text{mint}}$ filtered by their `token_id` field matching `token_id(T)`.
 
-**Argument.** Every mint is recorded as an attestation per §2.2. Attestations are stored in the chain's attestation log (per [PoUA v0.8](../poua/) §3.7 system diagram). The token's runtime state (current balances) is derivable from the cumulative sum of mint events minus burn events; both classes are attestations. There is no off-attestation-log state mutation for schema-bound tokens. $\square$
+**Argument.** Every mint is recorded as an attestation per §2.2. Attestations are stored in the chain's attestation log (per [PoUA v0.9.2](../poua/) §3.7 system diagram). The token's runtime state (current balances) is derivable from the cumulative sum of mint events minus burn events; both classes are attestations. There is no off-attestation-log state mutation for schema-bound tokens. $\square$
 
 **Consequence.** Audit infrastructure that already indexes attestations (chain explorers, partner indexers, downstream analytics) gets token-issuance audit for free. No separate issuance ledger needs to be tracked. Investigators reconstructing "who minted what when" use the same queries as investigators reconstructing "who attested what when."
 
@@ -105,7 +105,7 @@ This is the priority section: what's actually provable about the primitive once 
 
 **Claim.** A mint event under $\sigma_{\text{mint}}$ pays exactly the per-attestation fee for $\sigma_{\text{mint}}$, plus the standard chain gas for the transaction carrying it. The mint does not pay an additional, separate "token-mint fee" on top of the attestation fee.
 
-**Argument and open question.** The attestation module's per-schema fee market (per the [Per-Schema Fees](../per-schema-fees/) paper, v0.1.1) prices attestations by schema. $\sigma_{\text{mint}}$ is a system schema; its fee is set by governance and not subject to the open-fee-market dynamics that apply to application schemas. The bound mint fee should be calibrated so that:
+**Argument and open question.** The attestation module's per-schema fee market (per the [Per-Schema Fees](../per-schema-fees/) paper, v0.2) prices attestations by schema. $\sigma_{\text{mint}}$ is a system schema; its fee is set by governance and not subject to the open-fee-market dynamics that apply to application schemas. The bound mint fee should be calibrated so that:
 
 - Routine mint volume does not exhaust block space (a fee floor)
 - Adversarial mint flooding (a quorum that controls $\mathcal{A}$ tries to spam mints to inflate $\mathcal{T}$'s supply) is economically deterred (a fee ceiling-equivalent)
@@ -116,7 +116,7 @@ This is the priority section: what's actually provable about the primitive once 
 
 **Claim.** Holders of $\mathcal{T}$ retain valid balances when the attestor set $\mathcal{A}$ rotates members or threshold, provided the rotation is performed through the chain's attestor-set management module (not via off-chain key compromise + re-registration).
 
-**Argument.** Mint events are historical attestations. Their validity at the time of mint is determined by the threshold-signature verification under the keys recorded for $\mathcal{A}$ *at the slot of the mint attestation*. A rotation that changes $\mathcal{A}$'s key set at slot $t$ updates the verifier state for attestations at slot $t' > t$ but does not retroactively invalidate attestations at slot $t' \leq t$. The historical attestation log is append-only by construction (per [PoUA v0.8](../poua/) §3.7); rotation events are recorded as their own attestations under the attestor-set management schema. Token balances derived from pre-rotation mints remain in the chain's runtime state regardless of post-rotation key set. $\square$
+**Argument.** Mint events are historical attestations. Their validity at the time of mint is determined by the threshold-signature verification under the keys recorded for $\mathcal{A}$ *at the slot of the mint attestation*. A rotation that changes $\mathcal{A}$'s key set at slot $t$ updates the verifier state for attestations at slot $t' > t$ but does not retroactively invalidate attestations at slot $t' \leq t$. The historical attestation log is append-only by construction (per [PoUA v0.9.2](../poua/) §3.7); rotation events are recorded as their own attestations under the attestor-set management schema. Token balances derived from pre-rotation mints remain in the chain's runtime state regardless of post-rotation key set. $\square$
 
 **Edge case.** If $\mathcal{A}$ is *removed* entirely (governance action, end-of-life), the token type's `mint_authority` is permanently revoked; the runtime can no longer accept new mints (no valid signing quorum exists), but pre-removal balances remain valid. This is the intended end-of-life path for a sunset token, similar to a smart-contract owner renouncing admin in conventional patterns.
 
@@ -124,7 +124,7 @@ This is the priority section: what's actually provable about the primitive once 
 
 **Claim.** Bad-faith mints by $\mathcal{A}$ are subject to the same reputation mechanics that govern any §A.3-grinding behavior under PoUA. There is no separate "token issuance reputation" track.
 
-**Argument.** Mint events are attestations under $\sigma_{\text{mint}}$, included by validators in blocks. Per [PoUA v0.8](../poua/) §4.3 the reputation update rewards validators who include valid attestations and exposes them to the standard slashing conditions if those attestations are invalid or detected as part of a grinding pattern (§A.2 / §A.3). If $\mathcal{A}$ issues a fraudulent mint (a mint exceeding a stated cap, or a mint contradicting an off-chain authoritative source), the chain has the same recourse it has for any fraudulent attestation: detect, slash the validator who included it, and trigger appeal via §5.5.5.
+**Argument.** Mint events are attestations under $\sigma_{\text{mint}}$, included by validators in blocks. Per [PoUA v0.9.2](../poua/) §4.3 the reputation update rewards validators who include valid attestations and exposes them to the standard slashing conditions if those attestations are invalid or detected as part of a grinding pattern (§A.2 / §A.3). If $\mathcal{A}$ issues a fraudulent mint (a mint exceeding a stated cap, or a mint contradicting an off-chain authoritative source), the chain has the same recourse it has for any fraudulent attestation: detect, slash the validator who included it, and trigger appeal via §5.5.5.
 
 **Limit of this argument.** The chain detects *invalid* attestations (failed threshold signature) and *graph-shaped misbehavior* (§A.3 bipartite-density). It does not detect *semantically incorrect* mints (the attestor set issues a mint that satisfies cryptographic validity but is contractually unauthorized). Semantic correctness is the schema designer's problem, the same way it is for any application-layer schema. The reputation feedback loop bounds the cost of provably-bad behavior, not the cost of debatable behavior.
 

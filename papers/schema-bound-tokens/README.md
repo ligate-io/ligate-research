@@ -37,7 +37,7 @@ This note adopts the v0.7-PoUA discipline from draft v0.1:
 
 ## Dependencies
 
-- **[PoUA paper](../poua/) at v0.8+**. The attestor-set primitive and threshold-signature mechanics are PoUA's, used here without re-derivation.
+- **[PoUA paper](../poua/) at v0.9.2+**. The attestor-set primitive and threshold-signature mechanics are PoUA's, used here without re-derivation.
 - **[Per-Schema Fees](../per-schema-fees/) at v0.2+**. §3.3 of this note depends on the per-schema fee market being substantive in the supporting paper. v0.1 of this note flags the fee-market composition as an open question; v0.2 closes it.
 - **[Cross-Schema Composition](../cross-schema-composition/) at v0.2+**. §4.5 (sublicensing via meta-schemas) depends on the typed-reference primitive in the composition paper.
 - **[ligate-chain#286](https://github.com/ligate-io/ligate-chain/issues/286)**. The engineering design.

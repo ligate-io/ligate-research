@@ -15,9 +15,9 @@ Ligate Chain is the receipt layer for AI. Receipt creation alone is not enough: 
 
 This paper lands the detection narrative honestly. Six paths catch usage at different points in the workflow. Combined, they cover the cooperative-and-discoverable majority. Adversarial cases (deliberate metadata stripping) are a tail risk addressed by watermarking, which is research-grade and pluggable rather than baked in.
 
-## Planned outline
+## Section structure
 
-When v0.1 authoring opens, the paper will follow this section structure. Each is `[**v0.1:** intent annotation]` only at v0.0.
+The paper is substantive at v0.2 and follows this section structure:
 
 1. **Problem statement.** Why receipt creation alone is insufficient. The cooperative-vs-adversarial spectrum: most usage is cooperative (the user wants attribution); a tail is adversarial (the user wants to strip provenance). Different defenses for different points on the spectrum.
 2. **The six-path detection model.**

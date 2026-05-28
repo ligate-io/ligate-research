@@ -20,9 +20,9 @@ Two schemas covered here:
 
 Licensing is an **application-layer concern that belongs as a schema**, not a chain-layer token primitive. The receipt object stays minimal (claim, attestor, hash); the license is layered on as a separate attestation referencing the original receipt.
 
-## Planned outline
+## Section structure
 
-When v0.1 authoring opens, the paper will follow this section structure. Each is `[**v0.1:** intent annotation]` only at v0.0.
+The paper is substantive at v0.2 and follows this section structure:
 
 1. **Why licensing belongs as a schema, not as a chain-layer token primitive.** Keep the receipt object minimal: a Proof-of-Prompt receipt is a claim that "this prompt produced this output," not a license. License terms vary; the underlying claim does not. Layering license as a separate schema preserves the minimal-receipt invariant.
 2. **Schema design.** Fields, invariants, royalty terms, version-bumping rules. For prompt-licensing: prompt-id, creator-address, royalty-bps, license-type-enum, expiry. For content-licensing: artifact-hash, creator-address, royalty-bps, license-terms-uri, derivative-allowed-flag.
