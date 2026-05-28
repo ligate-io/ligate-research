@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "time-locked-attestations-sim"
+version = "0.1.0"
+description = "Reference simulator for Time-Locked / Commit-Reveal Attestations on Ligate Chain (paper Appendix A, M1 milestone)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0 OR MIT" }
+authors = [
+    { name = "Ligate Labs", email = "hello@ligate.io" },
+]
+keywords = ["commit-reveal", "time-lock", "blockchain", "simulation", "ligate-chain"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "numpy>=1.26",
+    "matplotlib>=3.8",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "W"]
