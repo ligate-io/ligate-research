@@ -4,10 +4,11 @@ A two-phase attestation primitive: commit phase publishes a binding commitment t
 
 ## Latest
 
-- **Working paper**: [`time-locked-attestations.md`](time-locked-attestations.md) (source) + [`time-locked-attestations.pdf`](time-locked-attestations.pdf) (27 pages, ~147 KB)
-- **Version**: v0.2 (substantive draft complete)
-- **Status**: **All ten sections substantive.** Block 1 (PR #114) landed Abstract + §3 + §5 + §6 + §7. Block 2 (this PR) lands §1 Introduction (1.1-1.8 + 1.6.1 status panel), §2 Background (5 subsections: cryptographic commitments, on-chain auctions, off-chain commit-reveal protocols, time-locked encryption, embargoed-document storage), §8 Failure Modes (6 subsections with bounded-damage arguments), §9 Limitations and Future Work (4 subsections), §10 Conclusion (5 paragraphs in conditional voice befitting v1.5-territory positioning), References (5 categories), Appendix A (simulator validation plan, gated on §6), Appendix B (formal definitions). §4 was already substantive from v0.1.1.
-- **Date**: 2026-05-22
+- **Working paper**: [`time-locked-attestations.md`](time-locked-attestations.md) (source) + [`time-locked-attestations.pdf`](time-locked-attestations.pdf)
+- **Reference simulator**: [`prototypes/time-locked-attestations-sim/`](../../prototypes/time-locked-attestations-sim/) (M1, shipped v0.2.1)
+- **Version**: v0.2.1 (substantive draft + M1 simulator)
+- **Status**: All ten sections substantive (v0.2). v0.2.1 ships the M1 reference simulator under [`prototypes/time-locked-attestations-sim/`](../../prototypes/time-locked-attestations-sim/) ahead of the §6 design-partner gate. M1 covers the partner-independent cryptographic and mechanism layers (§3 + §4 + §5 + §8) across 4 modules and 41 passing tests, plus cross-language test vectors at `test_vectors/commitment_canonical_encoding.json` and a §8 failure-mode panel figure at `out/failure_modes_panel.png`. Appendix A in the paper is rewritten from "planned" to "implemented." The use-case-validated work (§6 strategic-bidder auction game, embargo-leak game) stays M2 and gated on a partner submission.
+- **Date**: 2026-05-28
 
 ## Abstract (placeholder)
 
