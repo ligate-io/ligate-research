@@ -1,6 +1,39 @@
 # PoUA Paper Changelog
 
-Tracks substantive changes from v0.1 to v0.9.2. Each entry is brief; the paper itself is the source of truth.
+Tracks substantive changes from v0.1 to v0.10. Each entry is brief; the paper itself is the source of truth.
+
+---
+
+## v0.10 (2026-05-28): §A.4 real-chain Chung-Lu calibration
+
+Closes [issue #120](https://github.com/ligate-io/ligate-research/issues/120). The v0.9 cycle documented the §A.4 ER-vs-Chung-Lu gap analytically and empirically under synthetic $\alpha \in \{2.0, 2.5, 3.0\}$ but flagged that closing the gap requires fitting the power-law exponent against real chain data rather than choosing it. v0.10 ships that empirical work.
+
+**What's new in §A.4.**
+
+- New paragraph documenting the v0.10 empirical real-chain calibration after the existing synthetic-$\alpha$ paragraph.
+- New figure `a3_fpr_realchain.png` (Figure 11 in the rendered PDF) showing the A3 FPR Monte Carlo with the empirical degree sequence instead of synthetic $\alpha$, alongside the ER baseline.
+
+**What was measured.**
+
+- A 50-block sample of Ethereum mainnet, blocks 25,194,472-25,194,521 (sourced 2026-05-28 via a free public RPC, cached at `prototypes/poua-sim/data/ethereum_bipartite_*.json`).
+- 12,885 transactions; 6,930 unique senders, 4,131 unique recipients.
+- Hill estimator on the cached degree sequences: $\hat{\alpha}_{\text{sender}} = 2.26$, $\hat{\alpha}_{\text{recipient}} = 1.95$.
+- Kolmogorov-Smirnov against an exponential null: rejected on both sides (p $\approx 0$). The empirical tails are unambiguously non-exponential.
+- A3 FPR under the empirical Chung-Lu null tracks 3-30$\times$ below the analytical $\beta_3 = 1\%$ target across $p_{\text{base}} \in \{0.02, 0.05, 0.10, 0.15, 0.20\}$, consistent with the synthetic-$\alpha$ finding from v0.9.
+
+**Honest framing.** The empirical work strengthens but does not close the §A.4 calibration gap. Closing it still requires Ligate's own devnet attestation traffic (mid-2026 per the roadmap) so the threshold can be re-derived against the chain's domestic degree distribution rather than a foreign-chain structural proxy. v0.10's contribution is "the gap exists under real chain-graph data, not just synthetic power-law data."
+
+**Reproducibility.** Three new scripts under `prototypes/poua-sim/scripts/`:
+
+- `fetch_ethereum_bipartite.py`: pulls the cached block window from a public RPC.
+- `fit_powerlaw_and_calibrate.py`: Hill estimator + KS tests on the cached degree sequences.
+- `run_a3_fpr_realchain.py`: Monte Carlo with the empirical degree sequence, produces `out/a3_fpr_realchain.png`.
+
+All scripts are idempotent; re-running regenerates from the cached data.
+
+**Files touched.** `poua.md` (title block date + §A.4 + closing roadmap line), `poua.tex` (same), `poua.pdf` rebuilt, `papers/poua/README.md` version bump, three new sim scripts, one new figure, two new data caches.
+
+**No load-bearing changes.** Lemma 1 unchanged. The cost-to-attack moat in §5.3 unchanged. §A.2 detector formalism unchanged. v0.10 is empirical-validation work layered on top of the existing analytical claim.
 
 ---
 

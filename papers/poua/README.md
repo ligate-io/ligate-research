@@ -21,11 +21,11 @@ The simulator at [`prototypes/poua-sim/`](../../prototypes/poua-sim/) produces t
 ## Latest
 
 - **Working paper**: [`poua.pdf`](poua.pdf) (compiled) / [`poua.md`](poua.md) (markdown source) / [`poua.tex`](poua.tex) (LaTeX source for arXiv)
-- **Version**: v0.9.2
+- **Version**: v0.10
 - **Author**: Stefan Stefanović (Ligate Labs)
-- **arXiv**: [`arXiv:2605.25844`](https://arxiv.org/abs/2605.25844) (cs.CR primary, cs.DC + cs.GT cross-lists; submitted 2026-05-25)
-- **Status**: Author attribution on title page (aligns PDF with arXiv metadata); v0.9.1 reviewer clarity pass + release-prep tightening carried forward; preprint listed on arXiv
-- **Date**: 2026-05-25
+- **arXiv**: [`arXiv:2605.25844`](https://arxiv.org/abs/2605.25844) (cs.CR primary, cs.DC + cs.GT cross-lists; v1 submitted 2026-05-25; v2 with v0.10 §A.4 empirical work queued)
+- **Status**: §A.4 real-chain Chung-Lu calibration shipped: 12,885-transaction Ethereum mainnet sample, Hill estimator α̂ = (2.26 sender, 1.95 recipient), KS-rejected against exponential null, A3 FPR Monte Carlo confirms 3-30× sub-nominal realized FPR under empirical degrees. Closes [issue #120](https://github.com/ligate-io/ligate-research/issues/120). Reproducible via three new scripts under `prototypes/poua-sim/scripts/`. v0.9.2 prior content (author attribution, reviewer clarity pass) carries forward.
+- **Date**: 2026-05-28
 
 ## How to cite
 

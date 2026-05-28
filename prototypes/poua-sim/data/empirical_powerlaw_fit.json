@@ -1,0 +1,44 @@
+{
+  "source": {
+    "source_url": "https://ethereum-rpc.publicnode.com",
+    "fetched_at": "2026-05-28T14:44:08.014576+00:00",
+    "block_range": [
+      25194472,
+      25194521
+    ],
+    "block_count": 50,
+    "transaction_count": 12885
+  },
+  "sender_fit": {
+    "alpha_hat": 2.2573303193242005,
+    "x_min": 4.0,
+    "sample_size": 6930,
+    "max_degree": 192,
+    "ks_vs_power_law": {
+      "statistic": 0.3326488706365503,
+      "p_value": 1.555916279051661e-48
+    },
+    "ks_vs_exponential": {
+      "statistic": 0.4159885507709077,
+      "p_value": 0.0
+    }
+  },
+  "recipient_fit": {
+    "alpha_hat": 1.950218764919772,
+    "x_min": 5.0,
+    "sample_size": 4131,
+    "max_degree": 2321,
+    "ks_vs_power_law": {
+      "statistic": 0.1825726141078838,
+      "p_value": 1.6750502176364593e-07
+    },
+    "ks_vs_exponential": {
+      "statistic": 0.5143806160655408,
+      "p_value": 0.0
+    }
+  },
+  "interpretation": {
+    "alpha_for_a4_chung_lu": 2.104,
+    "comment": "\u03b1\u0302 averaged across sender and recipient sides for use as the empirical Chung-Lu exponent in \u00a7A.4. Both sides admit heavy tails inconsistent with an exponential null (KS p ~ 0); the Hill estimator's \u03b1\u0302 is a stable structural-fit handle, not a claim that Ethereum's transaction graph is exactly Pareto."
+  }
+}
