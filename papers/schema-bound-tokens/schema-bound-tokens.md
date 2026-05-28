@@ -356,4 +356,21 @@ The note cross-links to:
 
 ---
 
+## References
+
+1. Ligate Labs (2026). *Proof of Useful Attestation*. arXiv:2605.25844; this repo, [`papers/poua/`](../poua/). Attestor-set + threshold-signature mechanics, §5.5.3 Lemma 1 cost-to-grind floor (the economic floor on fraudulent mints), §5.5.5 appeal machinery.
+2. Ligate Labs (2026). *Per-Schema Fee Markets*. This repo, [`papers/per-schema-fees/`](../per-schema-fees/). §3.3 + §3.6 fee-market composition for mint events.
+3. Ligate Labs (2026). *Cross-Schema Composition*. This repo, [`papers/cross-schema-composition/`](../cross-schema-composition/). §4.3 typed references (used in §4.5 sublicensing meta-schemas and §6.1 regulated-currency reserves linkage), §5 cascade invalidation.
+4. Ligate Labs (2026). *Time-Locked Attestations*. This repo, [`papers/time-locked-attestations/`](../time-locked-attestations/). Validity-state-machine parallel for the §4.3 recall notice-period mechanics.
+5. Ligate Labs (2026). *Native Delegation*. This repo, [`papers/native-delegation/`](../native-delegation/). Risk-aversion-coefficient framing referenced in §4.1.
+6. Ligate Labs (2026). *AVOW Tokenomics*. This repo, [`papers/tokenomics/`](../tokenomics/). Mint-fee economics and the 1B `$AVOW` supply context.
+7. Vogelsteller, F., Buterin, V. (2015). *EIP-20: Token Standard*. Ethereum Improvement Proposals.
+8. Entriken, W., Shirley, D., Evans, J., Sachs, N. (2018). *EIP-721: Non-Fungible Token Standard*. Ethereum Improvement Proposals.
+9. Ethereum Attestation Service (2024). *EAS Documentation: Schema Resolvers and Revocation*. docs.attest.org.
+10. Komlo, C., Goldberg, I. (2020). *FROST: Flexible Round-Optimized Schnorr Threshold Signatures*. Selected Areas in Cryptography (SAC) 2020.
+11. Safe Ecosystem Foundation (2024). *Safe{Core} Protocol: Multisignature Smart Account Documentation*. docs.safe.global.
+12. Ligate Labs (2026). *Schema-Bound Tokens engineering RFC*. ligate-chain#286; standard token primitives in ligate-chain#47 / #48; `$AVOW` mint-fee economics in ligate-chain#258; Themisra Prompt Marketplace in ligate-chain#384.
+
+---
+
 *End of working paper v0.2. Comments welcome to hello@ligate.io.*
