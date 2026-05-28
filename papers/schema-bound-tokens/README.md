@@ -68,10 +68,10 @@ The note shares the PoUA paper's `header-includes.tex` for LaTeX styling.
 
 ## Related
 
-- [PoUA paper](../poua/) (v0.8, source of attestor-set + threshold-signature primitives)
-- [Per-Schema Fees paper](../per-schema-fees/) (v0.1.1, fee-market integration)
-- [Cross-Schema Composition paper](../cross-schema-composition/) (v0.1.1, typed-reference primitive for sublicensing)
-- [Native Delegation paper](../native-delegation/) (v0.1.1, adjacent theme of validator-attestor economic flows)
+- [PoUA paper](../poua/) (v0.10, source of attestor-set + threshold-signature primitives)
+- [Per-Schema Fees paper](../per-schema-fees/) (v0.2, fee-market integration)
+- [Cross-Schema Composition paper](../cross-schema-composition/) (v0.2, typed-reference primitive for sublicensing)
+- [Native Delegation paper](../native-delegation/) (v0.2, adjacent theme of validator-attestor economic flows)
 - [ligate-research#84](https://github.com/ligate-io/ligate-research/issues/84) (tracking issue for this note)
 
 ## License
