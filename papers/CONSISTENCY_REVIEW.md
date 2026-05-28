@@ -1,10 +1,22 @@
 # Cross-Paper Consistency Review
 
-**Reviewed:** 2026-05-04
-**Scope:** PoUA v0.7.2 + 5 supplementary papers (per-schema-fees, native-delegation, native-da, cross-schema-composition, time-locked-attestations) at v0.1.1.
-**Method:** read each paper's substantive sections (where v0.1.1 work exists) and check notation, terminology, cross-references, and style against PoUA v0.7.2 as the canonical baseline.
+**Last full review:** 2026-05-04
+**Scope of full review:** PoUA v0.7.2 + 5 supplementary papers (per-schema-fees, native-delegation, native-da, cross-schema-composition, time-locked-attestations) at v0.1.1.
+**Method:** read each paper's substantive sections and check notation, terminology, cross-references, and style against PoUA as the canonical baseline.
 
 This document captures findings. Specific fixes are filed as inline edits (where clear-cut) or follow-up issues (where they need discussion).
+
+## Status note as of 2026-05-28
+
+The portfolio has grown substantially since the 2026-05-04 full review. Current state:
+
+- **PoUA**: v0.9.2 (arXiv:2605.25844)
+- **Five papers reviewed in the 2026-05-04 full pass**: all at v0.2 (substantive draft complete) on 2026-05-25
+- **Nine new papers since the full pass** (added 2026-05-25 to 2026-05-28): schema-bound-tokens v0.2, cross-chain-portability v0.2, tokenomics v0.4, eas-comparison v0.2, c2pa-composition v0.2, tee-composition v0.2, pq-migration v0.2, themisra-licensing-schemas v0.2, verifiable-content-provenance v0.2
+- **time-locked-attestations**: bumped v0.2 → v0.2.1 on 2026-05-28 with the M1 reference simulator
+- **Three reference simulators** validate headline claims: PoUA, native-delegation, per-schema-fees. M1 time-locked-attestations simulator shipped 2026-05-28.
+
+A full re-audit across all 15 papers is queued; this status note is the bridge until that lands. Spot-checks during the v0.2 promotion sweep (References sweep PR #163, simulator-shipping PR #164) did not surface load-bearing notation drift; the 2026-05-04 conflicts catalogued below remain the canonical list of known issues.
 
 ---
 
