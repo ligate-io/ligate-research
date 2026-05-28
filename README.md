@@ -1,8 +1,8 @@
 # Ligate Research
 
-Public research artifacts from Ligate Labs: working papers, formal specifications, and reference simulators for protocol primitives that ship in [Ligate Chain](https://github.com/ligate-io/ligate-chain) and adjacent projects.
+Public research artifacts from Ligate Labs: working papers and reference simulators for the protocol primitives that ship in [Ligate Chain](https://github.com/ligate-io/ligate-chain) and adjacent projects. Fifteen papers across consensus, delegation, per-schema fee markets, typed attestation composition, time-locks, native data availability, schema-bound tokens, cross-chain portability, AVOW tokenomics, and four comparison or integration notes (EAS, C2PA, TEE, post-quantum migration), plus two Themisra-specific schema papers. Three Python simulators (PoUA, native delegation, per-schema fees) empirically validate the headline claims. The foundation paper, [Proof of Useful Attestation](papers/poua/), is on arXiv at [2605.25844](https://arxiv.org/abs/2605.25844).
 
-This repository is the upstream of the technical claims our marketing surface (ligate.io, ligate.io/docs) makes. If a claim about consensus, fee markets, attestation composition, delegation, or any other protocol-level design decision appears on the marketing site, the corresponding paper or spec lives here.
+This repository is the upstream of the technical claims our marketing surface ([ligate.io](https://ligate.io), [docs.ligate.io](https://docs.ligate.io)) makes. If a claim about consensus, fee markets, attestation composition, delegation, or any other protocol-level design decision appears on the marketing site, the corresponding paper lives here.
 
 ![Four-panel portfolio overview: PoUA cost-to-attack and realized κ lifecycle (top), native-delegation §5.5 satisfying region and per-schema-fees KL-detector ROC (bottom)](figures/portfolio-overview.png)
 
@@ -10,15 +10,17 @@ This repository is the upstream of the technical claims our marketing surface (l
 
 ## What's in scope
 
-- **Working papers**: design documents for novel protocol primitives, written at a level appropriate for academic and engineering review (`papers/`)
-- **Reference simulators**: Python prototypes that exercise the mechanisms papers describe, used for parameter calibration and empirical validation of paper claims (`prototypes/`)
-- **Specification drafts**: formalized specifications that bridge papers and the engineering RFCs in `ligate-chain/docs/protocol/rfcs/` (in `papers/` alongside the corresponding paper)
+- **Working papers** (`papers/`): design documents for novel protocol primitives, written at a level appropriate for academic and engineering review. Each paper carries its own README with version history and an annotated quick-read summary.
+- **Reference simulators** (`prototypes/`): Python prototypes that exercise the mechanisms papers describe, used for parameter calibration and empirical validation of paper claims. Every load-bearing numerical claim in a published paper should resolve to a simulator test or test vector; see [`papers/README.md`](papers/README.md) for the discipline.
+- **Cross-paper consistency** ([`papers/CONSISTENCY_REVIEW.md`](papers/CONSISTENCY_REVIEW.md)): running ledger of where two papers touch the same primitive and which one is authoritative.
+
+The engineering RFCs in `ligate-chain/docs/protocol/rfcs/` consume the papers here; this repo holds the research, the chain repo holds the protocol-level normative spec.
 
 ## What's NOT in scope
 
-- Production code (lives in `ligate-chain`)
-- Marketing copy or vision documents (live in `ligate-marketing`, public via ligate.io)
-- Engineering tickets (filed in the relevant repo's GitHub issues)
+- Production code (lives in [`ligate-chain`](https://github.com/ligate-io/ligate-chain))
+- Marketing copy and vision documents (live in `ligate-marketing`, public via [ligate.io](https://ligate.io))
+- Engineering tickets (filed in the relevant repo's GitHub issues; cross-repo umbrellas live in `ligate-marketing`)
 
 ## Current papers
 
@@ -42,7 +44,9 @@ This repository is the upstream of the technical claims our marketing surface (l
 
 ## Reading and contributing
 
-These are working papers. They are public so that external review, critique, and collaboration are possible, not because they are finished. Each paper carries an explicit version history and a `STATUS` line in its title block. Drafts are marked as such; do not cite a v0.x paper as a finished result.
+These are working papers. They are public so that external review, critique, and collaboration are possible, not because they are finished. Each paper carries an explicit version history and a status line in its title block. Drafts are marked as such; do not cite a v0.x paper as a finished result. If you do cite, cite the version explicitly (e.g., "PoUA v0.9.2") so it is unambiguous which revision the claim relies on.
+
+If you don't know where to start, the foundation paper is [PoUA](papers/poua/) ([arXiv:2605.25844](https://arxiv.org/abs/2605.25844)). The other papers either consume PoUA's primitives ([per-schema-fees](papers/per-schema-fees/), [cross-schema-composition](papers/cross-schema-composition/), [schema-bound-tokens](papers/schema-bound-tokens/)) or specify the runtime layer that sits on top of it ([native-delegation](papers/native-delegation/), [time-locked-attestations](papers/time-locked-attestations/), [native-da](papers/native-da/)). The remaining notes are economics ([tokenomics](papers/tokenomics/)), portability ([cross-chain-portability](papers/cross-chain-portability/)), comparisons ([eas-comparison](papers/eas-comparison/), [c2pa-composition](papers/c2pa-composition/), [tee-composition](papers/tee-composition/)), migration plans ([pq-migration](papers/pq-migration/)), and Themisra schema work ([themisra-licensing-schemas](papers/themisra-licensing-schemas/), [verifiable-content-provenance](papers/verifiable-content-provenance/)).
 
 Issues and pull requests are welcome:
 
@@ -50,7 +54,7 @@ Issues and pull requests are welcome:
 - For typos or small wording fixes, send a PR directly
 - For larger structural revisions, open an issue first to discuss
 
-We do not expect external contributors to author full papers in this repo at this stage. Once the research direction stabilizes (mid-2026 onward), we anticipate opening up authorship more broadly.
+All pull requests trigger a Contributor License Agreement check. The CLA terms are in [`CLA.md`](CLA.md); the assistant bot will prompt you to sign inline on your first PR. We do not expect external contributors to author full papers in this repo at the current stage; that surface opens up as the research direction stabilizes.
 
 ## License
 
