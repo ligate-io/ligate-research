@@ -96,9 +96,9 @@ Chains}\label{a-consensus-primitive-for-attestation-native-chains}
 
 \emph{Ligate Labs}
 
-\textbf{Working Paper v0.9.2}
+\textbf{Working Paper v0.10}
 
-\textbf{Date:} 2026-05-25
+\textbf{Date:} 2026-05-28
 
 \textbf{Contact:} hello@ligate.io
 
@@ -3906,6 +3906,15 @@ quantifies this empirically.
 \label{fig:a3-fpr-comparison}
 \end{figure}
 
+\textbf{Real-chain calibration (v0.10).} The synthetic $\alpha \in \{2.0, 2.5, 3.0\}$ figure above quantifies the gap structurally but uses chosen power-law exponents rather than an exponent fitted to a real chain. v0.10 closes that empirical gap by pulling a recent 50-block window from Ethereum mainnet (12,885 transactions, blocks 25,194,472-25,194,521, sourced via a free public RPC and cached at \texttt{prototypes/poua-sim/data/}), projecting to the (sender, recipient) bipartite, and fitting a power-law tail via the Hill estimator. The fitted exponents are $\hat{\alpha}_{\text{sender}} = 2.26$ and $\hat{\alpha}_{\text{recipient}} = 1.95$; both sides admit heavy tails (KS p-value vs an exponential null $\approx 0$ on both sides, sample sizes 6,930 and 4,131 unique addresses). The empirical $\hat{\alpha}$ sits at the heavy-tailed end of the synthetic range used in Figure \ref{fig:a3-fpr-comparison}. Figure \ref{fig:a3-fpr-realchain} reruns the A3 FPR Monte Carlo using the empirical degree sequence (resampled with replacement to the same $30 \times 30$ bipartite size) and confirms the structural finding: under realistic chain-graph degrees, realized FPR drops 3-30$\times$ below the analytical $\beta_3 = 1\%$ target, consistent with the synthetic-$\alpha$ result. This strengthens but does not close the §A.4 calibration gap: closing it requires Ligate's own devnet attestation traffic (mid-2026) so the threshold can be re-derived against the chain's domestic degree distribution rather than a foreign-chain structural proxy. Reproducible via \texttt{scripts/fetch\_ethereum\_bipartite.py}, \texttt{scripts/fit\_powerlaw\_and\_calibrate.py}, and \texttt{scripts/run\_a3\_fpr\_realchain.py}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{../../prototypes/poua-sim/out/a3_fpr_realchain.png}
+\caption{A3 false-positive rate under the §A.2 Erdős-Rényi null versus a Chung-Lu null using the empirical degree distribution from an Ethereum mainnet sample (12,885 transactions, blocks 25,194,472-25,194,521, sourced 2026-05-28 via a free public RPC; 6,930 unique senders, 4,131 unique recipients). 5,000 Monte Carlo trials per $p_{\text{base}} \in \{0.02, 0.05, 0.10, 0.15, 0.20\}$ on a $30 \times 30$ bipartite graph; senders and recipients resampled with replacement from the empirical sequences. The Hill estimator on the cached degree sequences gives $\hat{\alpha}_{\text{sender}} = 2.26$ and $\hat{\alpha}_{\text{recipient}} = 1.95$ (both sides KS-rejected against an exponential null). Under the ER null the realized FPR tracks nominal within $\sim$2$\sigma$ binomial. Under the empirical Chung-Lu null the realized FPR sits 3-30$\times$ below nominal across the swept range. This confirms the §A.4 structural finding (Figure \ref{fig:a3-fpr-comparison}) with real chain-graph data rather than synthetic $\alpha$; production calibration against Ligate's own devnet traffic (mid-2026) is still required.}
+\label{fig:a3-fpr-realchain}
+\end{figure}
+
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \subsection{Appendix B: Formal Definitions
@@ -3977,16 +3986,18 @@ reference at
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
-\emph{End of working paper v0.9.2. Comments welcome to hello@ligate.io.}
+\emph{End of working paper v0.10. Comments welcome to hello@ligate.io.}
 
-\emph{Roadmap: v0.10 will incorporate real-chain Chung-Lu calibration
-for §A.4 using adjacent-chain transaction graphs as a structural proxy
+\emph{Roadmap: v0.10 (this version, 2026-05-28) shipped the §A.4
+real-chain Chung-Lu calibration
 (\href{https://github.com/ligate-io/ligate-research/issues/120}{issue
-\#120}) ahead of full Ligate devnet maturity. v1.0 will incorporate
-Ligate devnet calibration data once devnet stabilizes (mid-2026),
-reviewer feedback from the arXiv submission, and any §A.3 / §A.4
-production-calibration refinements driven by domestic chain-graph
-baselines. v1.0 is the venue-submission target (mid-2027 if appropriate
+\#120} closed) by fitting a power-law tail to a 12,885-transaction
+Ethereum mainnet sample and confirming the synthetic-$\alpha$ finding
+under empirical degrees. v1.0 will incorporate Ligate devnet calibration
+data once devnet stabilizes (mid-2026), reviewer feedback from the arXiv
+submission, and any §A.3 / §A.4 production-calibration refinements
+driven by domestic chain-graph baselines. v1.0 is the venue-submission
+target (mid-2027 if appropriate
 venue).}
 
 \end{document}
