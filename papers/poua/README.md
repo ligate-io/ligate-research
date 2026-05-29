@@ -58,9 +58,19 @@ pandoc poua.md -o poua.pdf \
   -V geometry:margin=1in \
   -V documentclass=article \
   -V fontsize=11pt
+
+# PoUA embeds 20 figures, so the raw pandoc output is ~1.1 MB, which exceeds
+# GitHub's inline-PDF preview limit. Downsample the embedded rasters to ~110 DPI
+# (final ~629 KB) so the committed PDF previews in-browser. Body text and math
+# are vector and untouched; only the figures soften slightly. Requires ghostscript.
+gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 -dNOPAUSE -dQUIET -dBATCH -dDetectDuplicateImages=true \
+   -dDownsampleColorImages=true -dColorImageResolution=110 -dColorImageDownsampleThreshold=1.0 \
+   -dDownsampleGrayImages=true -dGrayImageResolution=110 -dGrayImageDownsampleThreshold=1.0 \
+   -dAutoFilterColorImages=false -dColorImageFilter=/DCTEncode \
+   -sOutputFile=poua-min.pdf poua.pdf && mv poua-min.pdf poua.pdf
 ```
 
-See the root [CONTRIBUTING.md](../../CONTRIBUTING.md) for tooling setup.
+This is the only paper that needs the compression pass; the others are figure-light and stay well under the limit. See the root [CONTRIBUTING.md](../../CONTRIBUTING.md) for tooling setup.
 
 ## Version history
 
